@@ -1,3 +1,5 @@
+// TODO The grammar has errors we need to fix
+
 PARSER_PACKAGE=pt.up.fe.comp;
 PARSER_CLASS=JmmGrammarParser;
 SMART_NODE_CREATION=false;
@@ -5,35 +7,133 @@ SMART_NODE_CREATION=false;
 SKIP : " " | "\t" | "\r" | "\n";
 
 TOKEN :
+    // Keywords
+    < IMPORT : "import" > |
+    < CLASS : "class" > |
+    < EXTENDS : "extends" > |
+    < PUBLIC : "public" > |
+    < RETURN: "return" > |
+    < STATIC: "static" > |
+    < MAIN: "main" > |
+    < IF: "if" > |
+    < ELSE: "else" > |
+    < WHILE: "while" > |
+    < TRUE: "true" > |
+    < FALSE: "false" > |
+    < THIS: "this" > |
+    < NEW: "new" > |
+
+    // Types
+    < VOID: "void" > |
+    < STRING: "String" > |
+    < INT: "int" > |
+    < BOOL: "boolean" > |
+
+    // Attributes
+    < LENGTH: "length" > |
+
+    // Operators
 	< PLUS : "+" > |
 	< MINUS : "-" > |
 	< TIMES : "*" > |
 	< DIVIDE : "/" > |
-	< OPEN_PAREN : "(" > |
+	< EQUAL : "=" > |
+	< AND : "&&" > |
+	< LESS: "<" > |
+	< GREATER: ">" > |
+	< NOT: "!" > |
+
+    // Parenthesis and alike
+    < OPEN_PAREN : "(" > |
 	< CLOSE_PAREN : ")" > |
-	< INTEGER : (["0" - "9"])+ >
+	< OPEN_CURLY : "{" > |
+	< CLOSE_CURLY : "}" > |
+	< OPEN_SQUARE : "[" > |
+	< CLOSE_SQUARE : "]" > |
+
+    // Separators
+	< LF : "\n" > |
+	< SEMICOLON : ";" > |
+	< DOT: "." > |
+	< COMMA: "," > |
+
+    // Symbols
+    < DIGIT: ["0"-"9"] > |
+    < INTEGER_LITERAL : ( <DIGIT> )+ > |
+    < LETTER: ["a"-"z","A"-"Z"] > |
+    < UNDERSCORE: "_" > |
+    < DOLLAR: "$" > |
+    // Clarification https://stackoverflow.com/questions/35578567/java-regex-for-identifiers-letters-digits-and-underscores
+	< IDENTIFIER:
+	    ( ( <LETTER> | <DOLLAR> ) ( <LETTER> | <DIGIT> | <UNDERSCORE> | <DOLLAR> )* ) |
+	    ( <UNDERSCORE> ( <LETTER> | <DIGIT> | <UNDERSCORE> | <DOLLAR> )+ ) // Can't have identifier with single underscore
+	>
 ;
 
-Start : AdditiveExpression <EOF> ;
-
-AdditiveExpression :
-	MultiplicativeExpression
-	(
-		(< PLUS > | < MINUS >)
-		MultiplicativeExpression
-	)?
+Program #void :
+    ImportDeclaration ClassDeclaration <EOF>
 ;
 
-MultiplicativeExpression :
-	Factor
-	(
-		(< TIMES > | < DIVIDE >)
-		Factor
-	)?
+ImportDeclaration #void :
+    ( <IMPORT> <IDENTIFIER> ( <DOT> <IDENTIFIER> )* <SEMICOLON> )*
 ;
 
-Factor :
-	< INTEGER > |
-	< MINUS> Factor |
-	< OPEN_PAREN > AdditiveExpression < CLOSE_PAREN >
+ClassDeclaration #void :
+    <CLASS> <IDENTIFIER> [ <EXTENDS> <IDENTIFIER> ] <OPEN_CURLY>
+        ( VarDeclaration )*
+        ( MethodDeclaration )*
+    <CLOSE_CURLY>
+;
+
+VarDeclaration #void :
+    Type <IDENTIFIER> <SEMICOLON>
+;
+
+MethodDeclaration #void :
+    ( <PUBLIC> Type <IDENTIFIER> <OPEN_PAREN>
+        [ Type <IDENTIFIER> ( <COMMA> Type <IDENTIFIER> )* ]
+    <CLOSE_PAREN> <OPEN_CURLY>
+        ( VarDeclaration )*
+        ( Statement )*
+        <RETURN> Expression <SEMICOLON>
+    <CLOSE_CURLY> ) |
+    ( <PUBLIC> <STATIC> <VOID> <MAIN> <OPEN_PAREN>
+        <STRING> <OPEN_SQUARE> <CLOSE_SQUARE> <IDENTIFIER>
+    <CLOSE_PAREN> <OPEN_CURLY>
+        ( VarDeclaration )*
+        ( Statement )*
+    <CLOSE_CURLY> )
+;
+
+Type #void :
+    <INT> <OPEN_SQUARE> <CLOSE_SQUARE> |
+    <BOOL> |
+    <INT> |
+    <IDENTIFIER>
+;
+
+Statement #void :
+    ( <OPEN_CURLY> ( Statement )* <CLOSE_CURLY> ) |
+    ( <IF> <OPEN_PAREN> Expression <CLOSE_PAREN> Statement <ELSE> Statement ) |
+    ( <WHILE> <OPEN_PAREN> Expression <CLOSE_PAREN> Statement ) |
+    ( Expression <SEMICOLON> ) |
+    ( <IDENTIFIER> <EQUAL> Expression <SEMICOLON> ) |
+    ( <IDENTIFIER> <OPEN_SQUARE> Expression <CLOSE_SQUARE> <EQUAL> Expression <SEMICOLON> )
+;
+
+Expression #void :
+    // TODO why is <GREATER> missing?
+    ( Expression ( <AND> | <LESS> | <PLUS> | <MINUS> | <TIMES> | <DIVIDE> ) Expression ) |
+    ( Expression <OPEN_SQUARE> Expression <CLOSE_SQUARE> ) |
+    ( Expression <DOT> <LENGTH> ) |
+    ( Expression <DOT> <IDENTIFIER> <OPEN_PAREN> [ Expression ( <COMMA> Expression )* ] <CLOSE_PAREN> ) |
+    <INTEGER_LITERAL> |
+    <TRUE> |
+    <FALSE> |
+    <IDENTIFIER> |
+    <THIS> |
+    ( <NEW> <INT> <OPEN_SQUARE> Expression <CLOSE_SQUARE> ) |
+    ( <NEW> <IDENTIFIER> <OPEN_PAREN> <CLOSE_PAREN> ) |
+    ( <NOT> Expression ) |
+    ( <OPEN_PAREN> Expression <CLOSE_PAREN> )
 ;
