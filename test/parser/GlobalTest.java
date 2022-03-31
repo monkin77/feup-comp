@@ -1,4 +1,4 @@
-package Parser;
+package parser;
 
 import org.junit.Test;
 import pt.up.fe.specs.util.SpecsIo;

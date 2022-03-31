@@ -11,19 +11,29 @@
  * specific language governing permissions and limitations under the License. under the License.
  */
 
-package Parser;
+package parser;
 
 import pt.up.fe.comp.TestUtils;
 
 public abstract class ParserTest {
 
-    protected static void noErrors(String code) {
+    protected void noErrors(String code) {
         var result = TestUtils.parse(code);
         TestUtils.noErrors(result);
     }
 
-    protected static void mustFail(String code) {
+    protected void mustFail(String code) {
         var result = TestUtils.parse(code);
+        TestUtils.mustFail(result);
+    }
+
+    protected void noErrors(String code, String startingRule) {
+        var result = TestUtils.parse(code, startingRule);
+        TestUtils.noErrors(result);
+    }
+
+    protected void mustFail(String code, String startingRule) {
+        var result = TestUtils.parse(code, startingRule);
         TestUtils.mustFail(result);
     }
 }
