@@ -84,24 +84,35 @@ ClassDeclaration #void :
     <CLOSE_CURLY>
 ;
 
+VarDeclarations #void :
+    ( SCAN 2 ( VarDeclaration ) )*
+;
+
 VarDeclaration #void :
     Type <IDENTIFIER> <SEMICOLON>
 ;
 
 MethodDeclaration #void :
-    ( <PUBLIC> Type <IDENTIFIER> <OPEN_PAREN>
+    <PUBLIC> ( PublicMethodDeclaration | MainDeclaration )
+;
+
+PublicMethodDeclaration #void :
+    Type <IDENTIFIER> <OPEN_PAREN>
         [ Type <IDENTIFIER> ( <COMMA> Type <IDENTIFIER> )* ]
     <CLOSE_PAREN> <OPEN_CURLY>
-        ( VarDeclaration )*
+        VarDeclarations
         ( Statement )*
         <RETURN> Expression <SEMICOLON>
-    <CLOSE_CURLY> ) |
-    ( <PUBLIC> <STATIC> <VOID> <MAIN> <OPEN_PAREN>
+    <CLOSE_CURLY>
+;
+
+MainDeclaration #void :
+    <STATIC> <VOID> <MAIN> <OPEN_PAREN>
         <STRING> <OPEN_SQUARE> <CLOSE_SQUARE> <IDENTIFIER>
     <CLOSE_PAREN> <OPEN_CURLY>
-        ( VarDeclaration )*
+        VarDeclarations
         ( Statement )*
-    <CLOSE_CURLY> )
+    <CLOSE_CURLY>
 ;
 
 Type #void :
@@ -115,7 +126,7 @@ Statement #void :
     ( <OPEN_CURLY> ( Statement )* <CLOSE_CURLY> ) |
     ( <IF> <OPEN_PAREN> Expression <CLOSE_PAREN> Statement <ELSE> Statement ) |
     ( <WHILE> <OPEN_PAREN> Expression <CLOSE_PAREN> Statement ) |
-    Assignment <SEMICOLON> |
+    Assignment <SEMICOLON> | // TODO distinction between a[2] = 2; and a[2];
     ( Expression <SEMICOLON> )
 ;
 
@@ -127,7 +138,7 @@ AndExpression #void :
     LessExpression (<AND> LessExpression)*
 ;
 
-LessExpresion #void :
+LessExpression #void :
     ArithmeticExpression (<LESS> ArithmeticExpression)*
 ;
 
@@ -193,6 +204,6 @@ ExpressionTerminal #void :
     <FALSE> |
     <IDENTIFIER> |
     <THIS> |
-    ( <OPEN_PAREN> Expression <CLOSE_PAREN> )
+    ParenExpression |
     NewExpression
 ;
