@@ -1,7 +1,3 @@
-// TODO The grammar has errors we need to fix
-
-// TODO The grammar has errors we need to fix
-
 PARSER_PACKAGE=pt.up.fe.comp;
 PARSER_CLASS=JmmGrammarParser;
 SMART_NODE_CREATION=false;
@@ -71,9 +67,7 @@ TOKEN :
     < DOLLAR: "$" >
 ;
 
-Start :
-    Program;
-
+Start : Program;
 
 Program #void :
     ImportDeclaration ClassDeclaration <EOF>
@@ -121,10 +115,9 @@ Statement #void :
     ( <OPEN_CURLY> ( Statement )* <CLOSE_CURLY> ) |
     ( <IF> <OPEN_PAREN> Expression <CLOSE_PAREN> Statement <ELSE> Statement ) |
     ( <WHILE> <OPEN_PAREN> Expression <CLOSE_PAREN> Statement ) |
-    Assignment <SEMICOLON>
-    ( Expression <SEMICOLON> ) |
+    Assignment <SEMICOLON> |
+    ( Expression <SEMICOLON> )
 ;
-
 
 Expression #void :
     AndExpression
@@ -172,9 +165,8 @@ IdOrArrayExpression #void :
 ;
 
 ArrayExpression #void :
-    <OPEN_SQUARE> Expression <CLOSE_SQUARE>
+    <IDENTIFIER> <OPEN_SQUARE> Expression <CLOSE_SQUARE>
 ;
-
 
 NewExpression #void:
     <NEW> (
@@ -204,4 +196,3 @@ ExpressionTerminal #void :
     ( <OPEN_PAREN> Expression <CLOSE_PAREN> )
     NewExpression
 ;
-
