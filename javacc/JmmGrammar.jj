@@ -121,50 +121,60 @@ Statement #void :
     ( <OPEN_CURLY> ( Statement )* <CLOSE_CURLY> ) |
     ( <IF> <OPEN_PAREN> Expression <CLOSE_PAREN> Statement <ELSE> Statement ) |
     ( <WHILE> <OPEN_PAREN> Expression <CLOSE_PAREN> Statement ) |
-    ( Expression <SEMICOLON> ) |
     Assignment <SEMICOLON>
+    ( Expression <SEMICOLON> ) |
 ;
+
 
 Expression #void :
-    // TODO why is <GREATER> missing?
-
-    ( Expression ( <AND> | <LESS> | <PLUS> | <MINUS> | <TIMES> | <DIVIDE> ) Expression ) |
-    ( Expression <OPEN_SQUARE> Expression <CLOSE_SQUARE> ) |
-    ( Expression <DOT> <LENGTH> ) |
-    ( Expression <DOT> <IDENTIFIER> <OPEN_PAREN> [ Expression ( <COMMA> Expression )* ] <CLOSE_PAREN> ) |
-    ExpressionTerminal |
-    NotExpression |
-    ParenExpression
+    AndExpression
 ;
 
+AndExpression #void :
+    LessExpression (<AND> LessExpression)*
+;
 
+LessExpresion #void :
+    ArithmeticExpression (<LESS> ArithmeticExpression)*
+;
+
+ArithmeticExpression #void :
+    MultiplicativeExpression ( (<PLUS> | <MINUS>) MultiplicativeExpression )*
+;
+
+MultiplicativeExpression #void :
+    NotExpression ( ( <TIMES> | <DIVIDE> ) NotExpression)*
+;
+
+// TODO verify this
+NotExpression #void :
+    ( <NOT> )* DotArrayExpression
+;
+
+DotArrayExpression #void :
+    ExpressionTerminal ( DotExpression | ArrayExpression ) *
+;
+
+DotExpression #void :
+    <DOT> ( <LENGTH> | DotMethod )
+;
+
+DotMethod #void :
+    <IDENTIFIER> <OPEN_PAREN> [ Expression ( <COMMA> Expression )* ] <CLOSE_PAREN>
+;
 
 Assignment #void :
-    SCAN 2 ( <IDENTIFIER> | ArrayAssignment ) <EQUALS> Expression
+    IdOrArrayExpression <EQUALS> Expression
 ;
 
-ArrayAssignment #void :
+IdOrArrayExpression #void :
+    SCAN 2 ( ArrayExpression | <IDENTIFIER> )
+;
+
+ArrayExpression #void :
     <OPEN_SQUARE> Expression <CLOSE_SQUARE>
 ;
 
-ExpressionTerminal #void :
-    <INTEGER_LITERAL> |
-    <TRUE> |
-    <FALSE> |
-    <IDENTIFIER> |
-    <THIS> |
-    NewExpression
-;
-
-// TODO probably change this
-ParenExpression #void :
-    ( <OPEN_PAREN> Expression <CLOSE_PAREN> )
-;
-
-// TODO probably change this
-NotExpression #void :
-    ( <NOT> Expression )
-;
 
 NewExpression #void:
     <NEW> (
@@ -180,3 +190,18 @@ NewArrayExpression #void :
 NewObjectExpression #void :
     <IDENTIFIER> <OPEN_PAREN> <CLOSE_PAREN>
 ;
+
+ParenExpression #void :
+    ( <OPEN_PAREN> Expression <CLOSE_PAREN> )
+;
+
+ExpressionTerminal #void :
+    <INTEGER_LITERAL> |
+    <TRUE> |
+    <FALSE> |
+    <IDENTIFIER> |
+    <THIS> |
+    ( <OPEN_PAREN> Expression <CLOSE_PAREN> )
+    NewExpression
+;
+
