@@ -1,5 +1,7 @@
 // TODO The grammar has errors we need to fix
 
+// TODO The grammar has errors we need to fix
+
 PARSER_PACKAGE=pt.up.fe.comp;
 PARSER_CLASS=JmmGrammarParser;
 SMART_NODE_CREATION=false;
@@ -37,10 +39,9 @@ TOKEN :
 	< MINUS : "-" > |
 	< TIMES : "*" > |
 	< DIVIDE : "/" > |
-	< EQUAL : "=" > |
+	< EQUALS : "=" > |
 	< AND : "&&" > |
 	< LESS: "<" > |
-	< GREATER: ">" > |
 	< NOT: "!" > |
 
     // Parenthesis and alike
@@ -52,23 +53,27 @@ TOKEN :
 	< CLOSE_SQUARE : "]" > |
 
     // Separators
-	< LF : "\n" > |
 	< SEMICOLON : ";" > |
 	< DOT: "." > |
 	< COMMA: "," > |
 
-    // Symbols
-    < DIGIT: ["0"-"9"] > |
-    < INTEGER_LITERAL : ( <DIGIT> )+ > |
-    < LETTER: ["a"-"z","A"-"Z"] > |
-    < UNDERSCORE: "_" > |
-    < DOLLAR: "$" > |
     // Clarification https://stackoverflow.com/questions/35578567/java-regex-for-identifiers-letters-digits-and-underscores
 	< IDENTIFIER:
 	    ( ( <LETTER> | <DOLLAR> ) ( <LETTER> | <DIGIT> | <UNDERSCORE> | <DOLLAR> )* ) |
 	    ( <UNDERSCORE> ( <LETTER> | <DIGIT> | <UNDERSCORE> | <DOLLAR> )+ ) // Can't have identifier with single underscore
-	>
+	> |
+
+    // Symbols
+    < INTEGER_LITERAL : ( <DIGIT> )+ > |
+    < DIGIT: ["0"-"9"] > |
+    < LETTER: ["a"-"z","A"-"Z"] > |
+    < UNDERSCORE: "_" > |
+    < DOLLAR: "$" >
 ;
+
+Start :
+    Program;
+
 
 Program #void :
     ImportDeclaration ClassDeclaration <EOF>
@@ -117,23 +122,61 @@ Statement #void :
     ( <IF> <OPEN_PAREN> Expression <CLOSE_PAREN> Statement <ELSE> Statement ) |
     ( <WHILE> <OPEN_PAREN> Expression <CLOSE_PAREN> Statement ) |
     ( Expression <SEMICOLON> ) |
-    ( <IDENTIFIER> <EQUAL> Expression <SEMICOLON> ) |
-    ( <IDENTIFIER> <OPEN_SQUARE> Expression <CLOSE_SQUARE> <EQUAL> Expression <SEMICOLON> )
+    Assignment <SEMICOLON>
 ;
 
 Expression #void :
     // TODO why is <GREATER> missing?
+
     ( Expression ( <AND> | <LESS> | <PLUS> | <MINUS> | <TIMES> | <DIVIDE> ) Expression ) |
     ( Expression <OPEN_SQUARE> Expression <CLOSE_SQUARE> ) |
     ( Expression <DOT> <LENGTH> ) |
     ( Expression <DOT> <IDENTIFIER> <OPEN_PAREN> [ Expression ( <COMMA> Expression )* ] <CLOSE_PAREN> ) |
+    ExpressionTerminal |
+    NotExpression |
+    ParenExpression
+;
+
+
+
+Assignment #void :
+    SCAN 2 ( <IDENTIFIER> | ArrayAssignment ) <EQUALS> Expression
+;
+
+ArrayAssignment #void :
+    <OPEN_SQUARE> Expression <CLOSE_SQUARE>
+;
+
+ExpressionTerminal #void :
     <INTEGER_LITERAL> |
     <TRUE> |
     <FALSE> |
     <IDENTIFIER> |
     <THIS> |
-    ( <NEW> <INT> <OPEN_SQUARE> Expression <CLOSE_SQUARE> ) |
-    ( <NEW> <IDENTIFIER> <OPEN_PAREN> <CLOSE_PAREN> ) |
-    ( <NOT> Expression ) |
+    NewExpression
+;
+
+// TODO probably change this
+ParenExpression #void :
     ( <OPEN_PAREN> Expression <CLOSE_PAREN> )
+;
+
+// TODO probably change this
+NotExpression #void :
+    ( <NOT> Expression )
+;
+
+NewExpression #void:
+    <NEW> (
+        NewArrayExpression |
+        NewObjectExpression
+    )
+;
+
+NewArrayExpression #void :
+    <INT> <OPEN_SQUARE> Expression <CLOSE_SQUARE>
+;
+
+NewObjectExpression #void :
+    <IDENTIFIER> <OPEN_PAREN> <CLOSE_PAREN>
 ;
