@@ -84,7 +84,7 @@ Program #void :
     ImportDeclaration ClassDeclaration <EOF>
 ;
 
-ImportDeclaration #void :
+ImportDeclaration #ImportDecl :
     ( <IMPORT> <IDENTIFIER> ( <DOT> <IDENTIFIER> )* <SEMICOLON> )*
 ;
 
