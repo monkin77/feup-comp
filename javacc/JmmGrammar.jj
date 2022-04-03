@@ -2,7 +2,17 @@ PARSER_PACKAGE=pt.up.fe.comp;
 PARSER_CLASS=JmmGrammarParser;
 SMART_NODE_CREATION=false;
 
-SKIP : " " | "\t" | "\r" | "\n";
+// Read for clarification https://javacc.github.io/javacc/documentation/grammar.html
+SKIP : " " | "\t" | "\r" | "\n" |
+    <LINE_COMMENT: "//" ( ~["\r", "\n"] )* ( "\r" | "\n" ) > |
+    // Regex tutorial https://javacc.github.io/javacc/tutorials/token-manager.html
+    "/*": MULTI_LINE_COMMENT
+;
+
+<MULTI_LINE_COMMENT> SKIP :
+    "*/": DEFAULT | // TODO This is going to the start of the program, why??
+    <~[]> // Any character
+;
 
 TOKEN :
     // Keywords
