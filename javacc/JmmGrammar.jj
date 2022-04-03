@@ -1,6 +1,7 @@
 PARSER_PACKAGE=pt.up.fe.comp;
 PARSER_CLASS=JmmGrammarParser;
 SMART_NODE_CREATION=false;
+TOKENS_ARE_NODES=false; // tokens are no longer nodes in the tree
 
 // Read for clarification https://javacc.github.io/javacc/documentation/grammar.html
 SKIP : " " | "\t" | "\r" | "\n" |
@@ -133,9 +134,20 @@ Type #void :
 
 Statement #void :
     ( <OPEN_CURLY> ( Statement )* <CLOSE_CURLY> ) |
-    ( <IF> <OPEN_PAREN> Expression <CLOSE_PAREN> Statement <ELSE> Statement ) |
-    ( <WHILE> <OPEN_PAREN> Expression <CLOSE_PAREN> Statement ) |
+    IfElseStatement |
+    WhileStatement |
     ( Expression [ <EQUALS> Expression ] <SEMICOLON> )
+;
+
+IfElseStatement #IfElse :
+    <IF> <OPEN_PAREN> Expression <CLOSE_PAREN>
+        Statement #IfBlock
+    <ELSE> Statement #ElseBlock
+;
+
+WhileStatement #void :
+    <WHILE> <OPEN_PAREN> Expression <CLOSE_PAREN>
+        Statement
 ;
 
 Expression #void :
@@ -143,38 +155,45 @@ Expression #void :
 ;
 
 AndExpression #void :
-    LessExpression (<AND> LessExpression)*
+    LessExpression (<AND> LessExpression #AndExpr(2) )*
 ;
 
 LessExpression #void :
-    ArithmeticExpression (<LESS> ArithmeticExpression)*
+    ArithmeticExpression (<LESS> ArithmeticExpression #LessExpr(2) )*
 ;
 
 ArithmeticExpression #void :
-    MultiplicativeExpression ( (<PLUS> | <MINUS>) MultiplicativeExpression )*
+    MultiplicativeExpression (
+        <PLUS> MultiplicativeExpression #AddExpr(2) |
+        <MINUS> MultiplicativeExpression #SubExpr(2)
+    )*
 ;
 
 MultiplicativeExpression #void :
-    NotExpression ( ( <TIMES> | <DIVIDE> ) NotExpression)*
+    NotExpression (
+        <TIMES> NotExpression #MultExpr(2) |
+        <DIVIDE> NotExpression #DivExpr(2)
+    )*
 ;
 
 NotExpression #void :
-    ( <NOT> )* DotArrayExpression
+    ( <NOT> NotExpression #NotExpr(1) ) | DotArrayExpression
 ;
 
 DotArrayExpression #void :
     ExpressionTerminal ( DotExpression | ArrayExpression )*
 ;
 
-DotExpression #void :
+DotExpression #DotExpr(2) :
     <DOT> ( <LENGTH> | DotMethod )
 ;
 
 DotMethod #void :
-    <IDENTIFIER> <OPEN_PAREN> [ Expression ( <COMMA> Expression )* ] <CLOSE_PAREN>
+    ( <IDENTIFIER> { jjtThis.put("id", lastConsumedToken.getImage()); } ) #Identifier
+    <OPEN_PAREN> [ Expression ( <COMMA> Expression )* ] <CLOSE_PAREN>
 ;
 
-ArrayExpression #void :
+ArrayExpression #ArrayExpr(2) :
     <OPEN_SQUARE> Expression <CLOSE_SQUARE>
 ;
 
@@ -185,12 +204,13 @@ NewExpression #void:
     )
 ;
 
-NewArrayExpression #void :
+NewArrayExpression :
     <INT> <OPEN_SQUARE> Expression <CLOSE_SQUARE>
 ;
 
-NewObjectExpression #void :
-    <IDENTIFIER> <OPEN_PAREN> <CLOSE_PAREN>
+NewObjectExpression :
+    ( <IDENTIFIER> { jjtThis.put("id", lastConsumedToken.getImage()); } ) #Identifier
+    <OPEN_PAREN> <CLOSE_PAREN>
 ;
 
 ParenExpression #void :
@@ -198,11 +218,39 @@ ParenExpression #void :
 ;
 
 ExpressionTerminal #void :
-    <INTEGER_LITERAL> |
-    <TRUE> |
-    <FALSE> |
-    <IDENTIFIER> |
-    <THIS> |
+    ( <INTEGER_LITERAL> { jjtThis.put("value", lastConsumedToken.getImage()); } ) #IntegerLiteral |
+    ( <IDENTIFIER> { jjtThis.put("id", lastConsumedToken.getImage()); } ) #Identifier |
+    <TRUE> #True |
+    <FALSE> #False |
+    <THIS> #This |
     ParenExpression |
     NewExpression
 ;
+
+// Injections for the implementation of JmmNode
+// Since this is injected into BaseNode, it affects only non-terminals
+INJECT BaseNode :
+		import pt.up.fe.comp.jmm.ast.JmmNode;
+		import pt.up.fe.comp.jmm.ast.AJmmNode;
+		import pt.up.fe.specs.util.SpecsCollections;
+		extends AJmmNode
+{
+    @Override
+    public List<JmmNode> getChildren() {
+
+        return SpecsCollections.cast(children(), JmmNode.class);
+    }
+
+    @Override
+    public void add(JmmNode child, int index) {
+
+        if (child instanceof Node) {
+
+            addChild(index, (Node) child);
+        } else {
+
+            throw new RuntimeException("Node " + child + " is not a Node.");
+        }
+
+    }
+}
