@@ -1,6 +1,7 @@
 package pt.up.fe.comp;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 import pt.up.fe.comp.jmm.ast.JmmNode;
@@ -53,8 +54,20 @@ public class SimpleParser implements JmmParser {
 
             return new JmmParserResult((JmmNode) root, Collections.emptyList(), config);
 
+        } catch (ParseException e) {
+            // TODO A RunTimeException is being thrown instead
+            boolean isLexicalError = e.getToken().getType() == JmmGrammarConstants.TokenType.INVALID;
+
+            final List<Report> reports = Collections.singletonList(new Report(
+               ReportType.ERROR,
+               isLexicalError ? Stage.LEXICAL : Stage.SYNTATIC,
+               e.getStackTrace()[0].getLineNumber(),
+               e.getMessage()
+            ));
+
+            return new JmmParserResult(null, reports, config);
         } catch (Exception e) {
-            return JmmParserResult.newError(Report.newError(Stage.SYNTATIC, -1, -1, "Exception during parsing", e));
+            return JmmParserResult.newError(Report.newError(Stage.SYNTATIC, -1, -1, "Unexpected exception during parsing", e));
         }
     }
 }
