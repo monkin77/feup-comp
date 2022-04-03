@@ -55,19 +55,40 @@ public class SimpleParser implements JmmParser {
             return new JmmParserResult((JmmNode) root, Collections.emptyList(), config);
 
         } catch (ParseException e) {
-            // TODO A RunTimeException is being thrown instead
-            boolean isLexicalError = e.getToken().getType() == JmmGrammarConstants.TokenType.INVALID;
+            return handleParseException(e, config);
+        } catch (RuntimeException e) { // Thrown by SpecsSystem when it encounters ParseException
+            Throwable err = e.getCause();
 
-            final List<Report> reports = Collections.singletonList(new Report(
-               ReportType.ERROR,
-               isLexicalError ? Stage.LEXICAL : Stage.SYNTATIC,
-               e.getStackTrace()[0].getLineNumber(),
-               e.getMessage()
+            while (err != null) {
+                if (err instanceof ParseException)
+                    return handleParseException((ParseException) err, config);
+                err = err.getCause();
+            }
+
+            return JmmParserResult.newError(Report.newError(
+                    Stage.SYNTATIC, -1, -1,
+                    "Unexpected RuntimeException during parsing", e
             ));
 
-            return new JmmParserResult(null, reports, config);
         } catch (Exception e) {
-            return JmmParserResult.newError(Report.newError(Stage.SYNTATIC, -1, -1, "Unexpected exception during parsing", e));
+            return JmmParserResult.newError(Report.newError(
+                    Stage.SYNTATIC, -1, -1,
+                    "Unexpected exception during parsing", e
+            ));
         }
+    }
+
+    private JmmParserResult handleParseException(ParseException e, Map<String, String> config) {
+        boolean isLexicalError = e.getToken().getType() == JmmGrammarConstants.TokenType.INVALID;
+        for (StackTraceElement el : e.getStackTrace())
+            System.out.println(el);
+        final List<Report> reports = Collections.singletonList(new Report(
+                ReportType.ERROR,
+                isLexicalError ? Stage.LEXICAL : Stage.SYNTATIC,
+                e.getStackTrace()[0].getLineNumber(),
+                e.getMessage()
+        ));
+
+        return new JmmParserResult(null, reports, config);
     }
 }
