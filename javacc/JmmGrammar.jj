@@ -116,9 +116,8 @@ MainDeclaration #void :
 ;
 
 Type #void :
-    <INT> <OPEN_SQUARE> <CLOSE_SQUARE> |
+    <INT> [ <OPEN_SQUARE> <CLOSE_SQUARE> ] |
     <BOOL> |
-    <INT> |
     <IDENTIFIER>
 ;
 
@@ -126,8 +125,7 @@ Statement #void :
     ( <OPEN_CURLY> ( Statement )* <CLOSE_CURLY> ) |
     ( <IF> <OPEN_PAREN> Expression <CLOSE_PAREN> Statement <ELSE> Statement ) |
     ( <WHILE> <OPEN_PAREN> Expression <CLOSE_PAREN> Statement ) |
-    Assignment <SEMICOLON> | // TODO distinction between a[2] = 2; and a[2];
-    ( Expression <SEMICOLON> )
+    ( Expression [ <EQUALS> Expression ] <SEMICOLON> )
 ;
 
 Expression #void :
@@ -150,13 +148,12 @@ MultiplicativeExpression #void :
     NotExpression ( ( <TIMES> | <DIVIDE> ) NotExpression)*
 ;
 
-// TODO verify this
 NotExpression #void :
     ( <NOT> )* DotArrayExpression
 ;
 
 DotArrayExpression #void :
-    ExpressionTerminal ( DotExpression | ArrayExpression ) *
+    ExpressionTerminal ( DotExpression | ArrayExpression )*
 ;
 
 DotExpression #void :
@@ -167,16 +164,8 @@ DotMethod #void :
     <IDENTIFIER> <OPEN_PAREN> [ Expression ( <COMMA> Expression )* ] <CLOSE_PAREN>
 ;
 
-Assignment #void :
-    IdOrArrayExpression <EQUALS> Expression
-;
-
-IdOrArrayExpression #void :
-    SCAN 2 ( ArrayExpression | <IDENTIFIER> )
-;
-
 ArrayExpression #void :
-    <IDENTIFIER> <OPEN_SQUARE> Expression <CLOSE_SQUARE>
+    <OPEN_SQUARE> Expression <CLOSE_SQUARE>
 ;
 
 NewExpression #void:

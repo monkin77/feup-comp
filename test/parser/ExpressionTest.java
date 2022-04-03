@@ -36,14 +36,15 @@ public class ExpressionTest extends ParserTest {
     @Test
     public void notExpression() {
         noErrors("!hey"); noErrors("!2");
-        noErrors("!!hey");
+        noErrors("!!hey"); noErrors("!!a[3]");
+        noErrors("!!!a.length");
     }
 
     @Test
     public void dotExpression() {
         noErrors("var.length"); noErrors("obj.func()");
         noErrors("obj.func(arg)"); noErrors("obj.func(a, b)");
-        // noErrors("obj.func(a[3])"); // TODO failing
+        noErrors("obj.func(a[3])");
     }
 
     @Test
@@ -57,7 +58,7 @@ public class ExpressionTest extends ParserTest {
     public void newExpression() {
         noErrors("new obj()"); noErrors("new int[5]");
         noErrors("new int[random_expr]");
-        // noErrors("new int[a[3]]"); // TODO failing
+        noErrors("new int[a[3]]");
     }
 
     @Test
