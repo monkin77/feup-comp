@@ -99,7 +99,8 @@ VarDeclarations #void :
     ( SCAN 2 ( VarDeclaration ) )*
 ;
 
-VarDeclaration #void :
+// TODO: jjthis identifier
+VarDeclaration #VarDecl :
     Type <IDENTIFIER> <SEMICOLON>
 ;
 
