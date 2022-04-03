@@ -140,7 +140,7 @@ Statement #void :
     ( <OPEN_CURLY> ( Statement )* <CLOSE_CURLY> ) |
     IfElseStatement |
     WhileStatement |
-    ( Expression [ <EQUALS> Expression ] <SEMICOLON> )
+    ( Expression [ <EQUALS> Expression #AssignmentExpr(2) ] <SEMICOLON> )
 ;
 
 IfElseStatement #IfElse :
