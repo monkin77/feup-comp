@@ -127,9 +127,13 @@ MainDeclaration #void :
 ;
 
 Type #void :
-    <INT> [ <OPEN_SQUARE> <CLOSE_SQUARE> ] |
-    <BOOL> |
-    <IDENTIFIER>
+   // TODO: Scan bad
+   SCAN 2 (
+        <INT> #Int |
+        <INT> <OPEN_SQUARE> <CLOSE_SQUARE> #IntArray
+    ) |
+    <BOOL> #Bool |
+    <IDENTIFIER> #CustomType
 ;
 
 Statement #void :
