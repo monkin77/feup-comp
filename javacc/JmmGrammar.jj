@@ -88,7 +88,8 @@ ImportDeclaration #ImportDecl :
     ( <IMPORT> <IDENTIFIER> ( <DOT> <IDENTIFIER> )* <SEMICOLON> )*
 ;
 
-ClassDeclaration #void :
+//TODO: jjthis identifer, extends ?
+ClassDeclaration #ClassDecl :
     <CLASS> <IDENTIFIER> [ <EXTENDS> <IDENTIFIER> ] <OPEN_CURLY>
         ( VarDeclaration )*
         ( MethodDeclaration )*
