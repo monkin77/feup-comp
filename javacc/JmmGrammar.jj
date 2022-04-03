@@ -105,10 +105,11 @@ VarDeclaration #VarDecl :
     Type <IDENTIFIER> <SEMICOLON>
 ;
 
-MethodDeclaration #void :
+MethodDeclaration #MethodDecl :
     <PUBLIC> ( PublicMethodDeclaration | MainDeclaration )
 ;
 
+// TODO: jjthis identifier, args?
 PublicMethodDeclaration #void :
     Type <IDENTIFIER> <OPEN_PAREN>
         [ Type <IDENTIFIER> ( <COMMA> Type <IDENTIFIER> )* ]
