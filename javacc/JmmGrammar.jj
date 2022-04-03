@@ -1,10 +1,18 @@
-// TODO The grammar has errors we need to fix
-
 PARSER_PACKAGE=pt.up.fe.comp;
 PARSER_CLASS=JmmGrammarParser;
 SMART_NODE_CREATION=false;
 
-SKIP : " " | "\t" | "\r" | "\n";
+// Read for clarification https://javacc.github.io/javacc/documentation/grammar.html
+SKIP : " " | "\t" | "\r" | "\n" |
+    <LINE_COMMENT: "//" ( ~["\r", "\n"] )* ( "\r" | "\n" ) > |
+    // Regex tutorial https://javacc.github.io/javacc/tutorials/token-manager.html
+    "/*": MULTI_LINE_COMMENT
+;
+
+<MULTI_LINE_COMMENT> SKIP :
+    "*/": DEFAULT | // TODO This is going to the start of the program, why??
+    <~[]> // Any character
+;
 
 TOKEN :
     // Keywords
@@ -37,10 +45,9 @@ TOKEN :
 	< MINUS : "-" > |
 	< TIMES : "*" > |
 	< DIVIDE : "/" > |
-	< EQUAL : "=" > |
+	< EQUALS : "=" > |
 	< AND : "&&" > |
 	< LESS: "<" > |
-	< GREATER: ">" > |
 	< NOT: "!" > |
 
     // Parenthesis and alike
@@ -52,23 +59,25 @@ TOKEN :
 	< CLOSE_SQUARE : "]" > |
 
     // Separators
-	< LF : "\n" > |
 	< SEMICOLON : ";" > |
 	< DOT: "." > |
 	< COMMA: "," > |
 
-    // Symbols
-    < DIGIT: ["0"-"9"] > |
-    < INTEGER_LITERAL : ( <DIGIT> )+ > |
-    < LETTER: ["a"-"z","A"-"Z"] > |
-    < UNDERSCORE: "_" > |
-    < DOLLAR: "$" > |
     // Clarification https://stackoverflow.com/questions/35578567/java-regex-for-identifiers-letters-digits-and-underscores
 	< IDENTIFIER:
 	    ( ( <LETTER> | <DOLLAR> ) ( <LETTER> | <DIGIT> | <UNDERSCORE> | <DOLLAR> )* ) |
 	    ( <UNDERSCORE> ( <LETTER> | <DIGIT> | <UNDERSCORE> | <DOLLAR> )+ ) // Can't have identifier with single underscore
-	>
+	> |
+
+    // Symbols
+    < INTEGER_LITERAL : ( <DIGIT> )+ > |
+    < DIGIT: ["0"-"9"] > |
+    < LETTER: ["a"-"z","A"-"Z"] > |
+    < UNDERSCORE: "_" > |
+    < DOLLAR: "$" >
 ;
+
+Start : Program;
 
 Program #void :
     ImportDeclaration ClassDeclaration <EOF>
@@ -85,30 +94,40 @@ ClassDeclaration #void :
     <CLOSE_CURLY>
 ;
 
+VarDeclarations #void :
+    ( SCAN 2 ( VarDeclaration ) )*
+;
+
 VarDeclaration #void :
     Type <IDENTIFIER> <SEMICOLON>
 ;
 
 MethodDeclaration #void :
-    ( <PUBLIC> Type <IDENTIFIER> <OPEN_PAREN>
+    <PUBLIC> ( PublicMethodDeclaration | MainDeclaration )
+;
+
+PublicMethodDeclaration #void :
+    Type <IDENTIFIER> <OPEN_PAREN>
         [ Type <IDENTIFIER> ( <COMMA> Type <IDENTIFIER> )* ]
     <CLOSE_PAREN> <OPEN_CURLY>
-        ( VarDeclaration )*
+        VarDeclarations
         ( Statement )*
         <RETURN> Expression <SEMICOLON>
-    <CLOSE_CURLY> ) |
-    ( <PUBLIC> <STATIC> <VOID> <MAIN> <OPEN_PAREN>
+    <CLOSE_CURLY>
+;
+
+MainDeclaration #void :
+    <STATIC> <VOID> <MAIN> <OPEN_PAREN>
         <STRING> <OPEN_SQUARE> <CLOSE_SQUARE> <IDENTIFIER>
     <CLOSE_PAREN> <OPEN_CURLY>
-        ( VarDeclaration )*
+        VarDeclarations
         ( Statement )*
-    <CLOSE_CURLY> )
+    <CLOSE_CURLY>
 ;
 
 Type #void :
-    <INT> <OPEN_SQUARE> <CLOSE_SQUARE> |
+    <INT> [ <OPEN_SQUARE> <CLOSE_SQUARE> ] |
     <BOOL> |
-    <INT> |
     <IDENTIFIER>
 ;
 
@@ -116,24 +135,74 @@ Statement #void :
     ( <OPEN_CURLY> ( Statement )* <CLOSE_CURLY> ) |
     ( <IF> <OPEN_PAREN> Expression <CLOSE_PAREN> Statement <ELSE> Statement ) |
     ( <WHILE> <OPEN_PAREN> Expression <CLOSE_PAREN> Statement ) |
-    ( Expression <SEMICOLON> ) |
-    ( <IDENTIFIER> <EQUAL> Expression <SEMICOLON> ) |
-    ( <IDENTIFIER> <OPEN_SQUARE> Expression <CLOSE_SQUARE> <EQUAL> Expression <SEMICOLON> )
+    ( Expression [ <EQUALS> Expression ] <SEMICOLON> )
 ;
 
 Expression #void :
-    // TODO why is <GREATER> missing?
-    ( Expression ( <AND> | <LESS> | <PLUS> | <MINUS> | <TIMES> | <DIVIDE> ) Expression ) |
-    ( Expression <OPEN_SQUARE> Expression <CLOSE_SQUARE> ) |
-    ( Expression <DOT> <LENGTH> ) |
-    ( Expression <DOT> <IDENTIFIER> <OPEN_PAREN> [ Expression ( <COMMA> Expression )* ] <CLOSE_PAREN> ) |
+    AndExpression
+;
+
+AndExpression #void :
+    LessExpression (<AND> LessExpression)*
+;
+
+LessExpression #void :
+    ArithmeticExpression (<LESS> ArithmeticExpression)*
+;
+
+ArithmeticExpression #void :
+    MultiplicativeExpression ( (<PLUS> | <MINUS>) MultiplicativeExpression )*
+;
+
+MultiplicativeExpression #void :
+    NotExpression ( ( <TIMES> | <DIVIDE> ) NotExpression)*
+;
+
+NotExpression #void :
+    ( <NOT> )* DotArrayExpression
+;
+
+DotArrayExpression #void :
+    ExpressionTerminal ( DotExpression | ArrayExpression )*
+;
+
+DotExpression #void :
+    <DOT> ( <LENGTH> | DotMethod )
+;
+
+DotMethod #void :
+    <IDENTIFIER> <OPEN_PAREN> [ Expression ( <COMMA> Expression )* ] <CLOSE_PAREN>
+;
+
+ArrayExpression #void :
+    <OPEN_SQUARE> Expression <CLOSE_SQUARE>
+;
+
+NewExpression #void:
+    <NEW> (
+        NewArrayExpression |
+        NewObjectExpression
+    )
+;
+
+NewArrayExpression #void :
+    <INT> <OPEN_SQUARE> Expression <CLOSE_SQUARE>
+;
+
+NewObjectExpression #void :
+    <IDENTIFIER> <OPEN_PAREN> <CLOSE_PAREN>
+;
+
+ParenExpression #void :
+    ( <OPEN_PAREN> Expression <CLOSE_PAREN> )
+;
+
+ExpressionTerminal #void :
     <INTEGER_LITERAL> |
     <TRUE> |
     <FALSE> |
     <IDENTIFIER> |
     <THIS> |
-    ( <NEW> <INT> <OPEN_SQUARE> Expression <CLOSE_SQUARE> ) |
-    ( <NEW> <IDENTIFIER> <OPEN_PAREN> <CLOSE_PAREN> ) |
-    ( <NOT> Expression ) |
-    ( <OPEN_PAREN> Expression <CLOSE_PAREN> )
+    ParenExpression |
+    NewExpression
 ;
