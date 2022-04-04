@@ -139,7 +139,6 @@ MainDeclaration #Main :
 ;
 
 Type #void :
-    // TODO Assignment vs VarDeclaration (int[] x = 2; and int[] x;)
     SCAN 2 ( <INT> <OPEN_SQUARE> <CLOSE_SQUARE> #IntArray ) |
     <INT> #Int |
     <BOOL> #Bool |
