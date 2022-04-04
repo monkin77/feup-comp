@@ -1,8 +1,10 @@
-import ioPlus;
-class HelloWorld {
+import ioPlus.hello;
+class HelloWorld extends Hello {
 	public static void main(String[] args) {
-        while (0 < 1) {
+        a = new b();
+	}
 
-        }
+	public int method(int b, int c) {
+	    return b + c;
 	}
 }

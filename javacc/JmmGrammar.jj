@@ -85,12 +85,15 @@ Program #void :
 ;
 
 ImportDeclaration #ImportDecl :
-    ( <IMPORT> <IDENTIFIER> ( <DOT> <IDENTIFIER> )* <SEMICOLON> )*
+    ( <IMPORT>
+        ( <IDENTIFIER> { jjtThis.put("id", lastConsumedToken.getImage()); } ) #Identifier(true) // Conflict with parenthesis
+        ( <DOT> ( <IDENTIFIER> { jjtThis.put("id", lastConsumedToken.getImage()); } ) #Identifier )*
+    <SEMICOLON> )*
 ;
 
-//TODO: jjthis identifer, extends ?
 ClassDeclaration #ClassDecl :
-    <CLASS> <IDENTIFIER> [ <EXTENDS> <IDENTIFIER> ] <OPEN_CURLY>
+    <CLASS> <IDENTIFIER> { jjtThis.put("name", lastConsumedToken.getImage()); }
+    [ <EXTENDS> <IDENTIFIER> { jjtThis.put("extends", lastConsumedToken.getImage()); } ] <OPEN_CURLY>
         ( VarDeclaration )*
         ( MethodDeclaration )*
     <CLOSE_CURLY>
@@ -100,19 +103,24 @@ VarDeclarations #void :
     ( SCAN 2 ( VarDeclaration ) )*
 ;
 
-// TODO: jjthis identifier
 VarDeclaration #VarDecl :
-    Type <IDENTIFIER> <SEMICOLON>
+    Type <IDENTIFIER> { jjtThis.put("name", lastConsumedToken.getImage()); } <SEMICOLON>
 ;
 
-MethodDeclaration #MethodDecl :
+MethodDeclaration #void :
     <PUBLIC> ( PublicMethodDeclaration | MainDeclaration )
 ;
 
-// TODO: jjthis identifier, args?
-PublicMethodDeclaration #void :
-    Type <IDENTIFIER> <OPEN_PAREN>
-        [ Type <IDENTIFIER> ( <COMMA> Type <IDENTIFIER> )* ]
+PublicMethodDeclaration #PublicMethod :
+    Type <IDENTIFIER> { jjtThis.put("name", lastConsumedToken.getImage()); } <OPEN_PAREN>
+
+        // Arguments
+        [ ( Type <IDENTIFIER> { jjtThis.put("arg", lastConsumedToken.getImage()); } )
+            #Argument(true) // Conflict with parenthesis
+        ( <COMMA> ( Type <IDENTIFIER> { jjtThis.put("arg", lastConsumedToken.getImage()); } )
+            #Argument
+        )* ]
+
     <CLOSE_PAREN> <OPEN_CURLY>
         VarDeclarations
         ( Statement )*
@@ -120,9 +128,10 @@ PublicMethodDeclaration #void :
     <CLOSE_CURLY>
 ;
 
-MainDeclaration #void :
+MainDeclaration #Main :
     <STATIC> <VOID> <MAIN> <OPEN_PAREN>
-        <STRING> <OPEN_SQUARE> <CLOSE_SQUARE> <IDENTIFIER>
+        <STRING> <OPEN_SQUARE> <CLOSE_SQUARE>
+        <IDENTIFIER> { jjtThis.put("mainArgs", lastConsumedToken.getImage()); }
     <CLOSE_PAREN> <OPEN_CURLY>
         VarDeclarations
         ( Statement )*
@@ -130,13 +139,11 @@ MainDeclaration #void :
 ;
 
 Type #void :
-   // TODO: Scan bad
-   SCAN 2 (
-        <INT> #Int |
-        <INT> <OPEN_SQUARE> <CLOSE_SQUARE> #IntArray
-    ) |
+    // TODO Assignment vs VarDeclaration (int[] x = 2; and int[] x;)
+    SCAN 2 ( <INT> <OPEN_SQUARE> <CLOSE_SQUARE> #IntArray ) |
+    <INT> #Int |
     <BOOL> #Bool |
-    <IDENTIFIER> #CustomType
+    ( <IDENTIFIER> { jjtThis.put("name", lastConsumedToken.getImage()); } ) #CustomType
 ;
 
 Statement #void :
@@ -216,7 +223,7 @@ NewArrayExpression #NewArrayExpr :
 ;
 
 NewObjectExpression #NewObjExpr :
-    ( <IDENTIFIER> { jjtThis.put("id", lastConsumedToken.getImage()); } ) #Identifier
+    ( <IDENTIFIER> { jjtThis.put("object", lastConsumedToken.getImage()); } )
     <OPEN_PAREN> <CLOSE_PAREN>
 ;
 
