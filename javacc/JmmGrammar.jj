@@ -211,11 +211,11 @@ NewExpression #void:
     )
 ;
 
-NewArrayExpression :
+NewArrayExpression #NewArrayExpr :
     <INT> <OPEN_SQUARE> Expression <CLOSE_SQUARE>
 ;
 
-NewObjectExpression :
+NewObjectExpression #NewObjExpr :
     ( <IDENTIFIER> { jjtThis.put("id", lastConsumedToken.getImage()); } ) #Identifier
     <OPEN_PAREN> <CLOSE_PAREN>
 ;

@@ -1,11 +1,8 @@
 import ioPlus;
 class HelloWorld {
 	public static void main(String[] args) {
-		if (true)
-		    lol;
-		else {
-		    ola;
-		    if (false) adeus; else 2;
-		}
+        while (0 < 1) {
+
+        }
 	}
 }
