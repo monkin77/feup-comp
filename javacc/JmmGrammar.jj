@@ -90,8 +90,8 @@ ImportRegion :
 
 ImportDeclaration #ImportDecl :
     <IMPORT>
-        ( <IDENTIFIER> { jjtThis.put("id", lastConsumedToken.getImage()); } ) #Identifier(true) // Conflict with parenthesis
-        ( <DOT> ( <IDENTIFIER> { jjtThis.put("id", lastConsumedToken.getImage()); } ) #Identifier )*
+        ( <IDENTIFIER> { jjtThis.put("id", lastConsumedToken.getImage()); } ) #_Identifier(true) // Conflict with parenthesis
+        ( <DOT> ( <IDENTIFIER> { jjtThis.put("id", lastConsumedToken.getImage()); } ) #_Identifier )*
     <SEMICOLON>
 ;
 
@@ -132,7 +132,7 @@ PublicMethodDeclaration #PublicMethod :
     <CLOSE_CURLY>
 ;
 
-MainDeclaration #Main :
+MainDeclaration #MainDecl :
     <STATIC> <VOID> <MAIN> <OPEN_PAREN>
         <IDENTIFIER> { jjtThis.put("argType", lastConsumedToken.getImage()); } <OPEN_SQUARE> <CLOSE_SQUARE>
         <IDENTIFIER> { jjtThis.put("mainArgs", lastConsumedToken.getImage()); }
@@ -144,8 +144,8 @@ MainDeclaration #Main :
 
 Type #void :
     SCAN 2 ( <INT> <OPEN_SQUARE> <CLOSE_SQUARE> #IntArray ) |
-    <INT> #Int |
-    <BOOL> #Bool |
+    <INT> #_Int |
+    <BOOL> #_Bool |
     ( <IDENTIFIER> { jjtThis.put("name", lastConsumedToken.getImage()); } ) #CustomType
 ;
 
@@ -166,7 +166,7 @@ IfElseStatement #IfElse :
     <ELSE> Statement #ElseBlock
 ;
 
-WhileStatement #While :
+WhileStatement #WhileSt :
     <WHILE> <OPEN_PAREN> Expression <CLOSE_PAREN>
         Statement #WhileBlock
 ;
@@ -240,9 +240,9 @@ ParenExpression #void :
 
 ExpressionTerminal #void :
     ( <INTEGER_LITERAL> { jjtThis.put("value", lastConsumedToken.getImage()); } ) #IntegerLiteral |
-    ( <IDENTIFIER> { jjtThis.put("id", lastConsumedToken.getImage()); } ) #Identifier |
+    ( <IDENTIFIER> { jjtThis.put("id", lastConsumedToken.getImage()); } ) #_Identifier |
     ( <BOOLEAN_LITERAL> { jjtThis.put("value", lastConsumedToken.getImage()); } ) #BooleanLiteral |
-    <THIS> #This |
+    <THIS> #_This |
     ParenExpression |
     NewExpression
 ;
