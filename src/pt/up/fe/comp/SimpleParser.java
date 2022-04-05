@@ -80,12 +80,12 @@ public class SimpleParser implements JmmParser {
 
     private JmmParserResult handleParseException(ParseException e, Map<String, String> config) {
         boolean isLexicalError = e.getToken().getType() == JmmGrammarConstants.TokenType.INVALID;
-        for (StackTraceElement el : e.getStackTrace())
-            System.out.println(el);
+
         final List<Report> reports = Collections.singletonList(new Report(
                 ReportType.ERROR,
                 isLexicalError ? Stage.LEXICAL : Stage.SYNTATIC,
-                e.getStackTrace()[0].getLineNumber(),
+                e.getToken().getBeginLine(),
+                e.getToken().getBeginColumn(),
                 e.getMessage()
         ));
 

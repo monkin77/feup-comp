@@ -27,6 +27,7 @@ TOKEN :
     < IF: "if" > |
     < ELSE: "else" > |
     < WHILE: "while" > |
+    < BOOLEAN_LITERAL : ( <TRUE> | <FALSE> ) > |
     < TRUE: "true" > |
     < FALSE: "false" > |
     < THIS: "this" > |
@@ -34,7 +35,6 @@ TOKEN :
 
     // Types
     < VOID: "void" > |
-    < STRING: "String" > |
     < INT: "int" > |
     < BOOL: "boolean" > |
 
@@ -81,20 +81,24 @@ TOKEN :
 Start : Program;
 
 Program #void :
-    ImportDeclaration ClassDeclaration <EOF>
+    ImportRegion ClassDeclaration <EOF>
+;
+
+ImportRegion :
+    ( ImportDeclaration )*
 ;
 
 ImportDeclaration #ImportDecl :
-    ( <IMPORT>
+    <IMPORT>
         ( <IDENTIFIER> { jjtThis.put("id", lastConsumedToken.getImage()); } ) #Identifier(true) // Conflict with parenthesis
         ( <DOT> ( <IDENTIFIER> { jjtThis.put("id", lastConsumedToken.getImage()); } ) #Identifier )*
-    <SEMICOLON> )*
+    <SEMICOLON>
 ;
 
 ClassDeclaration #ClassDecl :
     <CLASS> <IDENTIFIER> { jjtThis.put("name", lastConsumedToken.getImage()); }
     [ <EXTENDS> <IDENTIFIER> { jjtThis.put("extends", lastConsumedToken.getImage()); } ] <OPEN_CURLY>
-        ( VarDeclaration )*
+        VarDeclarations
         ( MethodDeclaration )*
     <CLOSE_CURLY>
 ;
@@ -130,7 +134,7 @@ PublicMethodDeclaration #PublicMethod :
 
 MainDeclaration #Main :
     <STATIC> <VOID> <MAIN> <OPEN_PAREN>
-        <STRING> <OPEN_SQUARE> <CLOSE_SQUARE>
+        <IDENTIFIER> { jjtThis.put("argType", lastConsumedToken.getImage()); } <OPEN_SQUARE> <CLOSE_SQUARE>
         <IDENTIFIER> { jjtThis.put("mainArgs", lastConsumedToken.getImage()); }
     <CLOSE_PAREN> <OPEN_CURLY>
         VarDeclarations
@@ -146,10 +150,14 @@ Type #void :
 ;
 
 Statement #void :
-    ( <OPEN_CURLY> ( Statement )* <CLOSE_CURLY> ) |
+    ScopeBlock |
     IfElseStatement |
     WhileStatement |
     ( Expression [ <EQUALS> Expression #AssignmentExpr(2) ] <SEMICOLON> )
+;
+
+ScopeBlock :
+    ( <OPEN_CURLY> ( Statement )* <CLOSE_CURLY> )
 ;
 
 IfElseStatement #IfElse :
@@ -197,12 +205,12 @@ DotArrayExpression #void :
     ExpressionTerminal ( DotExpression | ArrayExpression )*
 ;
 
-DotExpression #DotExpr(2) :
-    <DOT> ( <LENGTH> | DotMethod )
+DotExpression #DotExpression(2) :
+    <DOT> ( SCAN 2 ( DotMethod | <LENGTH> #DotLength ))
 ;
 
-DotMethod #void :
-    ( <IDENTIFIER> { jjtThis.put("id", lastConsumedToken.getImage()); } ) #Identifier
+DotMethod :
+    ( <IDENTIFIER> { jjtThis.put("method", lastConsumedToken.getImage()); } )
     <OPEN_PAREN> [ Expression ( <COMMA> Expression )* ] <CLOSE_PAREN>
 ;
 
@@ -233,8 +241,7 @@ ParenExpression #void :
 ExpressionTerminal #void :
     ( <INTEGER_LITERAL> { jjtThis.put("value", lastConsumedToken.getImage()); } ) #IntegerLiteral |
     ( <IDENTIFIER> { jjtThis.put("id", lastConsumedToken.getImage()); } ) #Identifier |
-    <TRUE> #True |
-    <FALSE> #False |
+    ( <BOOLEAN_LITERAL> { jjtThis.put("value", lastConsumedToken.getImage()); } ) #BooleanLiteral |
     <THIS> #This |
     ParenExpression |
     NewExpression
