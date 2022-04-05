@@ -1,18 +1,19 @@
 PARSER_PACKAGE=pt.up.fe.comp;
 PARSER_CLASS=JmmGrammarParser;
 SMART_NODE_CREATION=false;
+TOKENS_ARE_NODES=false; // tokens are no longer nodes in the tree
 
 // Read for clarification https://javacc.github.io/javacc/documentation/grammar.html
 SKIP : " " | "\t" | "\r" | "\n" |
-    <LINE_COMMENT: "//" ( ~["\r", "\n"] )* ( "\r" | "\n" ) > |
+    <LINE_COMMENT: "//" ( ~["\r", "\n"] )* ( "\r" | "\n" ) > // |
     // Regex tutorial https://javacc.github.io/javacc/tutorials/token-manager.html
-    "/*": MULTI_LINE_COMMENT
+    // "/*": MULTI_LINE_COMMENT
 ;
 
-<MULTI_LINE_COMMENT> SKIP :
-    "*/": DEFAULT | // TODO This is going to the start of the program, why??
-    <~[]> // Any character
-;
+// <MULTI_LINE_COMMENT> SKIP :
+//     "*/": DEFAULT | // TODO This is going to the start of the program, why??
+//     <~[]> // Any character
+// ;
 
 TOKEN :
     // Keywords
@@ -83,12 +84,16 @@ Program #void :
     ImportDeclaration ClassDeclaration <EOF>
 ;
 
-ImportDeclaration #void :
-    ( <IMPORT> <IDENTIFIER> ( <DOT> <IDENTIFIER> )* <SEMICOLON> )*
+ImportDeclaration #ImportDecl :
+    ( <IMPORT>
+        ( <IDENTIFIER> { jjtThis.put("id", lastConsumedToken.getImage()); } ) #Identifier(true) // Conflict with parenthesis
+        ( <DOT> ( <IDENTIFIER> { jjtThis.put("id", lastConsumedToken.getImage()); } ) #Identifier )*
+    <SEMICOLON> )*
 ;
 
-ClassDeclaration #void :
-    <CLASS> <IDENTIFIER> [ <EXTENDS> <IDENTIFIER> ] <OPEN_CURLY>
+ClassDeclaration #ClassDecl :
+    <CLASS> <IDENTIFIER> { jjtThis.put("name", lastConsumedToken.getImage()); }
+    [ <EXTENDS> <IDENTIFIER> { jjtThis.put("extends", lastConsumedToken.getImage()); } ] <OPEN_CURLY>
         ( VarDeclaration )*
         ( MethodDeclaration )*
     <CLOSE_CURLY>
@@ -98,17 +103,24 @@ VarDeclarations #void :
     ( SCAN 2 ( VarDeclaration ) )*
 ;
 
-VarDeclaration #void :
-    Type <IDENTIFIER> <SEMICOLON>
+VarDeclaration #VarDecl :
+    Type <IDENTIFIER> { jjtThis.put("name", lastConsumedToken.getImage()); } <SEMICOLON>
 ;
 
 MethodDeclaration #void :
     <PUBLIC> ( PublicMethodDeclaration | MainDeclaration )
 ;
 
-PublicMethodDeclaration #void :
-    Type <IDENTIFIER> <OPEN_PAREN>
-        [ Type <IDENTIFIER> ( <COMMA> Type <IDENTIFIER> )* ]
+PublicMethodDeclaration #PublicMethod :
+    Type <IDENTIFIER> { jjtThis.put("name", lastConsumedToken.getImage()); } <OPEN_PAREN>
+
+        // Arguments
+        [ ( Type <IDENTIFIER> { jjtThis.put("arg", lastConsumedToken.getImage()); } )
+            #Argument(true) // Conflict with parenthesis
+        ( <COMMA> ( Type <IDENTIFIER> { jjtThis.put("arg", lastConsumedToken.getImage()); } )
+            #Argument
+        )* ]
+
     <CLOSE_PAREN> <OPEN_CURLY>
         VarDeclarations
         ( Statement )*
@@ -116,9 +128,10 @@ PublicMethodDeclaration #void :
     <CLOSE_CURLY>
 ;
 
-MainDeclaration #void :
+MainDeclaration #Main :
     <STATIC> <VOID> <MAIN> <OPEN_PAREN>
-        <STRING> <OPEN_SQUARE> <CLOSE_SQUARE> <IDENTIFIER>
+        <STRING> <OPEN_SQUARE> <CLOSE_SQUARE>
+        <IDENTIFIER> { jjtThis.put("mainArgs", lastConsumedToken.getImage()); }
     <CLOSE_PAREN> <OPEN_CURLY>
         VarDeclarations
         ( Statement )*
@@ -126,16 +139,28 @@ MainDeclaration #void :
 ;
 
 Type #void :
-    <INT> [ <OPEN_SQUARE> <CLOSE_SQUARE> ] |
-    <BOOL> |
-    <IDENTIFIER>
+    SCAN 2 ( <INT> <OPEN_SQUARE> <CLOSE_SQUARE> #IntArray ) |
+    <INT> #Int |
+    <BOOL> #Bool |
+    ( <IDENTIFIER> { jjtThis.put("name", lastConsumedToken.getImage()); } ) #CustomType
 ;
 
 Statement #void :
     ( <OPEN_CURLY> ( Statement )* <CLOSE_CURLY> ) |
-    ( <IF> <OPEN_PAREN> Expression <CLOSE_PAREN> Statement <ELSE> Statement ) |
-    ( <WHILE> <OPEN_PAREN> Expression <CLOSE_PAREN> Statement ) |
-    ( Expression [ <EQUALS> Expression ] <SEMICOLON> )
+    IfElseStatement |
+    WhileStatement |
+    ( Expression [ <EQUALS> Expression #AssignmentExpr(2) ] <SEMICOLON> )
+;
+
+IfElseStatement #IfElse :
+    <IF> <OPEN_PAREN> Expression <CLOSE_PAREN>
+        Statement #IfBlock
+    <ELSE> Statement #ElseBlock
+;
+
+WhileStatement #While :
+    <WHILE> <OPEN_PAREN> Expression <CLOSE_PAREN>
+        Statement #WhileBlock
 ;
 
 Expression #void :
@@ -143,38 +168,45 @@ Expression #void :
 ;
 
 AndExpression #void :
-    LessExpression (<AND> LessExpression)*
+    LessExpression (<AND> LessExpression #AndExpr(2) )*
 ;
 
 LessExpression #void :
-    ArithmeticExpression (<LESS> ArithmeticExpression)*
+    ArithmeticExpression (<LESS> ArithmeticExpression #LessExpr(2) )*
 ;
 
 ArithmeticExpression #void :
-    MultiplicativeExpression ( (<PLUS> | <MINUS>) MultiplicativeExpression )*
+    MultiplicativeExpression (
+        <PLUS> MultiplicativeExpression #AddExpr(2) |
+        <MINUS> MultiplicativeExpression #SubExpr(2)
+    )*
 ;
 
 MultiplicativeExpression #void :
-    NotExpression ( ( <TIMES> | <DIVIDE> ) NotExpression)*
+    NotExpression (
+        <TIMES> NotExpression #MultExpr(2) |
+        <DIVIDE> NotExpression #DivExpr(2)
+    )*
 ;
 
 NotExpression #void :
-    ( <NOT> )* DotArrayExpression
+    ( <NOT> NotExpression #NotExpr(1) ) | DotArrayExpression
 ;
 
 DotArrayExpression #void :
     ExpressionTerminal ( DotExpression | ArrayExpression )*
 ;
 
-DotExpression #void :
+DotExpression #DotExpr(2) :
     <DOT> ( <LENGTH> | DotMethod )
 ;
 
 DotMethod #void :
-    <IDENTIFIER> <OPEN_PAREN> [ Expression ( <COMMA> Expression )* ] <CLOSE_PAREN>
+    ( <IDENTIFIER> { jjtThis.put("id", lastConsumedToken.getImage()); } ) #Identifier
+    <OPEN_PAREN> [ Expression ( <COMMA> Expression )* ] <CLOSE_PAREN>
 ;
 
-ArrayExpression #void :
+ArrayExpression #ArrayExpr(2) :
     <OPEN_SQUARE> Expression <CLOSE_SQUARE>
 ;
 
@@ -185,12 +217,13 @@ NewExpression #void:
     )
 ;
 
-NewArrayExpression #void :
+NewArrayExpression #NewArrayExpr :
     <INT> <OPEN_SQUARE> Expression <CLOSE_SQUARE>
 ;
 
-NewObjectExpression #void :
-    <IDENTIFIER> <OPEN_PAREN> <CLOSE_PAREN>
+NewObjectExpression #NewObjExpr :
+    ( <IDENTIFIER> { jjtThis.put("object", lastConsumedToken.getImage()); } )
+    <OPEN_PAREN> <CLOSE_PAREN>
 ;
 
 ParenExpression #void :
@@ -198,11 +231,39 @@ ParenExpression #void :
 ;
 
 ExpressionTerminal #void :
-    <INTEGER_LITERAL> |
-    <TRUE> |
-    <FALSE> |
-    <IDENTIFIER> |
-    <THIS> |
+    ( <INTEGER_LITERAL> { jjtThis.put("value", lastConsumedToken.getImage()); } ) #IntegerLiteral |
+    ( <IDENTIFIER> { jjtThis.put("id", lastConsumedToken.getImage()); } ) #Identifier |
+    <TRUE> #True |
+    <FALSE> #False |
+    <THIS> #This |
     ParenExpression |
     NewExpression
 ;
+
+// Injections for the implementation of JmmNode
+// Since this is injected into BaseNode, it affects only non-terminals
+INJECT BaseNode :
+		import pt.up.fe.comp.jmm.ast.JmmNode;
+		import pt.up.fe.comp.jmm.ast.AJmmNode;
+		import pt.up.fe.specs.util.SpecsCollections;
+		extends AJmmNode
+{
+    @Override
+    public List<JmmNode> getChildren() {
+
+        return SpecsCollections.cast(children(), JmmNode.class);
+    }
+
+    @Override
+    public void add(JmmNode child, int index) {
+
+        if (child instanceof Node) {
+
+            addChild(index, (Node) child);
+        } else {
+
+            throw new RuntimeException("Node " + child + " is not a Node.");
+        }
+
+    }
+}
