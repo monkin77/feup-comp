@@ -20,6 +20,13 @@ public class MethodDeclarationTest extends ParserTest {
         noErrors("public int _method(String arg){return 2;}");
     }
 
+    @Test
+    public void withComments() {
+        noErrors("public int method(String arg){return 2;} // End of the method");
+        noErrors("public static void main(String[] whatever) {a; a = 2;} // Main is over");
+        noErrors("public int method(String arg){return 2; // Hello\n} // End of the method");
+    }
+
     @Override
     protected String getStartRule() {
         return METHOD_DECLARATION_RULE;

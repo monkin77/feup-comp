@@ -21,6 +21,12 @@ public class ImportTest extends ParserTest {
         mustFail("import a import b;");
     }
 
+    @Test
+    public void withComments() {
+        noErrors("import a; // What a nice import");
+        noErrors("import a; // Wow\n import b; // Great");
+    }
+
     @Override
     protected String getStartRule() {
         return IMPORT_RULE;

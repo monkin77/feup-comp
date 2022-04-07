@@ -19,6 +19,12 @@ public class ClassDeclarationTest extends ParserTest {
     public void missingCurlyBraces() {
         mustFail("class MyClass");
         mustFail("class NewClass extends MyClass");
+        mustFail("class MyClass // {}");
+    }
+
+    @Test
+    public void withComments() {
+        noErrors("class MyClass{} // this is a nice class\n // Agreed!");
     }
 
     @Override

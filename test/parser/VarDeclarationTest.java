@@ -30,6 +30,12 @@ public class VarDeclarationTest extends ParserTest {
         mustFail("var;");
     }
 
+    @Test
+    public void withComments() {
+        noErrors("int var; // This is an integer");
+        noErrors("int[] a; // Array \n boolean b; // Is it true??");
+    }
+
     @Override
     protected String getStartRule() {
         return VAR_DECLARATION_RULE;

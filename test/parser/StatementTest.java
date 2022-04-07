@@ -37,6 +37,12 @@ public class StatementTest extends ParserTest {
         mustFail("statement");
     }
 
+    @Test
+    public void withComments() {
+        noErrors("a[2] = 3; // Assignment");
+        noErrors("if (cond) // Conditional \n a = b; else // Assign the other one \n a = c;");
+    }
+
     @Override
     protected String getStartRule() {
         return STATEMENT_RULE;
