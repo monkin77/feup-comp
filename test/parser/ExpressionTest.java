@@ -3,7 +3,7 @@ package parser;
 import org.junit.Test;
 
 public class ExpressionTest extends ParserTest {
-    private static final String START_RULE = "Expression";
+    private static final String EXPRESSION_RULE = "Expression";
 
     @Test
     public void expressionTerminal() {
@@ -68,12 +68,7 @@ public class ExpressionTest extends ParserTest {
     }
 
     @Override
-    protected void noErrors(String code) {
-        noErrors(code, START_RULE);
-    }
-
-    @Override
-    protected void mustFail(String code) {
-        mustFail(code, START_RULE);
+    protected String getStartRule() {
+        return EXPRESSION_RULE;
     }
 }

@@ -3,7 +3,7 @@ package parser;
 import org.junit.Test;
 
 public class StatementTest extends ParserTest {
-    private static final String START_RULE = "Statement";
+    private static final String STATEMENT_RULE = "Statement";
 
     @Test
     public void assignments() {
@@ -38,12 +38,7 @@ public class StatementTest extends ParserTest {
     }
 
     @Override
-    protected void noErrors(String code) {
-        noErrors(code, START_RULE);
-    }
-
-    @Override
-    protected void mustFail(String code) {
-        mustFail(code, START_RULE);
+    protected String getStartRule() {
+        return STATEMENT_RULE;
     }
 }
