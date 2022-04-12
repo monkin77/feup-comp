@@ -53,7 +53,89 @@ public class JasminCompiler {
     }
 
     private void compileMethodDeclarations() {
+        //TODO: Constructor
+        ArrayList<Method> methods = classUnit.getMethods();
+        for (Method method : methods) {
+            String accessModifier = getAccessModifier(method.getMethodAccessModifier());
 
+            builder.append(".method ").append(accessModifier).append(" ");
+            if (method.isStaticMethod()) builder.append("static ");
+            if (method.isConstructMethod()) builder.append("<init>");
+            else builder.append(method.getMethodName());
+
+            builder.append("(");
+            for (Element element : method.getParams()) {
+                // TODO: Parameter separator
+                builder.append(getTypeName(element.getType()));
+                builder.append(";");
+            }
+            builder.append(")");
+            builder.append(getTypeName(method.getReturnType())).append("\n");
+
+            compileMethodBody(method);
+            builder.append(".end method\n");
+        }
+    }
+
+    private void compileMethodBody(Method method) {
+        ArrayList<Instruction> instructions = method.getInstructions();
+        for (Instruction instruction : instructions) {
+            builder.append(TAB);
+            switch (instruction.getInstType()) {
+                case ASSIGN:
+                    break;
+                case CALL:
+                    CallInstruction callInstruction = (CallInstruction) instruction;
+                    switch (callInstruction.getInvocationType()) {
+                        case invokevirtual -> builder.append("invokevirtual ");
+                        case invokespecial -> builder.append("invokespecial ");
+                        case invokestatic -> builder.append("invokestatic ");
+                        case invokeinterface -> builder.append("invokeinterface ");
+                        // TODO: What to do with this?
+                        case NEW -> builder.append("new ");
+                        case arraylength -> builder.append("arraylength ");
+                        case ldc -> builder.append("ldc ");
+                    }
+
+                    if (callInstruction.getFirstArg() instanceof Operand) {
+                        builder.append((((Operand) callInstruction.getFirstArg()).getName()));
+                    } else {
+                        // TODO: Remaining cases
+                        builder.append(getTypeName(callInstruction.getFirstArg().getType()));
+                    }
+
+                    if (callInstruction.getSecondArg().isLiteral()) {
+                        LiteralElement literalElement = (LiteralElement) callInstruction.getSecondArg();
+                        builder.append("/").append(literalElement.getLiteral()).append(" ");
+                    } else {
+                        // TODO: Remaining cases
+//                        builder.append("/").append(callInstruction.getSecondArg().getName()).append(" ");
+                    }
+
+                    for (Element element : callInstruction.getListOfOperands()) {
+
+                    }
+
+                    break;
+                case GOTO:
+                    break;
+                case BRANCH:
+                    break;
+                case RETURN:
+                    break;
+                case PUTFIELD:
+                    break;
+                case GETFIELD:
+                    break;
+                case UNARYOPER:
+                    break;
+                case BINARYOPER:
+                    break;
+                case NOPER:
+                    break;
+            }
+            builder.append("\n");
+        }
     }
 
     private String getAccessModifier(AccessModifiers modifier) {
