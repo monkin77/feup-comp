@@ -1,4 +1,4 @@
-
+package pt.up.fe.comp;
 /**
  * Copyright 2021 SPeCS.
  * 
@@ -12,14 +12,13 @@
  * specific language governing permissions and limitations under the License. under the License.
  */
 
-import pt.up.fe.comp.TestUtils;
 import pt.up.fe.specs.util.SpecsIo;
 
 public class OptimizeTest {
 
     // @Test
     public void testHelloWorld() {
-        var result = TestUtils.optimize(SpecsIo.getResource("fixtures/public/HelloWorld.jmm"));
+        var result = TestUtils.optimize(SpecsIo.getResource("pt/up/fe/comp/fixtures/public/HelloWorld.jmm"));
         TestUtils.noErrors(result.getReports());
     }
 }

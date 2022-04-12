@@ -11,7 +11,7 @@
  * specific language governing permissions and limitations under the License. under the License.
  */
 
-package parser;
+package pt.up.fe.comp.parser;
 
 import pt.up.fe.comp.TestUtils;
 

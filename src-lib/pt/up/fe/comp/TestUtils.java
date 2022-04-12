@@ -388,7 +388,7 @@ public class TestUtils {
     }
 
     public static String getLibsClasspath() {
-        // return "test/fixtures/libs/compiled";
+        // return "test/pt.up.fe.comp.fixtures/libs/compiled";
         return "libs-jmm/compiled";
     }
 

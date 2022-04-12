@@ -1,9 +1,12 @@
 package pt.up.fe.comp.visitors;
 
-import pt.up.fe.comp.*;
+import pt.up.fe.comp.EntityTypes;
+import pt.up.fe.comp.MySymbol;
+import pt.up.fe.comp.MySymbolTable;
+import pt.up.fe.comp.Types;
 import pt.up.fe.comp.jmm.analysis.table.Type;
-import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp.jmm.ast.AJmmVisitor;
+import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp.jmm.report.Report;
 import pt.up.fe.comp.jmm.report.Stage;
 

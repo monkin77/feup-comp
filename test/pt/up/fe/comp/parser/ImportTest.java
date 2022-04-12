@@ -1,4 +1,4 @@
-package parser;
+package pt.up.fe.comp.parser;
 
 import org.junit.Test;
 
