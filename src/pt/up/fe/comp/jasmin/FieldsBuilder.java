@@ -15,9 +15,17 @@ public class FieldsBuilder extends AbstractBuilder {
         final ArrayList<Field> fields = classUnit.getFields();
         for (final Field field : fields) {
             final String accessModifier = JasminUtils.getAccessModifier(field.getFieldAccessModifier());
+            final String fieldType = JasminUtils.getTypeName(field.getFieldType(), classUnit);
 
-            builder.append(".field ").append(accessModifier).append(" ").append(field.getFieldName())
-                    .append(" ").append(JasminUtils.getTypeName(field.getFieldType(), classUnit)).append("\n");
+            String fieldName = field.getFieldName();
+            if (fieldName.equals("field")) fieldName = "'field'";
+
+            builder.append(".field ").append(accessModifier).append(" ");
+
+            if (field.isStaticField()) builder.append("static ");
+            if (field.isFinalField()) builder.append("final ");
+
+            builder.append(fieldName).append(" ").append(fieldType).append("\n");
         }
 
         return builder.toString();
