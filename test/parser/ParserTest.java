@@ -16,15 +16,18 @@ package parser;
 import pt.up.fe.comp.TestUtils;
 
 public abstract class ParserTest {
+    private final String START_RULE = "Start";
+
+    protected String getStartRule() {
+        return START_RULE;
+    }
 
     protected void noErrors(String code) {
-        var result = TestUtils.parse(code);
-        TestUtils.noErrors(result);
+        this.noErrors(code, getStartRule());
     }
 
     protected void mustFail(String code) {
-        var result = TestUtils.parse(code);
-        TestUtils.mustFail(result);
+        this.mustFail(code, getStartRule());
     }
 
     protected void noErrors(String code, String startingRule) {
