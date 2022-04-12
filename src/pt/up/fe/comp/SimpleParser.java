@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 import pt.up.fe.comp.jmm.ast.JmmNode;
+import pt.up.fe.comp.jmm.ast.JmmNodeImpl;
 import pt.up.fe.comp.jmm.parser.JmmParser;
 import pt.up.fe.comp.jmm.parser.JmmParserResult;
 import pt.up.fe.comp.jmm.report.Report;
@@ -45,7 +46,8 @@ public class SimpleParser implements JmmParser {
                 throw new ParseException(parser, "Parsing problems, root is null");
             }
 
-            root.dump("");
+            JmmNode rootImpl = ((JmmNode) parser.rootNode()).sanitize();
+            System.out.println(rootImpl.toTree());
 
             if (!(root instanceof JmmNode)) {
                 return JmmParserResult.newError(new Report(ReportType.WARNING, Stage.SYNTATIC, -1,
