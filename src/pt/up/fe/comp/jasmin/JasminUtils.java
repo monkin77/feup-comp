@@ -25,8 +25,9 @@ class JasminUtils {
             case BOOLEAN:
                 return "Z";
             case ARRAYREF:
-                ArrayType arrayType = (ArrayType) type;
-                return "[" + getTypeName(type, arrayType.getTypeOfElements(), classUnit);
+                final ArrayType arrayType = (ArrayType) type;
+                final String arrayFlag = "[".repeat(arrayType.getNumDimensions());
+                return arrayFlag + getTypeName(type, arrayType.getTypeOfElements(), classUnit);
             case OBJECTREF:
             case CLASS:
                 return ((ClassType) type).getName();
