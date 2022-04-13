@@ -13,29 +13,27 @@ public class MethodsBuilder extends AbstractBuilder {
 
     @Override
     public String compile() {
-        //TODO: Constructor
         final ArrayList<Method> methods = classUnit.getMethods();
         for (final Method method : methods) {
             final String accessModifier = JasminUtils.getAccessModifier(method.getMethodAccessModifier());
-
             builder.append(".method ").append(accessModifier).append(" ");
+
             if (method.isStaticMethod()) builder.append("static ");
+            if (method.isFinalMethod()) builder.append("final ");
             if (method.isConstructMethod()) builder.append("<init>");
             else builder.append(method.getMethodName());
 
             builder.append("(");
-            for (final Element element : method.getParams()) {
-                // TODO: Parameter separator
+            for (final Element element : method.getParams())
                 builder.append(JasminUtils.getTypeName(element.getType(), classUnit));
-                builder.append(";");
-            }
+
             builder.append(")");
             builder.append(JasminUtils.getTypeName(method.getReturnType(), classUnit)).append("\n");
 
             compileMethodBody(method);
             builder.append(".end method\n");
         }
-        
+
         return builder.toString();
     }
 
