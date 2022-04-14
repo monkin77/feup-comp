@@ -6,7 +6,7 @@ import java.util.Locale;
 
 import static pt.up.fe.comp.jasmin.JasminConstants.STRING_TYPE;
 
-class JasminUtils {
+public class JasminUtils {
     public static String getAccessModifier(AccessModifiers modifier) {
         if (modifier == AccessModifiers.DEFAULT)
             return "public";
@@ -30,6 +30,7 @@ class JasminUtils {
                 return arrayFlag + getTypeName(type, arrayType.getTypeOfElements(), classUnit);
             case OBJECTREF:
             case CLASS:
+                ClassType classType = ((ClassType) type);
                 return ((ClassType) type).getName();
             case THIS:
                 return classUnit.getClassName();
