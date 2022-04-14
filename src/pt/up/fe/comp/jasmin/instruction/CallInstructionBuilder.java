@@ -46,15 +46,14 @@ public class CallInstructionBuilder extends AbstractBuilder {
 
     private void buildInvokeVirtual(CallInstruction instruction) {
         final Element firstArg = instruction.getFirstArg();
+        final Element secondArg = instruction.getSecondArg();
         final String className = JasminUtils.getTypeName(firstArg.getType(), classUnit);
 
-        final String rawMethodName = getElementName(instruction.getSecondArg());
+        final String rawMethodName = getElementName(secondArg);
         final String methodName = rawMethodName.substring(1, rawMethodName.length() - 1);
 
-        /* Tentativa de por a variavel certa na stack
-        final String firstArgName = getElementName(firstArg);
-        final Descriptor descriptor = method.getVarTable().get(firstArgName);
-        builder.append("aload_").append(descriptor.getVirtualReg()).append("\n");*/
+        for (Element element : instruction.getListOfOperands())
+            buildLoadInstruction(element);
 
         builder.append("invokevirtual ");
         builder.append(className).append("/").append(methodName).append("(");
@@ -74,6 +73,9 @@ public class CallInstructionBuilder extends AbstractBuilder {
         final String rawMethodName = getElementName(instruction.getSecondArg());
         final String methodName = rawMethodName.substring(1, rawMethodName.length() - 1);
 
+        for (Element element : instruction.getListOfOperands())
+            buildLoadInstruction(element);
+
         builder.append("invokespecial ");
         builder.append(className).append("/").append(methodName).append("(");
 
@@ -91,6 +93,9 @@ public class CallInstructionBuilder extends AbstractBuilder {
         final String rawMethodName = getElementName(instruction.getSecondArg());
         final String methodName = rawMethodName.substring(1, rawMethodName.length() - 1);
 
+        for (Element element : instruction.getListOfOperands())
+            buildLoadInstruction(element);
+
         builder.append("invokestatic ");
         builder.append(className).append("/").append(methodName).append("(");
 
@@ -100,6 +105,29 @@ public class CallInstructionBuilder extends AbstractBuilder {
         }
 
         builder.append(")").append(JasminUtils.getTypeName(instruction.getReturnType(), classUnit));
+    }
+
+    private void buildLoadInstruction(Element element) {
+        final String elementName = getElementName(element);
+
+        if (element.isLiteral()) {
+            builder.append("ldc ").append(elementName).append("\n");
+            return;
+        }
+
+        final Descriptor descriptor = method.getVarTable().get(elementName);
+        final ElementType type = element.getType().getTypeOfElement();
+
+        switch (type) {
+            case THIS: case OBJECTREF: case CLASS: case ARRAYREF: case STRING:
+                builder.append("aload_").append(descriptor.getVirtualReg());
+                break;
+            case INT32: case BOOLEAN:
+                builder.append("iload_").append(descriptor.getVirtualReg());
+                break;
+        }
+
+        builder.append("\n");
     }
 
     private String getElementName(Element element) {
