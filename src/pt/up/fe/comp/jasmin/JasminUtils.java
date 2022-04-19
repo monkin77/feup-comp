@@ -30,7 +30,6 @@ public class JasminUtils {
                 return arrayFlag + getTypeName(type, arrayType.getTypeOfElements(), classUnit);
             case OBJECTREF:
             case CLASS:
-                ClassType classType = ((ClassType) type);
                 return ((ClassType) type).getName();
             case THIS:
                 return classUnit.getClassName();

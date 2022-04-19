@@ -52,8 +52,9 @@ public class CallInstructionBuilder extends AbstractBuilder {
         final String rawMethodName = getElementName(secondArg);
         final String methodName = rawMethodName.substring(1, rawMethodName.length() - 1);
 
+        buildLoadInstructions(firstArg);
         for (Element element : instruction.getListOfOperands())
-            buildLoadInstruction(element);
+            buildLoadInstructions(element);
 
         builder.append("invokevirtual ");
         builder.append(className).append("/").append(methodName).append("(");
@@ -73,8 +74,9 @@ public class CallInstructionBuilder extends AbstractBuilder {
         final String rawMethodName = getElementName(instruction.getSecondArg());
         final String methodName = rawMethodName.substring(1, rawMethodName.length() - 1);
 
+        buildLoadInstructions(firstArg);
         for (Element element : instruction.getListOfOperands())
-            buildLoadInstruction(element);
+            buildLoadInstructions(element);
 
         builder.append("invokespecial ");
         builder.append(className).append("/").append(methodName).append("(");
@@ -93,8 +95,9 @@ public class CallInstructionBuilder extends AbstractBuilder {
         final String rawMethodName = getElementName(instruction.getSecondArg());
         final String methodName = rawMethodName.substring(1, rawMethodName.length() - 1);
 
+        buildLoadInstructions(instruction.getFirstArg());
         for (Element element : instruction.getListOfOperands())
-            buildLoadInstruction(element);
+            buildLoadInstructions(element);
 
         builder.append("invokestatic ");
         builder.append(className).append("/").append(methodName).append("(");
@@ -107,7 +110,7 @@ public class CallInstructionBuilder extends AbstractBuilder {
         builder.append(")").append(JasminUtils.getTypeName(instruction.getReturnType(), classUnit));
     }
 
-    private void buildLoadInstruction(Element element) {
+    private void buildLoadInstructions(Element element) {
         final String elementName = getElementName(element);
 
         if (element.isLiteral()) {
@@ -119,11 +122,14 @@ public class CallInstructionBuilder extends AbstractBuilder {
         final ElementType type = element.getType().getTypeOfElement();
 
         switch (type) {
-            case THIS: case OBJECTREF: case CLASS: case ARRAYREF: case STRING:
+            case THIS: case OBJECTREF: case CLASS: case STRING:
                 builder.append("aload_").append(descriptor.getVirtualReg());
                 break;
             case INT32: case BOOLEAN:
                 builder.append("iload_").append(descriptor.getVirtualReg());
+                break;
+            case ARRAYREF:
+                builder.append("iaload").append(descriptor.getVirtualReg());
                 break;
         }
 

@@ -40,6 +40,7 @@ public class MethodsBuilder extends AbstractBuilder {
     }
 
     private void compileMethodBody(final Method method) {
+        // TODO Stack limit 99
         final ArrayList<Instruction> instructions = method.getInstructions();
         method.buildVarTable();
 
