@@ -7,7 +7,8 @@ public enum Types {
     CLASS("class"),
     METHOD("method"),
     INT("int"),
-    BOOLEAN("boolean");
+    BOOLEAN("boolean"),
+    STRING("string");
 
     private final String code;
 

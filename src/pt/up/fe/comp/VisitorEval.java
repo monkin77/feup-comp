@@ -26,6 +26,7 @@ public class VisitorEval extends AJmmVisitor<Object, Integer> {
         addVisit("SymbolReference", this::symbolReference);
         addVisit("Assign", this::assignVisit); */
         addVisit("ClassDecl", this::classDeclVisit);
+        addVisit("MainDecl", this::mainDeclVisit);
         addVisit("_Identifier", this::identifierVisit);
         addVisit("DotMethod", this::dotMethodVisit);
         addVisit("VarDecl", this::varDeclVisit);
@@ -34,10 +35,44 @@ public class VisitorEval extends AJmmVisitor<Object, Integer> {
         setDefaultVisit(this::defaultVisit);
     }
 
+    private void createScope(Symbol symbol) {
+        this.scopeStack.push(symbol);
+        this.symbolTable.openScope(symbol);
+    }
+
     private Integer classDeclVisit(JmmNode node, Object dummy) {
         Symbol classSymbol = new Symbol(new Type(Types.CLASS.toString(), false), node.get("name"));
-        this.scopeStack.push(classSymbol);
-        this.symbolTable
+
+        // Insert next scope pointer in previous scope
+        this.symbolTable.put(this.scopeStack.peek(), classSymbol);
+
+        // Add new scope
+        this.createScope(classSymbol);
+
+        Integer visitResult = 0;
+        for (int i = 0; i < node.getNumChildren(); ++i) {
+            JmmNode childNode = node.getJmmChild(i);
+            visitResult = visit(childNode);
+            System.out.println("Visited class Decl child: " + i + " with result " + visitResult);
+        }
+
+        this.scopeStack.pop();
+
+        return visitResult;
+    }
+
+    private Integer mainDeclVisit(JmmNode node, Object dummy) {
+        Symbol mainSymbol = new Symbol(new Type(Types.METHOD.toString(), false), "main");
+
+        // Insert next scope pointer in previous scope
+        this.symbolTable.put(this.scopeStack.peek(), mainSymbol);
+
+        // Add new scope
+        this.createScope(mainSymbol);
+
+        String argName = node.get("mainArgs");
+        Symbol argSymbol = new Symbol(new Type(Types.STRING.toString(), true), argName);
+        this.symbolTable.put(this.scopeStack.peek(), argSymbol);
 
         Integer visitResult = 0;
         for (int i = 0; i < node.getNumChildren(); ++i) {

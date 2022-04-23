@@ -17,6 +17,12 @@ public class MySymbolTable implements SymbolTable {
 
     public void openScope(Symbol symbol) {
         this.map.put(symbol.hashCode(), new HashMap<>());
+        System.out.println("Opened scope " + symbol.getName() + " Current map: " + this.map.toString());
+    }
+
+    public void put(Symbol scope, Symbol symbol) {
+        this.map.get(scope.hashCode()).put(symbol.hashCode(), symbol);
+        System.out.println("Inserted new symbol in scope. Current map:" + this.map.toString());
     }
 
     @Override
