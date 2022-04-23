@@ -28,10 +28,12 @@ public class VisitorEval extends AJmmVisitor<Object, Integer> {
         addVisit("ClassDecl", this::classDeclVisit);
         addVisit("MainDecl", this::mainDeclVisit);
         addVisit("ImportDecl", this::importDeclVisit);
+        addVisit("VarDecl", this::varDeclVisit);
+        addVisit("PublicMethod", this::publicMethodVisit);
+
         addVisit("DotExpression", this::dotExpressionVisit);
         addVisit("_Identifier", this::identifierVisit);
         addVisit("DotMethod", this::dotMethodVisit);
-        addVisit("VarDecl", this::varDeclVisit);
         addVisit("IntArray", this::intArrayVisit);
 
         setDefaultVisit(this::defaultVisit);
@@ -106,6 +108,57 @@ public class VisitorEval extends AJmmVisitor<Object, Integer> {
         throw new RuntimeException("Illegal number of children in node " + "." + node.getKind());
     }
 
+    private Integer varDeclVisit(JmmNode node, Object dummy) {
+        if (node.getNumChildren() == 1) {
+            String varName = node.get("name");
+
+            Types varType = Types.getType(node.getJmmChild(0).getKind());
+            boolean isArray = varType.getIsArray();
+            String returnType = varType.toString();
+
+            Symbol varSymbol = new Symbol(new Type(returnType, isArray), varName);
+
+            this.symbolTable.put(this.scopeStack.peek(), varSymbol);
+
+            return 0;
+        }
+
+        throw new RuntimeException("Illegal number of children in node " + node.getKind() + ".");
+    }
+
+    private Integer publicMethodVisit(JmmNode node, Object dummy) {
+        if (node.getNumChildren() <= 0) throw new RuntimeException("Illegal number of children in node " + node.getKind() + ".");
+
+        Types varType = Types.getType(node.getJmmChild(0).getKind());
+        boolean isArray = varType.getIsArray();
+        String returnType = varType.toString();
+
+        // We need to store the return type of the function
+        // Best way is probably to extend the Symbol class to have another property for the return type in the case of methods
+        Symbol methodSymbol = new Symbol(new Type(Types.METHOD.toString(), false), node.get("name"));
+
+        // Insert next scope pointer in previous scope
+        this.symbolTable.put(this.scopeStack.peek(), methodSymbol);
+
+        // Add new scope
+        this.createScope(methodSymbol);
+
+        String argName = node.get("mainArgs");
+        Symbol argSymbol = new Symbol(new Type(Types.STRING.toString(), true), argName);
+        this.symbolTable.put(this.scopeStack.peek(), argSymbol);
+
+        Integer visitResult = 0;
+        for (int i = 0; i < node.getNumChildren(); ++i) {
+            JmmNode childNode = node.getJmmChild(i);
+            visitResult = visit(childNode);
+            System.out.println("Visited class Decl child: " + i + " with result " + visitResult);
+        }
+
+        this.scopeStack.pop();
+
+        return visitResult;
+    }
+
     private Integer dotExpressionVisit(JmmNode node, Object dummy) {
         if (node.getNumChildren() == 2) {
 
@@ -128,22 +181,6 @@ public class VisitorEval extends AJmmVisitor<Object, Integer> {
         if (node.getNumChildren() == 0) {   // Could have children?
             // Check if method exists?
             System.out.println("Analysing the " + node.getKind() + " " + node.get("method"));
-            return 0;
-        }
-
-        throw new RuntimeException("Illegal number of children in node " + node.getKind() + ".");
-    }
-
-    private Integer varDeclVisit(JmmNode node, Object dummy) {
-        if (node.getNumChildren() == 1) {
-            String varName = node.get("name");
-            System.out.println("Analysing the " + node.getKind() + " " + varName);
-
-            String varType = visit(node.getJmmChild(0)) == 1 ? "Int" : "String";    // Create an enum mapping the integer values to each type?
-            Pair<String, String> pair = new Pair(varType, null);
-            //this.map.put(varName, pair);    // Store new variable in the map
-
-
             return 0;
         }
 
