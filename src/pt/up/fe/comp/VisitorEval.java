@@ -27,6 +27,8 @@ public class VisitorEval extends AJmmVisitor<Object, Integer> {
         addVisit("Assign", this::assignVisit); */
         addVisit("ClassDecl", this::classDeclVisit);
         addVisit("MainDecl", this::mainDeclVisit);
+        addVisit("ImportDecl", this::importDeclVisit);
+        addVisit("DotExpression", this::dotExpressionVisit);
         addVisit("_Identifier", this::identifierVisit);
         addVisit("DotMethod", this::dotMethodVisit);
         addVisit("VarDecl", this::varDeclVisit);
@@ -86,6 +88,33 @@ public class VisitorEval extends AJmmVisitor<Object, Integer> {
         return visitResult;
     }
 
+    private Integer importDeclVisit(JmmNode node, Object dummy) {
+        if (node.getNumChildren() >= 1) {
+            JmmNode childNode = node.getJmmChild(0);
+            String importName = childNode.get("id");
+            for (int i = 1; i < node.getNumChildren(); ++i) {
+                childNode = node.getJmmChild(i);
+                importName = importName + "." + childNode.get("id");
+            }
+
+            Symbol importSymbol = new Symbol(new Type(Types.IMPORT.toString(), false), importName);
+            this.symbolTable.put(this.scopeStack.peek(), importSymbol);
+
+            return 0;
+        }
+
+        throw new RuntimeException("Illegal number of children in node " + "." + node.getKind());
+    }
+
+    private Integer dotExpressionVisit(JmmNode node, Object dummy) {
+        if (node.getNumChildren() == 2) {
+
+            return 0;
+        }
+
+        throw new RuntimeException("Illegal number of children in node " + "." + node.getKind());
+    }
+
     private Integer identifierVisit(JmmNode node, Object dummy) {
         if (node.getNumChildren() == 0) {
             System.out.println("Analysing the " + node.getKind() + " " + node.get("id"));
@@ -98,7 +127,7 @@ public class VisitorEval extends AJmmVisitor<Object, Integer> {
     private Integer dotMethodVisit(JmmNode node, Object dummy) {
         if (node.getNumChildren() == 0) {   // Could have children?
             // Check if method exists?
-            System.out.println("Analysing the " + node.getKind() + " " + node.get("id"));
+            System.out.println("Analysing the " + node.getKind() + " " + node.get("method"));
             return 0;
         }
 

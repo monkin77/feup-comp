@@ -6,6 +6,7 @@ public enum Types {
     GLOBAL("global"),
     CLASS("class"),
     METHOD("method"),
+    IMPORT("import"),
     INT("int"),
     BOOLEAN("boolean"),
     STRING("string");

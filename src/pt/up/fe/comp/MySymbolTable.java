@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 public class MySymbolTable implements SymbolTable {
-    private Map<Integer, Map<Integer, Symbol>> map; // Map keys are hashes of symbols
+    private Map<Integer, Map<String, Symbol>> map; // Map keys are hashes of symbols
 
     public MySymbolTable() {
         this.map = new HashMap<>();
@@ -21,8 +21,8 @@ public class MySymbolTable implements SymbolTable {
     }
 
     public void put(Symbol scope, Symbol symbol) {
-        this.map.get(scope.hashCode()).put(symbol.hashCode(), symbol);
-        System.out.println("Inserted new symbol in scope. Current map:" + this.map.toString());
+        this.map.get(scope.hashCode()).put(symbol.getName(), symbol);
+        System.out.println("Inserted new symbol " + symbol.getName() + " in scope. Current map:" + this.map.toString());
     }
 
     @Override
