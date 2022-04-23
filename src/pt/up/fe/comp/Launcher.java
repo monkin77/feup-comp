@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+import pt.up.fe.comp.jmm.analysis.JmmSemanticsResult;
 import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp.jmm.parser.JmmParserResult;
 import pt.up.fe.specs.util.SpecsIo;
@@ -44,15 +45,14 @@ public class Launcher {
         // Check if there are parsing errors
         TestUtils.noErrors(parserResult.getReports());
 
-        // Semantic Analysis stage  (Could create a class for all semantics, to be the same as syntatic)
-        VisitorEval eval = new VisitorEval();
-        JmmNode root = parserResult.getRootNode();
+        // Instantiate JmmAnalysis
+        JmmAnalyser analyser = new JmmAnalyser();
 
-        System.out.println("visitor eval: " + eval.visit(root, null));
-        // visitor code
+        // Semantic Analysis stage
+        JmmSemanticsResult analysisResult = analyser.semanticAnalysis(parserResult);
 
         // Check if there are parsing errors
-        TestUtils.noErrors(parserResult.getReports());
+        TestUtils.noErrors(analysisResult.getReports());
 
         // ... add remaining stages
     }

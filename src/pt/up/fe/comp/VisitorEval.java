@@ -1,29 +1,54 @@
 package pt.up.fe.comp;
 
-import org.eclipse.jgit.diff.ContentSource;
+import pt.up.fe.comp.jmm.analysis.table.Symbol;
+import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
+import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp.jmm.ast.AJmmVisitor;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Stack;
 
 public class VisitorEval extends AJmmVisitor<Object, Integer> {
-    private final Map<String, Pair<String, String>> map;
+    private final MySymbolTable symbolTable;
+    private final Stack<Symbol> scopeStack;
 
-    public VisitorEval() {
-        this.map = new HashMap<String, Pair<String, String>>();
+    public VisitorEval(MySymbolTable symbolTable) {
+        this.symbolTable = symbolTable;
+        this.scopeStack = new Stack<Symbol>();
+
+        Symbol globalScope = new Symbol(new Type(Types.GLOBAL.toString(), false), "global");
+        this.scopeStack.push(globalScope);
+        this.symbolTable.openScope(globalScope);
 
         /* addVisit("IntegerLiteral", this::integerVisit);
         addVisit("UnaryOp", this::unaryOpVisit);
         addVisit("BinOp", this::binOpVisit);
         addVisit("SymbolReference", this::symbolReference);
         addVisit("Assign", this::assignVisit); */
+        addVisit("ClassDecl", this::classDeclVisit);
         addVisit("_Identifier", this::identifierVisit);
         addVisit("DotMethod", this::dotMethodVisit);
         addVisit("VarDecl", this::varDeclVisit);
         addVisit("IntArray", this::intArrayVisit);
 
         setDefaultVisit(this::defaultVisit);
+    }
+
+    private Integer classDeclVisit(JmmNode node, Object dummy) {
+        Symbol classSymbol = new Symbol(new Type(Types.CLASS.toString(), false), node.get("name"));
+        this.scopeStack.push(classSymbol);
+        this.symbolTable
+
+        Integer visitResult = 0;
+        for (int i = 0; i < node.getNumChildren(); ++i) {
+            JmmNode childNode = node.getJmmChild(i);
+            visitResult = visit(childNode);
+            System.out.println("Visited class Decl child: " + i + " with result " + visitResult);
+        }
+
+        this.scopeStack.pop();
+
+        return visitResult;
     }
 
     private Integer identifierVisit(JmmNode node, Object dummy) {
@@ -52,7 +77,8 @@ public class VisitorEval extends AJmmVisitor<Object, Integer> {
 
             String varType = visit(node.getJmmChild(0)) == 1 ? "Int" : "String";    // Create an enum mapping the integer values to each type?
             Pair<String, String> pair = new Pair(varType, null);
-            this.map.put(varName, pair);    // Store new variable in the map
+            //this.map.put(varName, pair);    // Store new variable in the map
+
 
             return 0;
         }
