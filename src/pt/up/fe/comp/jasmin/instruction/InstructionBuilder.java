@@ -51,10 +51,9 @@ public class InstructionBuilder extends AbstractBuilder {
                 builder.append((new OperationInstructionBuilder(classUnit, method, opInstruction)).compile());
                 break;
             case NOPER:
-                // TODO
+                // TODO Check if this is right
+                builder.append("nop");
                 break;
-            default:
-                // TODO Check which cases fit in default
         }
 
         builder.append("\n");
