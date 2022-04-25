@@ -10,13 +10,13 @@ import java.util.Stack;
 
 public class VisitorEval extends AJmmVisitor<Object, Integer> {
     private final MySymbolTable symbolTable;
-    private final Stack<Symbol> scopeStack;
+    private final Stack<MySymbol> scopeStack;
 
     public VisitorEval(MySymbolTable symbolTable) {
         this.symbolTable = symbolTable;
-        this.scopeStack = new Stack<Symbol>();
+        this.scopeStack = new Stack<>();
 
-        Symbol globalScope = new Symbol(new Type(Types.GLOBAL.toString(), false), "global");
+        MySymbol globalScope = new MySymbol(new Type(Types.NONE.toString(), false), "global", EntityTypes.GLOBAL);
         this.scopeStack.push(globalScope);
         this.symbolTable.openScope(globalScope);
 
@@ -43,13 +43,13 @@ public class VisitorEval extends AJmmVisitor<Object, Integer> {
         setDefaultVisit(this::defaultVisit);
     }
 
-    private void createScope(Symbol symbol) {
+    private void createScope(MySymbol symbol) {
         this.scopeStack.push(symbol);
         this.symbolTable.openScope(symbol);
     }
 
     private Integer classDeclVisit(JmmNode node, Object dummy) {
-        Symbol classSymbol = new Symbol(new Type(Types.CLASS.toString(), false), node.get("name"));
+        MySymbol classSymbol = new MySymbol(new Type(Types.NONE.toString(), false), node.get("name"), EntityTypes.CLASS);
 
         // Insert next scope pointer in previous scope
         this.symbolTable.put(this.scopeStack.peek(), classSymbol);
@@ -70,7 +70,7 @@ public class VisitorEval extends AJmmVisitor<Object, Integer> {
     }
 
     private Integer mainDeclVisit(JmmNode node, Object dummy) {
-        Symbol mainSymbol = new Symbol(new Type(Types.METHOD.toString(), false), "main");
+        MySymbol mainSymbol = new MySymbol(new Type(Types.VOID.toString(), false), "main", EntityTypes.METHOD);
 
         // Insert next scope pointer in previous scope
         this.symbolTable.put(this.scopeStack.peek(), mainSymbol);
@@ -79,7 +79,7 @@ public class VisitorEval extends AJmmVisitor<Object, Integer> {
         this.createScope(mainSymbol);
 
         String argName = node.get("mainArgs");
-        Symbol argSymbol = new Symbol(new Type(Types.STRING.toString(), true), argName);
+        MySymbol argSymbol = new MySymbol(new Type(Types.STRING.toString(), true), argName, EntityTypes.ARG);
         this.symbolTable.put(this.scopeStack.peek(), argSymbol);
 
         Integer visitResult = 0;
@@ -103,7 +103,7 @@ public class VisitorEval extends AJmmVisitor<Object, Integer> {
                 importName = importName + "." + childNode.get("id");
             }
 
-            Symbol importSymbol = new Symbol(new Type(Types.IMPORT.toString(), false), importName);
+            MySymbol importSymbol = new MySymbol(new Type(Types.NONE.toString(), false), importName, EntityTypes.IMPORT);
             this.symbolTable.put(this.scopeStack.peek(), importSymbol);
 
             return 0;
@@ -118,9 +118,8 @@ public class VisitorEval extends AJmmVisitor<Object, Integer> {
 
             Types varType = Types.getType(node.getJmmChild(0).getKind());
             boolean isArray = varType.getIsArray();
-            String returnType = varType.toString();
 
-            Symbol varSymbol = new Symbol(new Type(returnType, isArray), varName);
+            MySymbol varSymbol = new MySymbol(new Type(varType.toString(), isArray), varName, EntityTypes.VARIABLE);
 
             this.symbolTable.put(this.scopeStack.peek(), varSymbol);
 
@@ -134,22 +133,17 @@ public class VisitorEval extends AJmmVisitor<Object, Integer> {
         if (node.getNumChildren() <= 0)
             throw new RuntimeException("Illegal number of children in node " + node.getKind() + ".");
 
-        //TODO We need to store the return type of the function
-        // Best way is probably to extend the Symbol class to have another property for the return type in the case of methods
-        Symbol methodSymbol = new Symbol(new Type(Types.METHOD.toString(), false), node.get("name"));
+        // Get the return type of the method
+        Types varType = Types.getType(node.getJmmChild(0).getKind());
+        boolean isArray = varType.getIsArray();
+
+        MySymbol methodSymbol = new MySymbol(new Type(varType.toString(), isArray), node.get("name"), EntityTypes.METHOD);
 
         // Insert next scope pointer in previous scope
         this.symbolTable.put(this.scopeStack.peek(), methodSymbol);
 
         // Add new scope
         this.createScope(methodSymbol);
-
-        // return is the first child of the Public Method
-        Types varType = Types.getType(node.getJmmChild(0).getKind());
-        boolean isArray = varType.getIsArray();
-        String returnType = varType.toString();
-        Symbol returnSymbol = new Symbol(new Type(returnType, isArray), "return");
-        this.symbolTable.put(this.scopeStack.peek(), returnSymbol);
 
         Integer visitResult = 0;
         for (int i = 1; i < node.getNumChildren(); ++i) {
@@ -158,13 +152,14 @@ public class VisitorEval extends AJmmVisitor<Object, Integer> {
             System.out.println("Visited method Decl child: " + i + " with result " + visitResult);
         }
 
+        // Pop current scope
         this.scopeStack.pop();
 
         return visitResult;
     }
 
     private Integer whileStVisit(JmmNode node, Object dummy) {
-        // Expr and While Block
+        // Children: Expr and While Block
         if (node.getNumChildren() < 2) {
             throw new RuntimeException("Illegal number of children in node " + node.getKind() + ".");
         }
@@ -176,16 +171,12 @@ public class VisitorEval extends AJmmVisitor<Object, Integer> {
     }
 
     private Integer argumentVisit(JmmNode node, Object dummy) {
-
         if (node.getNumChildren() == 1) {
-            //TODO should we be storing the type as "arg" and the value would be
-            // another Type like "int, isArray: true"?
             Types varType = Types.getType(node.getJmmChild(0).getKind());
             boolean isArray = varType.getIsArray();
-            String argType = varType.toString();
 
             String argName = node.get("arg");
-            Symbol argSymbol = new Symbol(new Type(argType, isArray), argName);
+            MySymbol argSymbol = new MySymbol(new Type(varType.toString(), isArray), argName, EntityTypes.ARG);
             this.symbolTable.put(this.scopeStack.peek(), argSymbol);
             return 0;
         }
@@ -194,6 +185,7 @@ public class VisitorEval extends AJmmVisitor<Object, Integer> {
     }
 
     private Integer assignExprVisit(JmmNode node, Object dummy) {
+        // TODO: Confirm we don't need to store anything
         if (node.getNumChildren() == 2) {
             System.out.println("Assign Expr with " + node.getNumChildren() + " children");
             return 0;
@@ -204,7 +196,6 @@ public class VisitorEval extends AJmmVisitor<Object, Integer> {
 
     private Integer dotExpressionVisit(JmmNode node, Object dummy) {
         if (node.getNumChildren() == 2) {
-
             return 0;
         }
 

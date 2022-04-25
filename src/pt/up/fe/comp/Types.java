@@ -6,7 +6,9 @@ public enum Types {
     INT("int", false),
     BOOLEAN("boolean", false),
     STRING("string", false),
-    INT_ARRAY("intArray", true),
+    INT_ARRAY("int", true),
+    VOID("void", false),
+    NONE("none", false),
     INVALID("invalid", false);
 
     private final String code;

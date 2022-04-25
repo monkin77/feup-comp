@@ -1,4 +1,4 @@
-package pt.up.fe.comp.entity;
+package pt.up.fe.comp;
 
 import pt.up.fe.specs.util.SpecsEnums;
 
@@ -7,7 +7,8 @@ public enum EntityTypes {
     CLASS("class"),
     METHOD("method"),
     IMPORT("import"),
-    VARIABLE("variable");
+    VARIABLE("variable"),
+    ARG("argument");
 
     private final String code;
 
