@@ -40,7 +40,7 @@ public class MethodsBuilder extends AbstractBuilder {
     }
 
     private void compileMethodBody(final Method method) {
-        // TODO Stack limit 99
+        builder.append(".limit stack 99\n"); // TODO Stack limits
         final ArrayList<Instruction> instructions = method.getInstructions();
         method.buildVarTable();
 
@@ -48,13 +48,13 @@ public class MethodsBuilder extends AbstractBuilder {
             builder.append(TAB);
             compileInstructionLabels(method, instruction);
 
-            // TODO Maybe create package with instruction builders
             switch (instruction.getInstType()) {
                 case ASSIGN:
                     // TODO
                     break;
                 case CALL:
-                    builder.append((new CallInstructionBuilder(classUnit, method, instruction)).compile());
+                    CallInstruction callInstruction = (CallInstruction) instruction;
+                    builder.append((new CallInstructionBuilder(classUnit, method, callInstruction)).compile());
                     break;
                 case GOTO:
                     // TODO

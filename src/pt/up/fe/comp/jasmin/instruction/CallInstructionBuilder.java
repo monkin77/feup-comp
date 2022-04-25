@@ -5,9 +5,9 @@ import pt.up.fe.comp.jasmin.AbstractBuilder;
 import pt.up.fe.comp.jasmin.JasminUtils;
 
 public class CallInstructionBuilder extends AbstractBuilder {
-    private final Instruction instruction;
+    private final CallInstruction instruction;
     private final Method method;
-    public CallInstructionBuilder(ClassUnit classUnit, Method method, Instruction instruction) {
+    public CallInstructionBuilder(ClassUnit classUnit, Method method, CallInstruction instruction) {
         super(classUnit);
         this.instruction = instruction;
         this.method = method;
@@ -15,16 +15,15 @@ public class CallInstructionBuilder extends AbstractBuilder {
 
     @Override
     public String compile() {
-        final CallInstruction callInstruction = (CallInstruction) instruction;
-        switch (callInstruction.getInvocationType()) {
+        switch (instruction.getInvocationType()) {
             case invokevirtual:
-                buildInvokeVirtual(callInstruction);
+                buildInvokeVirtual(instruction);
                 break;
             case invokespecial:
-                buildInvokeSpecial(callInstruction);
+                buildInvokeSpecial(instruction);
                 break;
             case invokestatic:
-                buildInvokeStatic(callInstruction);
+                buildInvokeStatic(instruction);
                 break;
             case invokeinterface:
                 // TODO
