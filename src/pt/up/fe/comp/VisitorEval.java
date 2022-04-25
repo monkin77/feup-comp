@@ -33,8 +33,6 @@ public class VisitorEval extends AJmmVisitor<Object, Integer> {
         addVisit("Argument", this::argumentVisit);
         addVisit("AssignmentExpr", this::assignExprVisit);
         addVisit("WhileSt", this::whileStVisit);
-
-        //TODO should we have this visit?
         addVisit("IntegerLiteral", this::integerVisit);
 
         addVisit("DotExpression", this::dotExpressionVisit);
@@ -153,14 +151,6 @@ public class VisitorEval extends AJmmVisitor<Object, Integer> {
         Symbol returnSymbol = new Symbol(new Type(returnType, isArray), "return");
         this.symbolTable.put(this.scopeStack.peek(), returnSymbol);
 
-
-        //TODO Public Method has no args annotated in the node
-        // Arguments are child of the public method. Currently assigning the arguments
-        // by visiting them (this seems to be ok due to our ast right?)
-        //String argName = node.get("mainArgs");
-        //Symbol argSymbol = new Symbol(new Type(Types.STRING.toString(), true), argName);
-        //this.symbolTable.put(this.scopeStack.peek(), argSymbol);
-
         Integer visitResult = 0;
         for (int i = 1; i < node.getNumChildren(); ++i) {
             JmmNode childNode = node.getJmmChild(i);
@@ -179,8 +169,9 @@ public class VisitorEval extends AJmmVisitor<Object, Integer> {
             throw new RuntimeException("Illegal number of children in node " + node.getKind() + ".");
         }
 
-        //TODO Should we be checking anything here? I think we can't declare varibles
-        // inside while looops
+        //TODO Should we be checking anything here? I think we can't declare variables
+        // inside while loops; We can iterate the children and visit them in order to
+        // accomplish this
         return 0;
     }
 
@@ -197,7 +188,6 @@ public class VisitorEval extends AJmmVisitor<Object, Integer> {
             Symbol argSymbol = new Symbol(new Type(argType, isArray), argName);
             this.symbolTable.put(this.scopeStack.peek(), argSymbol);
             return 0;
-
         }
 
         throw new RuntimeException("Illegal number of children in node " + node.getKind() + ".");
@@ -244,14 +234,6 @@ public class VisitorEval extends AJmmVisitor<Object, Integer> {
         if (node.getNumChildren() == 0) {
             System.out.println("Analysing the " + node.getKind());
             return 2;   // Return 2 if IntArray; Return 1 if Int, and so on... ?
-        }
-
-        throw new RuntimeException("Illegal number of children in node " + node.getKind() + ".");
-    }
-
-    private Integer assignVisit(JmmNode node, Object dummy) {
-        if (node.getNumChildren() == 0) {
-            return 0;
         }
 
         throw new RuntimeException("Illegal number of children in node " + node.getKind() + ".");
