@@ -3,10 +3,6 @@ package pt.up.fe.comp;
 import pt.up.fe.specs.util.SpecsEnums;
 
 public enum Types {
-    GLOBAL("global", false),
-    CLASS("class", false),
-    METHOD("method", false),
-    IMPORT("import", false),
     INT("int", false),
     BOOLEAN("boolean", false),
     STRING("string", false),
