@@ -46,10 +46,9 @@ public class InstructionBuilder extends AbstractBuilder {
                 // TODO
                 break;
             case UNARYOPER:
-                // TODO
-                break;
             case BINARYOPER:
-                // TODO
+                OpInstruction opInstruction = (OpInstruction) instruction;
+                builder.append((new OperationInstructionBuilder(classUnit, method, opInstruction)).compile());
                 break;
             case NOPER:
                 // TODO

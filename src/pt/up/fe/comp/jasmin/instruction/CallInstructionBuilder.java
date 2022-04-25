@@ -51,9 +51,9 @@ public class CallInstructionBuilder extends AbstractBuilder {
         final String rawMethodName = JasminUtils.getElementName(secondArg);
         final String methodName = rawMethodName.substring(1, rawMethodName.length() - 1);
 
-        buildLoadInstructions(firstArg);
+        JasminUtils.buildLoadInstructions(firstArg, method);
         for (Element element : instruction.getListOfOperands())
-            buildLoadInstructions(element);
+            JasminUtils.buildLoadInstructions(element, method);
 
         builder.append("invokevirtual ");
         builder.append(className).append("/").append(methodName).append("(");
@@ -73,9 +73,9 @@ public class CallInstructionBuilder extends AbstractBuilder {
         final String rawMethodName = JasminUtils.getElementName(instruction.getSecondArg());
         final String methodName = rawMethodName.substring(1, rawMethodName.length() - 1);
 
-        buildLoadInstructions(firstArg);
+        JasminUtils.buildLoadInstructions(firstArg, method);
         for (Element element : instruction.getListOfOperands())
-            buildLoadInstructions(element);
+            JasminUtils.buildLoadInstructions(element, method);
 
         builder.append("invokespecial ");
         builder.append(className).append("/").append(methodName).append("(");
@@ -94,9 +94,9 @@ public class CallInstructionBuilder extends AbstractBuilder {
         final String rawMethodName = JasminUtils.getElementName(instruction.getSecondArg());
         final String methodName = rawMethodName.substring(1, rawMethodName.length() - 1);
 
-        buildLoadInstructions(instruction.getFirstArg());
+        JasminUtils.buildLoadInstructions(instruction.getFirstArg(), method);
         for (Element element : instruction.getListOfOperands())
-            buildLoadInstructions(element);
+            JasminUtils.buildLoadInstructions(element, method);
 
         builder.append("invokestatic ");
         builder.append(className).append("/").append(methodName).append("(");
@@ -107,31 +107,5 @@ public class CallInstructionBuilder extends AbstractBuilder {
         }
 
         builder.append(")").append(JasminUtils.getTypeName(instruction.getReturnType(), classUnit));
-    }
-
-    private void buildLoadInstructions(Element element) {
-        final String elementName = JasminUtils.getElementName(element);
-
-        if (element.isLiteral()) {
-            builder.append("ldc ").append(elementName).append("\n");
-            return;
-        }
-
-        final Descriptor descriptor = method.getVarTable().get(elementName);
-        final ElementType type = element.getType().getTypeOfElement();
-
-        switch (type) {
-            case THIS: case OBJECTREF: case CLASS: case STRING:
-                builder.append("aload_").append(descriptor.getVirtualReg());
-                break;
-            case INT32: case BOOLEAN:
-                builder.append("iload_").append(descriptor.getVirtualReg());
-                break;
-            case ARRAYREF:
-                builder.append("iaload").append(descriptor.getVirtualReg());
-                break;
-        }
-
-        builder.append("\n");
     }
 }

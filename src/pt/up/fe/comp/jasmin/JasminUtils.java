@@ -46,4 +46,32 @@ public class JasminUtils {
             return ((LiteralElement) element).getLiteral();
         return ((Operand) element).getName();
     }
+
+    public static String buildLoadInstructions(Element element, Method method) {
+        final StringBuilder builder = new StringBuilder();
+        final String elementName = getElementName(element);
+
+        if (element.isLiteral()) {
+            builder.append("ldc ").append(elementName).append("\n");
+            return builder.toString();
+        }
+
+        final Descriptor descriptor = method.getVarTable().get(elementName);
+        final ElementType type = element.getType().getTypeOfElement();
+
+        switch (type) {
+            case THIS: case OBJECTREF: case CLASS: case STRING:
+                builder.append("aload_").append(descriptor.getVirtualReg());
+                break;
+            case INT32: case BOOLEAN:
+                builder.append("iload_").append(descriptor.getVirtualReg());
+                break;
+            case ARRAYREF:
+                builder.append("iaload").append(descriptor.getVirtualReg());
+                break;
+        }
+
+        builder.append("\n");
+        return builder.toString();
+    }
 }
