@@ -23,7 +23,6 @@ public class AssignInstructionBuilder extends AbstractBuilder {
         builder.append((new InstructionBuilder(classUnit, method, instruction.getRhs())).compile());
 
         final ElementType assignType = instruction.getTypeOfAssign().getTypeOfElement();
-        System.out.println("type=" + assignType.toString());
         switch (assignType) {
             case THIS: case OBJECTREF: case CLASS: case STRING:
                 builder.append("astore_").append(descriptor.getVirtualReg());

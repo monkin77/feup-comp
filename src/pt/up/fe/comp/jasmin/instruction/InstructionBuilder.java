@@ -36,7 +36,8 @@ public class InstructionBuilder extends AbstractBuilder {
                 // TODO
                 break;
             case RETURN:
-                // TODO
+                ReturnInstruction returnInstruction = (ReturnInstruction) instruction;
+                builder.append((new ReturnInstructionBuilder(classUnit, returnInstruction)).compile());
                 break;
             case PUTFIELD:
                 // TODO
