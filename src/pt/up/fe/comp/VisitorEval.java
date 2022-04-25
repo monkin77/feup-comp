@@ -30,6 +30,12 @@ public class VisitorEval extends AJmmVisitor<Object, Integer> {
         addVisit("ImportDecl", this::importDeclVisit);
         addVisit("VarDecl", this::varDeclVisit);
         addVisit("PublicMethod", this::publicMethodVisit);
+        addVisit("Argument", this::argumentVisit);
+        addVisit("AssignmentExpr", this::assignExprVisit);
+        addVisit("WhileSt", this::whileStVisit);
+
+        //TODO should we have this visit?
+        addVisit("IntegerLiteral", this::integerVisit);
 
         addVisit("DotExpression", this::dotExpressionVisit);
         addVisit("_Identifier", this::identifierVisit);
@@ -82,7 +88,7 @@ public class VisitorEval extends AJmmVisitor<Object, Integer> {
         for (int i = 0; i < node.getNumChildren(); ++i) {
             JmmNode childNode = node.getJmmChild(i);
             visitResult = visit(childNode);
-            System.out.println("Visited class Decl child: " + i + " with result " + visitResult);
+            System.out.println("Visited main Decl child: " + i + " with result " + visitResult);
         }
 
         this.scopeStack.pop();
@@ -127,13 +133,10 @@ public class VisitorEval extends AJmmVisitor<Object, Integer> {
     }
 
     private Integer publicMethodVisit(JmmNode node, Object dummy) {
-        if (node.getNumChildren() <= 0) throw new RuntimeException("Illegal number of children in node " + node.getKind() + ".");
+        if (node.getNumChildren() <= 0)
+            throw new RuntimeException("Illegal number of children in node " + node.getKind() + ".");
 
-        Types varType = Types.getType(node.getJmmChild(0).getKind());
-        boolean isArray = varType.getIsArray();
-        String returnType = varType.toString();
-
-        // We need to store the return type of the function
+        //TODO We need to store the return type of the function
         // Best way is probably to extend the Symbol class to have another property for the return type in the case of methods
         Symbol methodSymbol = new Symbol(new Type(Types.METHOD.toString(), false), node.get("name"));
 
@@ -143,20 +146,70 @@ public class VisitorEval extends AJmmVisitor<Object, Integer> {
         // Add new scope
         this.createScope(methodSymbol);
 
-        String argName = node.get("mainArgs");
-        Symbol argSymbol = new Symbol(new Type(Types.STRING.toString(), true), argName);
-        this.symbolTable.put(this.scopeStack.peek(), argSymbol);
+        // return is the first child of the Public Method
+        Types varType = Types.getType(node.getJmmChild(0).getKind());
+        boolean isArray = varType.getIsArray();
+        String returnType = varType.toString();
+        Symbol returnSymbol = new Symbol(new Type(returnType, isArray), "return");
+        this.symbolTable.put(this.scopeStack.peek(), returnSymbol);
+
+
+        //TODO Public Method has no args annotated in the node
+        // Arguments are child of the public method. Currently assigning the arguments
+        // by visiting them (this seems to be ok due to our ast right?)
+        //String argName = node.get("mainArgs");
+        //Symbol argSymbol = new Symbol(new Type(Types.STRING.toString(), true), argName);
+        //this.symbolTable.put(this.scopeStack.peek(), argSymbol);
 
         Integer visitResult = 0;
-        for (int i = 0; i < node.getNumChildren(); ++i) {
+        for (int i = 1; i < node.getNumChildren(); ++i) {
             JmmNode childNode = node.getJmmChild(i);
             visitResult = visit(childNode);
-            System.out.println("Visited class Decl child: " + i + " with result " + visitResult);
+            System.out.println("Visited method Decl child: " + i + " with result " + visitResult);
         }
 
         this.scopeStack.pop();
 
         return visitResult;
+    }
+
+    private Integer whileStVisit(JmmNode node, Object dummy) {
+        // Expr and While Block
+        if (node.getNumChildren() < 2) {
+            throw new RuntimeException("Illegal number of children in node " + node.getKind() + ".");
+        }
+
+        //TODO Should we be checking anything here? I think we can't declare varibles
+        // inside while looops
+        return 0;
+    }
+
+    private Integer argumentVisit(JmmNode node, Object dummy) {
+
+        if (node.getNumChildren() == 1) {
+            //TODO should we be storing the type as "arg" and the value would be
+            // another Type like "int, isArray: true"?
+            Types varType = Types.getType(node.getJmmChild(0).getKind());
+            boolean isArray = varType.getIsArray();
+            String argType = varType.toString();
+
+            String argName = node.get("arg");
+            Symbol argSymbol = new Symbol(new Type(argType, isArray), argName);
+            this.symbolTable.put(this.scopeStack.peek(), argSymbol);
+            return 0;
+
+        }
+
+        throw new RuntimeException("Illegal number of children in node " + node.getKind() + ".");
+    }
+
+    private Integer assignExprVisit(JmmNode node, Object dummy) {
+        if (node.getNumChildren() == 2) {
+            System.out.println("Assign Expr with " + node.getNumChildren() + " children");
+            return 0;
+        }
+
+        throw new RuntimeException("Illegal number of children in node " + "." + node.getKind());
     }
 
     private Integer dotExpressionVisit(JmmNode node, Object dummy) {
@@ -206,8 +259,7 @@ public class VisitorEval extends AJmmVisitor<Object, Integer> {
 
     private Integer integerVisit(JmmNode node, Object dummy) {
         if (node.getNumChildren() == 0) {
-
-            return Integer.parseInt(node.get("image"));
+            return Integer.parseInt(node.get("value"));
         }
 
         throw new RuntimeException("Illegal number of children in node " + node.getKind() + ".");
@@ -295,11 +347,12 @@ public class VisitorEval extends AJmmVisitor<Object, Integer> {
             throw new RuntimeException("Illegal number of children in node " + node.getKind() + ".");
         }
 
+        System.out.println("Currently in node: " + node.getKind());
         Integer visitResult = 0;
         for (int i = 0; i < node.getNumChildren(); ++i) {
             JmmNode childNode = node.getJmmChild(i);
             visitResult = visit(childNode);
-            System.out.println("Intermediate result: " + visitResult);
+            //System.out.println("Intermediate result: " + visitResult);
         }
 
         return visitResult;
