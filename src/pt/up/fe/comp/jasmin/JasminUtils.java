@@ -40,4 +40,10 @@ public class JasminUtils {
         }
         return "";
     }
+
+    public static String getElementName(Element element) {
+        if (element.isLiteral())
+            return ((LiteralElement) element).getLiteral();
+        return ((Operand) element).getName();
+    }
 }

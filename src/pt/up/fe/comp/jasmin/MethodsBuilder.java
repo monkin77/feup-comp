@@ -1,10 +1,9 @@
 package pt.up.fe.comp.jasmin;
 
 import org.specs.comp.ollir.*;
-import pt.up.fe.comp.jasmin.instruction.CallInstructionBuilder;
+import pt.up.fe.comp.jasmin.instruction.InstructionBuilder;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import static pt.up.fe.comp.jasmin.JasminConstants.TAB;
 
@@ -42,54 +41,12 @@ public class MethodsBuilder extends AbstractBuilder {
     private void compileMethodBody(final Method method) {
         builder.append(".limit stack 99\n"); // TODO Stack limits
         final ArrayList<Instruction> instructions = method.getInstructions();
+
         method.buildVarTable();
 
         for (final Instruction instruction : instructions) {
             builder.append(TAB);
-            compileInstructionLabels(method, instruction);
-
-            switch (instruction.getInstType()) {
-                case ASSIGN:
-                    // TODO
-                    break;
-                case CALL:
-                    CallInstruction callInstruction = (CallInstruction) instruction;
-                    builder.append((new CallInstructionBuilder(classUnit, method, callInstruction)).compile());
-                    break;
-                case GOTO:
-                    // TODO
-                    break;
-                case BRANCH:
-                    // TODO
-                    break;
-                case RETURN:
-                    // TODO
-                    break;
-                case PUTFIELD:
-                    // TODO
-                    break;
-                case GETFIELD:
-                    // TODO
-                    break;
-                case UNARYOPER:
-                    // TODO
-                    break;
-                case BINARYOPER:
-                    // TODO
-                    break;
-                case NOPER:
-                    // TODO
-                    break;
-                default:
-                    // TODO Check which cases fit in default
-            }
-            builder.append("\n");
+            builder.append((new InstructionBuilder(classUnit, method, instruction)).compile());
         }
-    }
-
-    private void compileInstructionLabels(final Method method, final Instruction instruction) {
-        final List<String> labels = method.getLabels(instruction);
-        for (String label : labels)
-            builder.append(label).append(":\n").append(TAB);
     }
 }

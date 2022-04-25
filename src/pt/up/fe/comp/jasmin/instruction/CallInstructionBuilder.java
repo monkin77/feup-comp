@@ -48,7 +48,7 @@ public class CallInstructionBuilder extends AbstractBuilder {
         final Element secondArg = instruction.getSecondArg();
         final String className = JasminUtils.getTypeName(firstArg.getType(), classUnit);
 
-        final String rawMethodName = getElementName(secondArg);
+        final String rawMethodName = JasminUtils.getElementName(secondArg);
         final String methodName = rawMethodName.substring(1, rawMethodName.length() - 1);
 
         buildLoadInstructions(firstArg);
@@ -70,7 +70,7 @@ public class CallInstructionBuilder extends AbstractBuilder {
         final Element firstArg = instruction.getFirstArg();
         final String className = JasminUtils.getTypeName(firstArg.getType(), classUnit);
 
-        final String rawMethodName = getElementName(instruction.getSecondArg());
+        final String rawMethodName = JasminUtils.getElementName(instruction.getSecondArg());
         final String methodName = rawMethodName.substring(1, rawMethodName.length() - 1);
 
         buildLoadInstructions(firstArg);
@@ -89,9 +89,9 @@ public class CallInstructionBuilder extends AbstractBuilder {
     }
 
     private void buildInvokeStatic(CallInstruction instruction) {
-        final String className = getElementName(instruction.getFirstArg());
+        final String className = JasminUtils.getElementName(instruction.getFirstArg());
 
-        final String rawMethodName = getElementName(instruction.getSecondArg());
+        final String rawMethodName = JasminUtils.getElementName(instruction.getSecondArg());
         final String methodName = rawMethodName.substring(1, rawMethodName.length() - 1);
 
         buildLoadInstructions(instruction.getFirstArg());
@@ -110,7 +110,7 @@ public class CallInstructionBuilder extends AbstractBuilder {
     }
 
     private void buildLoadInstructions(Element element) {
-        final String elementName = getElementName(element);
+        final String elementName = JasminUtils.getElementName(element);
 
         if (element.isLiteral()) {
             builder.append("ldc ").append(elementName).append("\n");
@@ -133,11 +133,5 @@ public class CallInstructionBuilder extends AbstractBuilder {
         }
 
         builder.append("\n");
-    }
-
-    private String getElementName(Element element) {
-        if (element.isLiteral())
-            return ((LiteralElement) element).getLiteral();
-        return ((Operand) element).getName();
     }
 }
