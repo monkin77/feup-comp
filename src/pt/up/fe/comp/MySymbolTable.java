@@ -88,6 +88,16 @@ public class MySymbolTable implements SymbolTable {
 
     @Override
     public Type getReturnType(String methodSignature) {
+        MySymbol classSymbol = this.getClassSymbol();
+        Map<String, MySymbol> currScope = this.map.get(classSymbol);
+
+
+        for (MySymbol symbol : currScope.values()) {
+            if (symbol.getName().equals(methodSignature) && symbol.getEntity() == EntityTypes.METHOD) {
+                return symbol.getType();
+            }
+        }
+
         return null;
     }
 
