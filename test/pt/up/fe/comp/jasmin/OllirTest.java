@@ -14,7 +14,7 @@ import java.util.Collections;
 public class OllirTest {
     @Test
     public void testOllir() {
-        String ollirCode = SpecsIo.getResource("pt/up/fe/comp/fixtures/public/ollir/myclass4.ollir");
+        String ollirCode = SpecsIo.getResource("pt/up/fe/comp/fixtures/public/ollir/myclass3.ollir");
         OllirResult ollirResult = new OllirResult(ollirCode, Collections.emptyMap());
 
         JasminBackend backend = new JasminBackendJmm();

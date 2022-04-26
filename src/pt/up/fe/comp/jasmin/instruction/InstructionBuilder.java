@@ -45,7 +45,8 @@ public class InstructionBuilder extends AbstractBuilder {
                 // TODO
                 break;
             case GETFIELD:
-                // TODO
+                GetFieldInstruction getFieldInstruction = (GetFieldInstruction) instruction;
+                builder.append((new GetFieldInstructionBuilder(classUnit, method, getFieldInstruction)).compile());
                 break;
             case UNARYOPER:
             case BINARYOPER:
