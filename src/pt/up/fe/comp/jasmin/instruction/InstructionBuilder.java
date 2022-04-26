@@ -30,7 +30,8 @@ public class InstructionBuilder extends AbstractBuilder {
                 builder.append((new CallInstructionBuilder(classUnit, method, callInstruction)).compile());
                 break;
             case GOTO:
-                // TODO
+                GotoInstruction gotoInstruction = (GotoInstruction) instruction;
+                builder.append("goto ").append(gotoInstruction.getLabel());
                 break;
             case BRANCH:
                 CondBranchInstruction condBranchInstruction = (CondBranchInstruction) instruction;
@@ -52,7 +53,6 @@ public class InstructionBuilder extends AbstractBuilder {
                 builder.append((new OperationInstructionBuilder(classUnit, method, opInstruction)).compile());
                 break;
             case NOPER:
-                // TODO Check if this is right
                 builder.append("nop");
                 break;
         }
