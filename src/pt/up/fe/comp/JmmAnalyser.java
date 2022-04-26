@@ -20,9 +20,9 @@ public class JmmAnalyser implements JmmAnalysis {
         System.out.println("visitor eval: " + eval.visit(root, null));
         // visitor code
 
-        List<String> imports = symbolTable.getImports();
-        System.out.println("Imports: " + imports);
+        System.out.println("Imports: " + symbolTable.getImports());
         System.out.println("Class Name: " + symbolTable.getClassName());
+        System.out.println("Super: " + symbolTable.getSuper());
 
         return new JmmSemanticsResult(parserResult, symbolTable, Collections.emptyList() /* LIST OF REPORTS */);
     }

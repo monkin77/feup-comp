@@ -20,11 +20,12 @@ public class VisitorEval extends AJmmVisitor<Object, Integer> {
         this.scopeStack.push(globalScope);
         this.symbolTable.openScope(globalScope);
 
-        /* addVisit("IntegerLiteral", this::integerVisit);
+        /*
         addVisit("UnaryOp", this::unaryOpVisit);
         addVisit("BinOp", this::binOpVisit);
         addVisit("SymbolReference", this::symbolReference);
         addVisit("Assign", this::assignVisit); */
+
         addVisit("ClassDecl", this::classDeclVisit);
         addVisit("MainDecl", this::mainDeclVisit);
         addVisit("ImportDecl", this::importDeclVisit);
@@ -33,7 +34,8 @@ public class VisitorEval extends AJmmVisitor<Object, Integer> {
         addVisit("Argument", this::argumentVisit);
         addVisit("AssignmentExpr", this::assignExprVisit);
         addVisit("WhileSt", this::whileStVisit);
-        addVisit("IntegerLiteral", this::integerVisit);
+        addVisit("IntegerLiteral", this::integerLiteralVisit);
+        addVisit("BooleanLiteral", this::booleanLiteralVisit);
 
         addVisit("DotExpression", this::dotExpressionVisit);
         addVisit("_Identifier", this::identifierVisit);
@@ -56,6 +58,12 @@ public class VisitorEval extends AJmmVisitor<Object, Integer> {
 
         // Add new scope
         this.createScope(classSymbol);
+
+        String extendedClass = node.get("extends");
+        if (extendedClass != null) {
+            MySymbol extendedSymbol = new MySymbol(new Type(Types.NONE.toString(), false), extendedClass, EntityTypes.EXTENDS);
+            this.symbolTable.put(this.scopeStack.peek(), extendedSymbol);
+        }
 
         Integer visitResult = 0;
         for (int i = 0; i < node.getNumChildren(); ++i) {
@@ -230,9 +238,17 @@ public class VisitorEval extends AJmmVisitor<Object, Integer> {
         throw new RuntimeException("Illegal number of children in node " + node.getKind() + ".");
     }
 
-    private Integer integerVisit(JmmNode node, Object dummy) {
+    private Integer integerLiteralVisit(JmmNode node, Object dummy) {
         if (node.getNumChildren() == 0) {
             return Integer.parseInt(node.get("value"));
+        }
+
+        throw new RuntimeException("Illegal number of children in node " + node.getKind() + ".");
+    }
+
+    private Integer booleanLiteralVisit(JmmNode node, Object dummy) {
+        if (node.getNumChildren() == 0) {
+            return 1;
         }
 
         throw new RuntimeException("Illegal number of children in node " + node.getKind() + ".");

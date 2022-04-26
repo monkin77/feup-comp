@@ -30,17 +30,28 @@ public class MySymbolTable implements SymbolTable {
         //System.out.print("Inserted new symbol " + symbol.getName() + " in scope. Current Scope:" + this.map.get(scope).toString());
     }
 
+    private MySymbol getClassSymbol() {
+        MySymbol globalScope = new MySymbol(new Type(Types.NONE.toString(), false), "global", EntityTypes.GLOBAL);
+        Map<String, MySymbol> currTable = this.map.get(globalScope);
+
+        for (MySymbol scope : currTable.values()) {
+            if (scope.getEntity() == EntityTypes.CLASS ) {
+                return scope;
+            }
+        }
+
+        return null;
+    }
+
     @Override
     public List<String> getImports() {
         MySymbol globalScope = new MySymbol(new Type(Types.NONE.toString(), false), "global", EntityTypes.GLOBAL);
         Map<String, MySymbol> currTable = this.map.get(globalScope);
         List<String> imports = new ArrayList<>();
 
-        for (Map.Entry<String, MySymbol> entry : currTable.entrySet()) {
-            EntityTypes entity = entry.getValue().getEntity();
-
-            if (entity == EntityTypes.IMPORT ) {
-                imports.add(entry.getValue().getName());
+        for (MySymbol symbol : currTable.values()) {
+            if (symbol.getEntity() == EntityTypes.IMPORT ) {
+                imports.add(symbol.getName());
             }
         }
 
@@ -65,6 +76,14 @@ public class MySymbolTable implements SymbolTable {
 
     @Override
     public String getSuper() {
+        MySymbol classSymbol = this.getClassSymbol();
+        Map<String, MySymbol> currScope = this.map.get(classSymbol);
+
+        for (MySymbol symbol : currScope.values()) {
+            if (symbol.getEntity() == EntityTypes.EXTENDS)
+                return symbol.getName();
+        }
+
         return null;
     }
 

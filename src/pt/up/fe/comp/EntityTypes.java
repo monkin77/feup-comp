@@ -8,7 +8,8 @@ public enum EntityTypes {
     METHOD("method"),
     IMPORT("import"),
     VARIABLE("variable"),
-    ARG("argument");
+    ARG("argument"),
+    EXTENDS("extends");
 
     private final String code;
 

@@ -18,7 +18,7 @@ public class SymbolTableTest {
 
     @Test
     public void testFileInput() {
-        String input = "./fixtures/public/FindMaximum.jmm";
+        String input = "./fixtures/public/Lazysort.jmm";
         String inputResource = SpecsIo.getResource(input);
 
         // Create config
