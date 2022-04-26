@@ -6,6 +6,7 @@ import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp.jmm.ast.AJmmVisitor;
 
+import java.util.Optional;
 import java.util.Stack;
 
 public class VisitorEval extends AJmmVisitor<Object, Integer> {
@@ -59,10 +60,14 @@ public class VisitorEval extends AJmmVisitor<Object, Integer> {
         // Add new scope
         this.createScope(classSymbol);
 
-        String extendedClass = node.get("extends");
-        if (extendedClass != null) {
-            MySymbol extendedSymbol = new MySymbol(new Type(Types.NONE.toString(), false), extendedClass, EntityTypes.EXTENDS);
-            this.symbolTable.put(this.scopeStack.peek(), extendedSymbol);
+        try {
+            Optional<String> extendedClass = node.getOptional("extends");
+            if (!extendedClass.isEmpty()) {
+                MySymbol extendedSymbol = new MySymbol(new Type(Types.NONE.toString(), false), extendedClass.get(), EntityTypes.EXTENDS);
+                this.symbolTable.put(this.scopeStack.peek(), extendedSymbol);
+            }
+        } catch(Error err){
+            ;
         }
 
         Integer visitResult = 0;
