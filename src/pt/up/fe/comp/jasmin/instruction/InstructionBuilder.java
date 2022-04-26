@@ -33,7 +33,8 @@ public class InstructionBuilder extends AbstractBuilder {
                 // TODO
                 break;
             case BRANCH:
-                // TODO
+                CondBranchInstruction condBranchInstruction = (CondBranchInstruction) instruction;
+                builder.append((new CondInstructionBuilder(classUnit, method, condBranchInstruction)).compile());
                 break;
             case RETURN:
                 ReturnInstruction returnInstruction = (ReturnInstruction) instruction;

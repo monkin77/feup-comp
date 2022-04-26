@@ -33,8 +33,7 @@ public class OperationInstructionBuilder extends AbstractBuilder {
         builder.append(JasminUtils.buildLoadInstructions(binaryOpInstruction.getRightOperand(), method));
 
         switch (type) {
-            // TODO Why I32 everywhere?
-            case AND: case ANDI32:
+            case AND: case ANDI32: case ANDB:
                 builder.append("iand");
                 break;
             case LTH: case LTHI32:
@@ -72,7 +71,7 @@ public class OperationInstructionBuilder extends AbstractBuilder {
         final UnaryOpInstruction unaryOpInstruction = (UnaryOpInstruction) instruction;
         final OperationType type = unaryOpInstruction.getOperation().getOpType();
 
-        if (type != OperationType.NOT) return; // Not supported
+        if (type != OperationType.NOT && type != OperationType.NOTB) return; // Not supported
         builder.append("ineg");
     }
 }
