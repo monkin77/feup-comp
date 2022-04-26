@@ -4,6 +4,8 @@ import pt.up.fe.comp.jmm.analysis.table.Symbol;
 import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
 import pt.up.fe.comp.jmm.analysis.table.Type;
 
+import javax.swing.text.html.parser.Entity;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,7 +34,17 @@ public class MySymbolTable implements SymbolTable {
     public List<String> getImports() {
         MySymbol globalScope = new MySymbol(new Type(Types.NONE.toString(), false), "global", EntityTypes.GLOBAL);
         Map<String, MySymbol> currTable = this.map.get(globalScope);
-        return null;
+        List<String> imports = new ArrayList<>();
+
+        for (Map.Entry<String, MySymbol> entry : currTable.entrySet()) {
+            EntityTypes entity = entry.getValue().getEntity();
+
+            if (entity == EntityTypes.IMPORT ) {
+                imports.add(entry.getValue().getName());
+            }
+        }
+
+        return imports;
     }
 
     @Override

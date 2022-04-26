@@ -21,4 +21,8 @@ public class MySymbol extends Symbol {
     public String toString() {
         return "MySymbol [type=" + super.getType() + ", name=" + super.getName() + ", entityType=" + this.entity.toString() + "]";
     }
+
+    public EntityTypes getEntity() {
+        return entity;
+    }
 }

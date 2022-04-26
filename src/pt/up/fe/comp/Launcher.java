@@ -51,6 +51,7 @@ public class Launcher {
         // Semantic Analysis stage
         JmmSemanticsResult analysisResult = analyser.semanticAnalysis(parserResult);
 
+
         // Check if there are parsing errors
         TestUtils.noErrors(analysisResult.getReports());
 

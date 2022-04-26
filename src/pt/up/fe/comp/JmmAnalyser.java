@@ -7,6 +7,7 @@ import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp.jmm.parser.JmmParserResult;
 
 import java.util.Collections;
+import java.util.List;
 
 public class JmmAnalyser implements JmmAnalysis {
     @Override
@@ -18,6 +19,9 @@ public class JmmAnalyser implements JmmAnalysis {
 
         System.out.println("visitor eval: " + eval.visit(root, null));
         // visitor code
+
+        List<String> imports = symbolTable.getImports();
+        System.out.println("Imports: " + imports);
 
         return new JmmSemanticsResult(parserResult, symbolTable, Collections.emptyList() /* LIST OF REPORTS */);
     }
