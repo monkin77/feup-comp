@@ -9,24 +9,29 @@ import java.util.List;
 import java.util.Map;
 
 public class MySymbolTable implements SymbolTable {
-    private Map<Integer, Map<String, MySymbol>> map; // Map keys are hashes of symbols
+    private Map<Symbol, Map<String, MySymbol>> map; // Map keys are hashes of symbols
 
     public MySymbolTable() {
         this.map = new HashMap<>();
     }
 
     public void openScope(MySymbol symbol) {
-        this.map.put(symbol.hashCode(), new HashMap<>());
-        System.out.println("Opened scope " + symbol.getName() + " Current map: " + this.map.toString());
+        this.map.put(symbol, new HashMap<>());
+        System.out.println("----------------------------------------");
+        System.out.println("Opened scope " + symbol.getName() + " Current map: ");
+        this.myPrint();
+        System.out.println("----------------------------------------\n");
     }
 
     public void put(MySymbol scope, MySymbol symbol) {
-        this.map.get(scope.hashCode()).put(symbol.getName(), symbol);
-        System.out.println("Inserted new symbol " + symbol.getName() + " in scope. Current Scope:" + this.map.get(scope.hashCode()).toString());
+        this.map.get(scope).put(symbol.getName(), symbol);
+        //System.out.print("Inserted new symbol " + symbol.getName() + " in scope. Current Scope:" + this.map.get(scope).toString());
     }
 
     @Override
     public List<String> getImports() {
+        MySymbol globalScope = new MySymbol(new Type(Types.NONE.toString(), false), "global", EntityTypes.GLOBAL);
+        Map<String, MySymbol> currTable = this.map.get(globalScope);
         return null;
     }
 
@@ -63,5 +68,11 @@ public class MySymbolTable implements SymbolTable {
     @Override
     public List<Symbol> getLocalVariables(String methodSignature) {
         return null;
+    }
+
+    public void myPrint() {
+        for (Map.Entry<Symbol, Map<String, MySymbol>> entry : this.map.entrySet()) {
+            System.out.println(entry.getKey().getName() + ": " + entry.getValue().toString());
+        }
     }
 }
