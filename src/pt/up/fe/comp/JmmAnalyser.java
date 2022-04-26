@@ -22,6 +22,7 @@ public class JmmAnalyser implements JmmAnalysis {
 
         List<String> imports = symbolTable.getImports();
         System.out.println("Imports: " + imports);
+        System.out.println("Class Name: " + symbolTable.getClassName());
 
         return new JmmSemanticsResult(parserResult, symbolTable, Collections.emptyList() /* LIST OF REPORTS */);
     }

@@ -49,6 +49,17 @@ public class MySymbolTable implements SymbolTable {
 
     @Override
     public String getClassName() {
+        MySymbol globalScope = new MySymbol(new Type(Types.NONE.toString(), false), "global", EntityTypes.GLOBAL);
+        Map<String, MySymbol> currTable = this.map.get(globalScope);
+
+        for (Map.Entry<String, MySymbol> entry : currTable.entrySet()) {
+            EntityTypes entity = entry.getValue().getEntity();
+
+            if (entity == EntityTypes.CLASS ) {
+                return entry.getValue().getName();
+            }
+        }
+
         return null;
     }
 
