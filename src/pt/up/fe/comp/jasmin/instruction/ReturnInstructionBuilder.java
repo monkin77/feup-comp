@@ -22,14 +22,14 @@ public class ReturnInstructionBuilder extends AbstractBuilder {
 
         switch (instruction.getElementType()) {
             case OBJECTREF: case CLASS: case STRING:
+            case ARRAYREF:
                 builder.append("areturn");
                 break;
-            case INT32: case BOOLEAN: case ARRAYREF:
-                // TODO Check array return
+            case INT32: case BOOLEAN:
                 builder.append("ireturn");
                 break;
             case VOID:
-                // TODO void instruction not appearing -.-'
+                // TODO void instruction not appearing -> do it in OLLIR
                 builder.append("return");
                 break;
         }
