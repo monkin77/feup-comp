@@ -2,7 +2,9 @@ package pt.up.fe.comp.jasmin.instruction;
 
 import org.specs.comp.ollir.*;
 import pt.up.fe.comp.jasmin.AbstractBuilder;
+import pt.up.fe.comp.jasmin.JasminConstants;
 import pt.up.fe.comp.jasmin.JasminUtils;
+import pt.up.fe.comp.jasmin.MethodsBuilder;
 
 public class OperationInstructionBuilder extends AbstractBuilder {
     private final OpInstruction instruction;
@@ -36,13 +38,20 @@ public class OperationInstructionBuilder extends AbstractBuilder {
                 builder.append("iand");
                 break;
             case LTH: case LTHI32:
-                // TODO Ensure unique labels
-                builder.append("if_icmplt IS_LESS_THAN\n");
+                builder.append(JasminConstants.TAB);
+                builder.append("if_icmplt IS_LESS_THAN").append(MethodsBuilder.labelCounter).append("\n");
+                builder.append(JasminConstants.TAB);
                 builder.append("iconst_0\n");
-                builder.append("goto NOT_LESS_THAN\n");
-                builder.append("IS_LESS_THAN:\n");
+                builder.append(JasminConstants.TAB);
+                builder.append("goto NOT_LESS_THAN_").append(MethodsBuilder.labelCounter).append("\n");
+                builder.append(JasminConstants.TAB);
+                builder.append("IS_LESS_THAN").append(MethodsBuilder.labelCounter).append(":\n");
+                builder.append(JasminConstants.TAB.repeat(2));
                 builder.append("iconst_1\n");
-                builder.append("NOT_LESS_THAN:\n");
+                builder.append(JasminConstants.TAB);
+                builder.append("NOT_LESS_THAN").append(MethodsBuilder.labelCounter).append(":\n");
+
+                ++MethodsBuilder.labelCounter;
                 break;
             case ADD: case ADDI32:
                 builder.append("iadd");

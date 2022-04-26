@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import static pt.up.fe.comp.jasmin.JasminConstants.TAB;
 
 public class MethodsBuilder extends AbstractBuilder {
+    public static int labelCounter = 0;
+
     public MethodsBuilder(final ClassUnit classUnit) {
         super(classUnit);
     }
