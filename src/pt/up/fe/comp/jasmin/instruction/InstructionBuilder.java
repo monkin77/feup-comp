@@ -2,6 +2,7 @@ package pt.up.fe.comp.jasmin.instruction;
 
 import org.specs.comp.ollir.*;
 import pt.up.fe.comp.jasmin.AbstractBuilder;
+import pt.up.fe.comp.jasmin.JasminUtils;
 
 import java.util.List;
 
@@ -39,7 +40,7 @@ public class InstructionBuilder extends AbstractBuilder {
                 break;
             case RETURN:
                 ReturnInstruction returnInstruction = (ReturnInstruction) instruction;
-                builder.append((new ReturnInstructionBuilder(classUnit, returnInstruction)).compile());
+                builder.append((new ReturnInstructionBuilder(classUnit, returnInstruction, method)).compile());
                 break;
             case PUTFIELD:
                 PutFieldInstruction putFieldInstruction = (PutFieldInstruction) instruction;
@@ -55,7 +56,11 @@ public class InstructionBuilder extends AbstractBuilder {
                 builder.append((new OperationInstructionBuilder(classUnit, method, opInstruction)).compile());
                 break;
             case NOPER:
-                builder.append("nop");
+                SingleOpInstruction sopInstruction = (SingleOpInstruction) instruction;
+                builder.append(JasminUtils.buildLoadInstructions(sopInstruction.getSingleOperand(), method));
+                break;
+            default:
+                System.out.println("The stupid guys forgot something: " + instruction.getInstType());
                 break;
         }
 
