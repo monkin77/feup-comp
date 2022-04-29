@@ -11,9 +11,9 @@ import pt.up.fe.specs.util.SpecsIo;
 
 import java.util.Collections;
 
-public class OllirTest {
+public class CompilationTest {
     @Test
-    public void testOllir() {
+    public void facTest() {
         String ollirCode = SpecsIo.getResource("pt/up/fe/comp/fixtures/public/ollir/Fac.ollir");
         OllirResult ollirResult = new OllirResult(ollirCode, Collections.emptyMap());
 
@@ -21,6 +21,7 @@ public class OllirTest {
         JasminResult jasminResult = backend.toJasmin(ollirResult);
 
         System.out.println(jasminResult.getJasminCode());
-        //assertEquals(jasminResult.getJasminCode(), "    .class public Fac\n    .super java/lang/Object\n");
+        jasminResult.compile();
+        jasminResult.run();
     }
 }

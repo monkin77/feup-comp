@@ -48,7 +48,7 @@ public class OperationInstructionBuilder extends AbstractBuilder {
                 builder.append(JasminConstants.TAB.repeat(2));
                 builder.append("iconst_1\n");
                 builder.append(JasminConstants.TAB);
-                builder.append("NOT_LESS_THAN").append(MethodsBuilder.labelCounter).append(":\n");
+                builder.append("NOT_LESS_THAN_").append(MethodsBuilder.labelCounter).append(":\n");
 
                 ++MethodsBuilder.labelCounter;
                 break;

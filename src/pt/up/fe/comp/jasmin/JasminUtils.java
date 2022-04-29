@@ -60,15 +60,16 @@ public class JasminUtils {
         final Descriptor descriptor = method.getVarTable().get(elementName);
         final ElementType type = element.getType().getTypeOfElement();
 
+        // TODO Difference between iload 0 and iload_0
         switch (type) {
             case THIS: case OBJECTREF: case CLASS: case STRING:
-                builder.append("aload_").append(descriptor.getVirtualReg());
+                builder.append("aload ").append(descriptor.getVirtualReg());
                 break;
             case INT32: case BOOLEAN:
-                builder.append("iload_").append(descriptor.getVirtualReg());
+                builder.append("iload ").append(descriptor.getVirtualReg());
                 break;
             case ARRAYREF:
-                builder.append("iaload").append(descriptor.getVirtualReg());
+                builder.append("iaload ").append(descriptor.getVirtualReg());
                 break;
         }
 

@@ -42,6 +42,7 @@ public class MethodsBuilder extends AbstractBuilder {
 
     private void compileMethodBody(final Method method) {
         builder.append(".limit stack 99\n"); // TODO Stack limits
+        builder.append(".limit locals 99\n"); // TODO Locals limits
         final ArrayList<Instruction> instructions = method.getInstructions();
 
         method.buildVarTable();

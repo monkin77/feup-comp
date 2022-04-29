@@ -23,15 +23,16 @@ public class AssignInstructionBuilder extends AbstractBuilder {
         builder.append((new InstructionBuilder(classUnit, method, instruction.getRhs())).compile());
 
         final ElementType assignType = instruction.getTypeOfAssign().getTypeOfElement();
+        // TODO Difference between istore 0 and istore_0
         switch (assignType) {
             case THIS: case OBJECTREF: case CLASS: case STRING:
-                builder.append("astore_").append(descriptor.getVirtualReg());
+                builder.append("astore ").append(descriptor.getVirtualReg());
                 break;
             case INT32: case BOOLEAN:
-                builder.append("istore_").append(descriptor.getVirtualReg());
+                builder.append("istore ").append(descriptor.getVirtualReg());
                 break;
             case ARRAYREF:
-                builder.append("iastore").append(descriptor.getVirtualReg());
+                builder.append("iastore ").append(descriptor.getVirtualReg());
                 break;
         }
 
