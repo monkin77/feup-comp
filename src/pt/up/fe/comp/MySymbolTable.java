@@ -47,6 +47,21 @@ public class MySymbolTable implements SymbolTable {
 
     /**
      *
+     * @param scope
+     * @param symbolName
+     * @return Symbol if exists in the scope, null otherwise
+     */
+    public MySymbol get(MySymbol scope, String symbolName) {
+        for (MySymbol symbol : this.map.get(scope).values()) {
+            if (symbol.getName().equals(symbolName))
+                return symbol;
+        }
+
+        return null;
+    }
+
+    /**
+     *
      * @return Symbol of the Class
      */
     private MySymbol getClassSymbol() {

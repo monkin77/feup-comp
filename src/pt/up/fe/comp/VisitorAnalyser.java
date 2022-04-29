@@ -4,6 +4,8 @@ import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.AJmmVisitor;
 import pt.up.fe.comp.jmm.ast.JmmNode;
 
+import java.util.Iterator;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Stack;
 
@@ -40,6 +42,23 @@ public class VisitorAnalyser extends AJmmVisitor<Object, Integer> {
     private void createScope(MySymbol symbol) {
         this.scopeStack.push(symbol);
         this.symbolTable.openScope(symbol);
+    }
+
+    /**
+     * Iterates all the existing scopes to look for the symbol given as argument
+     * @param name
+     * @return symbol if found, null otherwise
+     */
+    private MySymbol existsInScope(String name) {
+        Iterator<MySymbol> scopeIter = this.scopeStack.iterator();
+
+        MySymbol symbol;
+        while(scopeIter.hasNext()) {
+            symbol = this.symbolTable.get(scopeIter.next(), name);
+            if (symbol != null) return symbol;
+        }
+
+        return null;
     }
 
     private Integer importDeclVisit(JmmNode node, Object dummy) {
@@ -136,7 +155,7 @@ public class VisitorAnalyser extends AJmmVisitor<Object, Integer> {
         for (int i = 1; i < node.getNumChildren(); ++i) {
             JmmNode childNode = node.getJmmChild(i);
             visitResult = visit(childNode);
-            System.out.println("Visited method Decl child: " + i + " with result " + visitResult);
+            // System.out.println("Visited method Decl child: " + i + " with result " + visitResult);
         }
 
         // Pop current scope
@@ -174,7 +193,7 @@ public class VisitorAnalyser extends AJmmVisitor<Object, Integer> {
     private Integer assignExprVisit(JmmNode node, Object dummy) {
         // TODO: Confirm we don't need to store anything
         if (node.getNumChildren() == 2) {
-            System.out.println("Assign Expr with " + node.getNumChildren() + " children");
+            // System.out.println("Assign Expr with " + node.getNumChildren() + " children");
             return 0;
         }
 
@@ -183,6 +202,12 @@ public class VisitorAnalyser extends AJmmVisitor<Object, Integer> {
 
     private Integer dotExpressionVisit(JmmNode node, Object dummy) {
         if (node.getNumChildren() == 2) {
+            String firstName = node.getJmmChild(0).get("id");
+            MySymbol firstSymbol = this.existsInScope(firstName);
+            if (firstSymbol == null) throw new RuntimeException("Invalid reference to " + firstName + ". Identifier does not exist!");
+
+            visit(node.getJmmChild(1));
+
             return 0;
         }
 
@@ -191,7 +216,7 @@ public class VisitorAnalyser extends AJmmVisitor<Object, Integer> {
 
     private Integer identifierVisit(JmmNode node, Object dummy) {
         if (node.getNumChildren() == 0) {
-            System.out.println("Analysing the " + node.getKind() + " " + node.get("id"));
+            // System.out.println("Analysing the " + node.getKind() + " " + node.get("id"));
             return 0;
         }
 
@@ -201,7 +226,7 @@ public class VisitorAnalyser extends AJmmVisitor<Object, Integer> {
     private Integer dotMethodVisit(JmmNode node, Object dummy) {
         if (node.getNumChildren() == 0) {   // Could have children?
             // Check if method exists?
-            System.out.println("Analysing the " + node.getKind() + " " + node.get("method"));
+            // System.out.println("Analysing the " + node.getKind() + " " + node.get("method"));
             return 0;
         }
 
@@ -210,7 +235,7 @@ public class VisitorAnalyser extends AJmmVisitor<Object, Integer> {
 
     private Integer intArrayVisit(JmmNode node, Object dummy) {
         if (node.getNumChildren() == 0) {
-            System.out.println("Analysing the " + node.getKind());
+            // System.out.println("Analysing the " + node.getKind());
             return 2;   // Return 2 if IntArray; Return 1 if Int, and so on... ?
         }
 
@@ -315,7 +340,7 @@ public class VisitorAnalyser extends AJmmVisitor<Object, Integer> {
             throw new RuntimeException("Illegal number of children in node " + node.getKind() + ".");
         }
 
-        System.out.println("Currently in node: " + node.getKind());
+        // System.out.println("Currently in node: " + node.getKind());
         Integer visitResult = 0;
         for (int i = 0; i < node.getNumChildren(); ++i) {
             JmmNode childNode = node.getJmmChild(i);

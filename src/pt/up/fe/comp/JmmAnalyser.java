@@ -21,6 +21,7 @@ public class JmmAnalyser implements JmmAnalysis {
         System.out.println("visitor eval: " + eval.visit(root, null));
         // visitor code
 
+        /*
         System.out.println("Imports: " + symbolTable.getImports());
         System.out.println("Class Name: " + symbolTable.getClassName());
         System.out.println("Super: " + symbolTable.getSuper());
@@ -29,6 +30,10 @@ public class JmmAnalyser implements JmmAnalysis {
         System.out.println("Return type: " + symbolTable.getReturnType("init"));
         System.out.println("Method Parameters: " + symbolTable.getParameters("trIdx"));
         System.out.println("Method Local Variables: " + symbolTable.getLocalVariables("main"));
+        */
+
+        VisitorAnalyser analyser = new VisitorAnalyser(symbolTable);
+        System.out.println("visitor analyser: " + analyser.visit(root, null));
 
         return new JmmSemanticsResult(parserResult, symbolTable, Collections.emptyList() /* LIST OF REPORTS */);
     }
