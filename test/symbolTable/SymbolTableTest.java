@@ -18,7 +18,7 @@ public class SymbolTableTest {
 
     @Test
     public void testFileInput() {
-        String input = "./fixtures/public/Life.jmm";
+        String input = "./fixtures/public/HelloWorld.jmm";
         String inputResource = SpecsIo.getResource(input);
 
         // Create config

@@ -5,10 +5,7 @@ import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
 import pt.up.fe.comp.jmm.analysis.table.Type;
 
 import javax.swing.text.html.parser.Entity;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class MySymbolTable implements SymbolTable {
     private Map<MySymbol, Map<MySymbol, MySymbol>> map; // Map keys are hashes of symbols
@@ -58,7 +55,7 @@ public class MySymbolTable implements SymbolTable {
             }
         }
 
-        return null;
+        return Collections.emptyMap();
     }
 
     @Override
