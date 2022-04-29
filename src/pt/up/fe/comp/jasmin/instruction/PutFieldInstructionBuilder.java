@@ -1,17 +1,14 @@
 package pt.up.fe.comp.jasmin.instruction;
 
-import org.specs.comp.ollir.ClassUnit;
-import org.specs.comp.ollir.Element;
-import org.specs.comp.ollir.GetFieldInstruction;
-import org.specs.comp.ollir.Method;
+import org.specs.comp.ollir.*;
 import pt.up.fe.comp.jasmin.AbstractBuilder;
 import pt.up.fe.comp.jasmin.JasminUtils;
 
-public class GetFieldInstructionBuilder extends AbstractBuilder {
+public class PutFieldInstructionBuilder extends AbstractBuilder {
     private final Method method;
-    private final GetFieldInstruction instruction;
+    private final PutFieldInstruction instruction;
 
-    public GetFieldInstructionBuilder(ClassUnit classUnit, Method method, GetFieldInstruction instruction) {
+    public PutFieldInstructionBuilder(ClassUnit classUnit, Method method, PutFieldInstruction instruction) {
         super(classUnit);
         this.method = method;
         this.instruction = instruction;
@@ -21,16 +18,18 @@ public class GetFieldInstructionBuilder extends AbstractBuilder {
     public String compile() {
         final Element firstArg = instruction.getFirstOperand();
         final Element secondArg = instruction.getSecondOperand();
+        final Element thirdArg = instruction.getThirdOperand();
 
         final String className = JasminUtils.getTypeName(firstArg.getType(), classUnit);
         final String fieldName = JasminUtils.getElementName(secondArg);
 
         builder.append(JasminUtils.buildLoadInstructions(firstArg, method));
+        builder.append(JasminUtils.buildLoadInstructions(thirdArg, method));
 
         // TODO Wait for instruction.getFieldType()
         final String typeName = JasminUtils.getTypeName(secondArg.getType(), classUnit);
 
-        builder.append("getfield ").append(className).append("/").append(fieldName);
+        builder.append("putfield ").append(className).append("/").append(fieldName);
         builder.append(" ").append(typeName);
 
         return builder.toString();

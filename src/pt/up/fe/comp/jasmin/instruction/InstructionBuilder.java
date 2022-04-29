@@ -42,7 +42,8 @@ public class InstructionBuilder extends AbstractBuilder {
                 builder.append((new ReturnInstructionBuilder(classUnit, returnInstruction)).compile());
                 break;
             case PUTFIELD:
-                // TODO
+                PutFieldInstruction putFieldInstruction = (PutFieldInstruction) instruction;
+                builder.append((new PutFieldInstructionBuilder(classUnit, method, putFieldInstruction)).compile());
                 break;
             case GETFIELD:
                 GetFieldInstruction getFieldInstruction = (GetFieldInstruction) instruction;

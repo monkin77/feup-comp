@@ -52,6 +52,7 @@ public class JasminUtils {
         final String elementName = getElementName(element);
 
         if (element.isLiteral()) {
+            // TODO Use iconst, etc. when possible
             builder.append("ldc ").append(elementName).append("\n");
             return builder.toString();
         }

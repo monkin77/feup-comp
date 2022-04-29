@@ -34,7 +34,7 @@ public class MethodsBuilder extends AbstractBuilder {
             builder.append(JasminUtils.getTypeName(method.getReturnType(), classUnit)).append("\n");
 
             compileMethodBody(method);
-            builder.append(".end method\n");
+            builder.append(".end method\n\n");
         }
 
         return builder.toString();
