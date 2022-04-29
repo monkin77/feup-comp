@@ -36,7 +36,9 @@ public class CallInstructionBuilder extends AbstractBuilder {
                 // TODO
                 break;
             case ldc:
-                // TODO
+                // TODO: Review
+                LiteralElement literal = (LiteralElement) (instruction.getFirstArg());
+                builder.append("ldc ").append(literal.getLiteral());
                 break;
         }
 
