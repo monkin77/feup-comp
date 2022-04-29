@@ -24,8 +24,11 @@ public class JmmAnalyser implements JmmAnalysis {
         System.out.println("Imports: " + symbolTable.getImports());
         System.out.println("Class Name: " + symbolTable.getClassName());
         System.out.println("Super: " + symbolTable.getSuper());
-        System.out.println("Return type: " + symbolTable.getReturnType("init"));
         System.out.println("Fields: " + symbolTable.getFields());
+        System.out.println("Methods: " + symbolTable.getMethods());
+        System.out.println("Return type: " + symbolTable.getReturnType("init"));
+        System.out.println("Method Parameters: " + symbolTable.getParameters("trIdx"));
+        System.out.println("Method Local Variables: " + symbolTable.getLocalVariables("main"));
 
         return new JmmSemanticsResult(parserResult, symbolTable, Collections.emptyList() /* LIST OF REPORTS */);
     }

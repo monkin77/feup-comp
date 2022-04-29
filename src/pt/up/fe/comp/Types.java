@@ -8,6 +8,7 @@ public enum Types {
     STRING("string", false),
     INT_ARRAY("int", true),
     VOID("void", false),
+    CUSTOM("custom", false),
     NONE("none", false),
     INVALID("invalid", false);
 
@@ -41,7 +42,7 @@ public enum Types {
             case "_Bool":
                 return Types.BOOLEAN;
             default:
-                return Types.INVALID;
+                return Types.CUSTOM;
         }
     }
 }

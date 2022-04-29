@@ -30,6 +30,10 @@ public class MySymbolTable implements SymbolTable {
         //System.out.print("Inserted new symbol " + symbol.getName() + " in scope. Current Scope:" + this.map.get(scope).toString());
     }
 
+    /**
+     *
+     * @return Symbol of the Class
+     */
     private MySymbol getClassSymbol() {
         MySymbol globalScope = new MySymbol(new Type(Types.NONE.toString(), false), "global", EntityTypes.GLOBAL);
         Map<MySymbol, MySymbol> currTable = this.map.get(globalScope);
@@ -37,6 +41,20 @@ public class MySymbolTable implements SymbolTable {
         for (MySymbol scope : currTable.values()) {
             if (scope.getEntity() == EntityTypes.CLASS ) {
                 return scope;
+            }
+        }
+
+        return null;
+    }
+
+    private Map<MySymbol, MySymbol> getMethodScope(String methodName) {
+        MySymbol classSymbol = this.getClassSymbol();
+        Map<MySymbol, MySymbol> currScope = this.map.get(classSymbol);
+
+
+        for (MySymbol symbol : currScope.values()) {
+            if (symbol.getName().equals(methodName) && symbol.getEntity() == EntityTypes.METHOD) {
+                return this.map.get(symbol);
             }
         }
 
@@ -93,7 +111,16 @@ public class MySymbolTable implements SymbolTable {
 
     @Override
     public List<String> getMethods() {
-        return null;
+        List<String> methods = new ArrayList<>();
+        MySymbol classSymbol = this.getClassSymbol();
+        Map<MySymbol, MySymbol> currScope = this.map.get(classSymbol);
+
+        for (MySymbol symbol : currScope.values()) {
+            if (symbol.getEntity() == EntityTypes.METHOD)
+                methods.add(symbol.getName());
+        }
+
+        return methods;
     }
 
     @Override
@@ -113,12 +140,30 @@ public class MySymbolTable implements SymbolTable {
 
     @Override
     public List<Symbol> getParameters(String methodSignature) {
-        return null;
+        List<Symbol> params = new ArrayList<>();
+        Map<MySymbol, MySymbol> methodScope = this.getMethodScope(methodSignature);
+
+        for (MySymbol symbol : methodScope.values()) {
+            if (symbol.getEntity() == EntityTypes.ARG) {
+                params.add(symbol);
+            }
+        }
+
+        return params;
     }
 
     @Override
     public List<Symbol> getLocalVariables(String methodSignature) {
-        return null;
+        List<Symbol> localVars = new ArrayList<>();
+        Map<MySymbol, MySymbol> methodScope = this.getMethodScope(methodSignature);
+
+        for (MySymbol symbol : methodScope.values()) {
+            if (symbol.getEntity() == EntityTypes.VARIABLE) {
+                localVars.add(symbol);
+            }
+        }
+
+        return localVars;
     }
 
     public void myPrint() {

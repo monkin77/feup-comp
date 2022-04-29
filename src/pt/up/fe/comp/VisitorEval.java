@@ -131,7 +131,20 @@ public class VisitorEval extends AJmmVisitor<Object, Integer> {
             Types varType = Types.getType(node.getJmmChild(0).getKind());
             boolean isArray = varType.getIsArray();
 
-            MySymbol varSymbol = new MySymbol(new Type(varType.toString(), isArray), varName, EntityTypes.VARIABLE);
+            String typeName = varType.toString();
+
+            // Check if it is a custom type
+            if (varType == Types.CUSTOM) {
+                JmmNode child = node.getJmmChild(0);
+                // Should we create constants for the types?
+                if (child.getKind().equals("CustomType")) {
+                    typeName = child.get("name");
+                } else
+                    throw new RuntimeException("Illegal variable type " + child.getKind() + " in node " + node.getKind() + ".");
+            }
+
+
+            MySymbol varSymbol = new MySymbol(new Type(typeName, isArray), varName, EntityTypes.VARIABLE);
 
             this.symbolTable.put(this.scopeStack.peek(), varSymbol);
 
