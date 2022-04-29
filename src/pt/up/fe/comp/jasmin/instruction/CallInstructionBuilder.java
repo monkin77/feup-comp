@@ -2,6 +2,7 @@ package pt.up.fe.comp.jasmin.instruction;
 
 import org.specs.comp.ollir.*;
 import pt.up.fe.comp.jasmin.AbstractBuilder;
+import pt.up.fe.comp.jasmin.JasminConstants;
 import pt.up.fe.comp.jasmin.JasminUtils;
 
 public class CallInstructionBuilder extends AbstractBuilder {
@@ -69,8 +70,18 @@ public class CallInstructionBuilder extends AbstractBuilder {
     }
 
     private void buildInvokeSpecial(CallInstruction instruction) {
+        String className;
+        String invokeType;
         final Element firstArg = instruction.getFirstArg();
-        final String className = JasminUtils.getTypeName(firstArg.getType(), classUnit);
+
+        // TODO: This should *definitely* not be here
+        if (method.isConstructMethod() && JasminUtils.getElementName(instruction.getSecondArg()).equals("\"<init>\"")) {
+            className = classUnit.getSuperClass() == null ? JasminConstants.DEFAULT_SUPERCLASS : classUnit.getSuperClass();
+            invokeType = "invokenonvirtual ";
+        } else {
+            className = JasminUtils.getTypeName(firstArg.getType(), classUnit);
+            invokeType = "invokespecial ";
+        }
 
         final String rawMethodName = JasminUtils.getElementName(instruction.getSecondArg());
         final String methodName = rawMethodName.substring(1, rawMethodName.length() - 1);
@@ -79,7 +90,7 @@ public class CallInstructionBuilder extends AbstractBuilder {
         for (Element element : instruction.getListOfOperands())
             builder.append(JasminUtils.buildLoadInstructions(element, method));
 
-        builder.append("invokespecial ");
+        builder.append(invokeType);
         builder.append(className).append("/").append(methodName).append("(");
 
         for (Element element : instruction.getListOfOperands()) {
