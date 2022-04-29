@@ -38,13 +38,13 @@ public class OperationInstructionBuilder extends AbstractBuilder {
                 break;
             case LTH: case LTHI32:
                 builder.append(JasminConstants.TAB);
-                builder.append("if_icmplt IS_LESS_THAN").append(MethodsBuilder.labelCounter).append("\n");
+                builder.append("if_icmplt IS_LESS_THAN_").append(MethodsBuilder.labelCounter).append("\n");
                 builder.append(JasminConstants.TAB);
                 builder.append("iconst_0\n");
                 builder.append(JasminConstants.TAB);
                 builder.append("goto NOT_LESS_THAN_").append(MethodsBuilder.labelCounter).append("\n");
                 builder.append(JasminConstants.TAB);
-                builder.append("IS_LESS_THAN").append(MethodsBuilder.labelCounter).append(":\n");
+                builder.append("IS_LESS_THAN_").append(MethodsBuilder.labelCounter).append(":\n");
                 builder.append(JasminConstants.TAB.repeat(2));
                 builder.append("iconst_1\n");
                 builder.append(JasminConstants.TAB);
