@@ -22,6 +22,19 @@ public class MySymbol extends Symbol {
         return "MySymbol [type=" + super.getType() + ", name=" + super.getName() + ", entityType=" + this.entity.toString() + "]";
     }
 
+    /* (non-Javadoc)
+     * @see java.lang.Object#hashCode()
+     */
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((this.getName() == null) ? 0 : this.getName().hashCode());
+        result = prime * result + ((this.getType() == null) ? 0 : this.getType().hashCode());
+        result = prime * result + ((this.getEntity() == null) ? 0 : this.getEntity().hashCode());
+        return result;
+    }
+
     public EntityTypes getEntity() {
         return entity;
     }

@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 public class MySymbolTable implements SymbolTable {
-    private Map<Symbol, Map<String, MySymbol>> map; // Map keys are hashes of symbols
+    private Map<MySymbol, Map<MySymbol, MySymbol>> map; // Map keys are hashes of symbols
 
     public MySymbolTable() {
         this.map = new HashMap<>();
@@ -26,13 +26,13 @@ public class MySymbolTable implements SymbolTable {
     }
 
     public void put(MySymbol scope, MySymbol symbol) {
-        this.map.get(scope).put(symbol.toString(), symbol);
+        this.map.get(scope).put(symbol, symbol);
         //System.out.print("Inserted new symbol " + symbol.getName() + " in scope. Current Scope:" + this.map.get(scope).toString());
     }
 
     private MySymbol getClassSymbol() {
         MySymbol globalScope = new MySymbol(new Type(Types.NONE.toString(), false), "global", EntityTypes.GLOBAL);
-        Map<String, MySymbol> currTable = this.map.get(globalScope);
+        Map<MySymbol, MySymbol> currTable = this.map.get(globalScope);
 
         for (MySymbol scope : currTable.values()) {
             if (scope.getEntity() == EntityTypes.CLASS ) {
@@ -46,7 +46,7 @@ public class MySymbolTable implements SymbolTable {
     @Override
     public List<String> getImports() {
         MySymbol globalScope = new MySymbol(new Type(Types.NONE.toString(), false), "global", EntityTypes.GLOBAL);
-        Map<String, MySymbol> currTable = this.map.get(globalScope);
+        Map<MySymbol, MySymbol> currTable = this.map.get(globalScope);
         List<String> imports = new ArrayList<>();
 
         for (MySymbol symbol : currTable.values()) {
@@ -66,7 +66,7 @@ public class MySymbolTable implements SymbolTable {
     @Override
     public String getSuper() {
         MySymbol classSymbol = this.getClassSymbol();
-        Map<String, MySymbol> currScope = this.map.get(classSymbol);
+        Map<MySymbol, MySymbol> currScope = this.map.get(classSymbol);
 
         for (MySymbol symbol : currScope.values()) {
             if (symbol.getEntity() == EntityTypes.EXTENDS)
@@ -80,7 +80,7 @@ public class MySymbolTable implements SymbolTable {
     public List<Symbol> getFields() {
         List<Symbol> fields = new ArrayList<>();
         MySymbol classSymbol = this.getClassSymbol();
-        Map<String, MySymbol> currScope = this.map.get(classSymbol);
+        Map<MySymbol, MySymbol> currScope = this.map.get(classSymbol);
 
         for (MySymbol symbol : currScope.values()) {
             // TODO the fields are just variables or also methods??
@@ -99,7 +99,7 @@ public class MySymbolTable implements SymbolTable {
     @Override
     public Type getReturnType(String methodSignature) {
         MySymbol classSymbol = this.getClassSymbol();
-        Map<String, MySymbol> currScope = this.map.get(classSymbol);
+        Map<MySymbol, MySymbol> currScope = this.map.get(classSymbol);
 
 
         for (MySymbol symbol : currScope.values()) {
@@ -122,8 +122,18 @@ public class MySymbolTable implements SymbolTable {
     }
 
     public void myPrint() {
-        for (Map.Entry<Symbol, Map<String, MySymbol>> entry : this.map.entrySet()) {
-            System.out.println(entry.getKey().getName() + ": " + entry.getValue().toString());
+        for (Map.Entry<MySymbol, Map<MySymbol, MySymbol>> entry : this.map.entrySet()) {
+            System.out.println(entry.getKey().getName() + ": " + this.buildMapString(entry.getValue()));
         }
+    }
+
+    public String buildMapString(Map<MySymbol, MySymbol> scope) {
+        String result = "{";
+
+        for (MySymbol symbol : scope.values()) {
+            result = result + symbol.toString() + ", ";
+        }
+        result = result + "}";
+        return result;
     }
 }
