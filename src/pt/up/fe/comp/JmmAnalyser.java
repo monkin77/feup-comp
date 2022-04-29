@@ -2,6 +2,7 @@ package pt.up.fe.comp;
 
 import pt.up.fe.comp.jmm.analysis.JmmAnalysis;
 import pt.up.fe.comp.jmm.analysis.JmmSemanticsResult;
+import pt.up.fe.comp.jmm.analysis.table.Symbol;
 import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
 import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp.jmm.parser.JmmParserResult;
@@ -23,7 +24,8 @@ public class JmmAnalyser implements JmmAnalysis {
         System.out.println("Imports: " + symbolTable.getImports());
         System.out.println("Class Name: " + symbolTable.getClassName());
         System.out.println("Super: " + symbolTable.getSuper());
-        System.out.println("Return type: " + symbolTable.getReturnType("quicksort"));
+        System.out.println("Return type: " + symbolTable.getReturnType("init"));
+        System.out.println("Fields: " + symbolTable.getFields());
 
         return new JmmSemanticsResult(parserResult, symbolTable, Collections.emptyList() /* LIST OF REPORTS */);
     }

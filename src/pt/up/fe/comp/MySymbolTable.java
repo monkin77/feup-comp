@@ -26,7 +26,7 @@ public class MySymbolTable implements SymbolTable {
     }
 
     public void put(MySymbol scope, MySymbol symbol) {
-        this.map.get(scope).put(symbol.getName(), symbol);
+        this.map.get(scope).put(symbol.toString(), symbol);
         //System.out.print("Inserted new symbol " + symbol.getName() + " in scope. Current Scope:" + this.map.get(scope).toString());
     }
 
@@ -78,7 +78,17 @@ public class MySymbolTable implements SymbolTable {
 
     @Override
     public List<Symbol> getFields() {
-        return null;
+        List<Symbol> fields = new ArrayList<>();
+        MySymbol classSymbol = this.getClassSymbol();
+        Map<String, MySymbol> currScope = this.map.get(classSymbol);
+
+        for (MySymbol symbol : currScope.values()) {
+            // TODO the fields are just variables or also methods??
+            if (symbol.getEntity() == EntityTypes.VARIABLE)
+                fields.add(symbol);
+        }
+
+        return fields;
     }
 
     @Override

@@ -18,8 +18,7 @@ public class VisitorEval extends AJmmVisitor<Object, Integer> {
         this.scopeStack = new Stack<>();
 
         MySymbol globalScope = new MySymbol(new Type(Types.NONE.toString(), false), "global", EntityTypes.GLOBAL);
-        this.scopeStack.push(globalScope);
-        this.symbolTable.openScope(globalScope);
+        this.createScope(globalScope);
 
         /*
         addVisit("UnaryOp", this::unaryOpVisit);
