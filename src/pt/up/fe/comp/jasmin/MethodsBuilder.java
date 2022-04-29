@@ -51,5 +51,11 @@ public class MethodsBuilder extends AbstractBuilder {
             builder.append(TAB);
             builder.append((new InstructionBuilder(classUnit, method, instruction)).compile());
         }
+
+        // TODO: Maybe we should guarantee that the method ends with a return instruction in ollir?
+        if (instructions.get(instructions.size() - 1).getInstType() != InstructionType.RETURN) {
+            builder.append(TAB);
+            builder.append("return").append("\n");
+        }
     }
 }
