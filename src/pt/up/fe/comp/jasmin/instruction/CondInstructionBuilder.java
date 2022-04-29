@@ -23,10 +23,9 @@ public class CondInstructionBuilder extends AbstractBuilder {
         else if (instruction instanceof OpCondInstruction) {
             OpInstruction opInstruction = ((OpCondInstruction) instruction).getCondition();
             builder.append((new OperationInstructionBuilder(classUnit, method, opInstruction)).compile());
-            builder.append("\n");
         }
 
-        builder.append("ifne ").append(instruction.getLabel()).append("\n");
+        builder.append("ifne ").append(instruction.getLabel());
         return builder.toString();
     }
 }

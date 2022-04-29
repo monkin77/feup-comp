@@ -26,11 +26,11 @@ public class CallInstructionBuilder extends AbstractBuilder {
                 buildInvokeStatic(instruction);
                 break;
             case invokeinterface:
-                // TODO
+                builInvokeInterface(instruction);
                 break;
             // TODO: What to do with this?
             case NEW:
-                // TODO
+                buildNew(instruction);
                 break;
             case arraylength:
                 // TODO
@@ -51,9 +51,9 @@ public class CallInstructionBuilder extends AbstractBuilder {
         final String rawMethodName = JasminUtils.getElementName(secondArg);
         final String methodName = rawMethodName.substring(1, rawMethodName.length() - 1);
 
-        JasminUtils.buildLoadInstructions(firstArg, method);
+        builder.append(JasminUtils.buildLoadInstructions(firstArg, method));
         for (Element element : instruction.getListOfOperands())
-            JasminUtils.buildLoadInstructions(element, method);
+            builder.append(JasminUtils.buildLoadInstructions(element, method));
 
         builder.append("invokevirtual ");
         builder.append(className).append("/").append(methodName).append("(");
@@ -73,9 +73,9 @@ public class CallInstructionBuilder extends AbstractBuilder {
         final String rawMethodName = JasminUtils.getElementName(instruction.getSecondArg());
         final String methodName = rawMethodName.substring(1, rawMethodName.length() - 1);
 
-        JasminUtils.buildLoadInstructions(firstArg, method);
+        builder.append(JasminUtils.buildLoadInstructions(firstArg, method));
         for (Element element : instruction.getListOfOperands())
-            JasminUtils.buildLoadInstructions(element, method);
+            builder.append(JasminUtils.buildLoadInstructions(element, method));
 
         builder.append("invokespecial ");
         builder.append(className).append("/").append(methodName).append("(");
@@ -94,9 +94,9 @@ public class CallInstructionBuilder extends AbstractBuilder {
         final String rawMethodName = JasminUtils.getElementName(instruction.getSecondArg());
         final String methodName = rawMethodName.substring(1, rawMethodName.length() - 1);
 
-        JasminUtils.buildLoadInstructions(instruction.getFirstArg(), method);
+        builder.append(JasminUtils.buildLoadInstructions(instruction.getFirstArg(), method));
         for (Element element : instruction.getListOfOperands())
-            JasminUtils.buildLoadInstructions(element, method);
+            builder.append(JasminUtils.buildLoadInstructions(element, method));
 
         builder.append("invokestatic ");
         builder.append(className).append("/").append(methodName).append("(");
@@ -107,5 +107,34 @@ public class CallInstructionBuilder extends AbstractBuilder {
         }
 
         builder.append(")").append(JasminUtils.getTypeName(instruction.getReturnType(), classUnit));
+    }
+
+    private void builInvokeInterface(CallInstruction instruction) {
+        final Element firstArg = instruction.getFirstArg();
+        final Element secondArg = instruction.getSecondArg();
+        final String className = JasminUtils.getTypeName(firstArg.getType(), classUnit);
+
+        final String rawMethodName = JasminUtils.getElementName(secondArg);
+        final String methodName = rawMethodName.substring(1, rawMethodName.length() - 1);
+
+        builder.append(JasminUtils.buildLoadInstructions(firstArg, method));
+        for (Element element : instruction.getListOfOperands())
+            builder.append(JasminUtils.buildLoadInstructions(element, method));
+
+        builder.append("invokevirtual ");
+        builder.append(className).append("/").append(methodName).append("(");
+
+        for (Element element : instruction.getListOfOperands()) {
+            final String typeName = JasminUtils.getTypeName(element.getType(), classUnit);
+            builder.append(typeName);
+        }
+
+        builder.append(")").append(JasminUtils.getTypeName(instruction.getReturnType(), classUnit));
+        builder.append(" ").append(instruction.getListOfOperands().size());
+    }
+
+    private void buildNew(CallInstruction instruction) {
+        final String className = JasminUtils.getTypeName(instruction.getFirstArg().getType(), classUnit);
+        builder.append("new ").append(className);
     }
 }
