@@ -2,15 +2,19 @@ package pt.up.fe.comp.jasmin.instruction;
 
 import org.specs.comp.ollir.ClassUnit;
 import org.specs.comp.ollir.ElementType;
+import org.specs.comp.ollir.Method;
 import org.specs.comp.ollir.ReturnInstruction;
 import pt.up.fe.comp.jasmin.AbstractBuilder;
+import pt.up.fe.comp.jasmin.JasminUtils;
 
 public class ReturnInstructionBuilder extends AbstractBuilder {
     private final ReturnInstruction instruction;
+    private final Method method;
 
-    public ReturnInstructionBuilder(ClassUnit classUnit, ReturnInstruction instruction) {
+    public ReturnInstructionBuilder(ClassUnit classUnit, ReturnInstruction instruction, Method method) {
         super(classUnit);
         this.instruction = instruction;
+        this.method = method;
     }
 
     @Override
@@ -19,6 +23,8 @@ public class ReturnInstructionBuilder extends AbstractBuilder {
                 instruction.getOperand().getType().getTypeOfElement() :
                 ElementType.VOID
         );
+
+        builder.append(JasminUtils.buildLoadInstructions(instruction.getOperand(), method));
 
         switch (instruction.getElementType()) {
             case OBJECTREF: case CLASS: case STRING:
