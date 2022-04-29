@@ -246,13 +246,7 @@ public class VisitorEval extends AJmmVisitor<Object, Integer> {
     }
 
     private Integer dotMethodVisit(JmmNode node, Object dummy) {
-        if (node.getNumChildren() == 0) {   // Could have children?
-            // Check if method exists?
-            // System.out.println("Analysing the " + node.getKind() + " " + node.get("method"));
-            return 0;
-        }
-
-        throw new RuntimeException("Illegal number of children in node " + node.getKind() + ".");
+        return 0;
     }
 
     private Integer intArrayVisit(JmmNode node, Object dummy) {

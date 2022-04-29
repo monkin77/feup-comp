@@ -216,7 +216,10 @@ public class VisitorAnalyser extends AJmmVisitor<Object, Integer> {
 
     private Integer identifierVisit(JmmNode node, Object dummy) {
         if (node.getNumChildren() == 0) {
-            // System.out.println("Analysing the " + node.getKind() + " " + node.get("id"));
+            String firstName = node.get("id");
+            MySymbol firstSymbol = this.existsInScope(firstName);
+            if (firstSymbol == null) throw new RuntimeException("Invalid reference to " + firstName + ". Identifier does not exist!");
+            System.out.println("FOUND FIRST SYMBOL: " + firstName);
             return 0;
         }
 
@@ -224,13 +227,11 @@ public class VisitorAnalyser extends AJmmVisitor<Object, Integer> {
     }
 
     private Integer dotMethodVisit(JmmNode node, Object dummy) {
-        if (node.getNumChildren() == 0) {   // Could have children?
-            // Check if method exists?
-            // System.out.println("Analysing the " + node.getKind() + " " + node.get("method"));
-            return 0;
+        for (int i = 0; i < node.getNumChildren(); ++i) {
+            visit(node.getJmmChild(i));
         }
 
-        throw new RuntimeException("Illegal number of children in node " + node.getKind() + ".");
+        return 0;
     }
 
     private Integer intArrayVisit(JmmNode node, Object dummy) {
