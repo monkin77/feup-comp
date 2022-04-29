@@ -18,9 +18,9 @@ public class VisitorAnalyser extends AJmmVisitor<Object, Integer> {
         MySymbol globalScope = new MySymbol(new Type(Types.NONE.toString(), false), "global", EntityTypes.GLOBAL);
         this.createScope(globalScope);
 
+        addVisit("ImportDecl", this::importDeclVisit);
         addVisit("ClassDecl", this::classDeclVisit);
         addVisit("MainDecl", this::mainDeclVisit);
-        addVisit("ImportDecl", this::importDeclVisit);
         addVisit("VarDecl", this::varDeclVisit);
         addVisit("PublicMethod", this::publicMethodVisit);
         addVisit("Argument", this::argumentVisit);
@@ -42,30 +42,25 @@ public class VisitorAnalyser extends AJmmVisitor<Object, Integer> {
         this.symbolTable.openScope(symbol);
     }
 
+    private Integer importDeclVisit(JmmNode node, Object dummy) {
+        if (node.getNumChildren() >= 1) {
+            return 0;
+        }
+
+        throw new RuntimeException("Illegal number of children in node " + "." + node.getKind());
+    }
+
     private Integer classDeclVisit(JmmNode node, Object dummy) {
         MySymbol classSymbol = new MySymbol(new Type(Types.NONE.toString(), false), node.get("name"), EntityTypes.CLASS);
 
-        // Insert next scope pointer in previous scope
-        this.symbolTable.put(this.scopeStack.peek(), classSymbol);
-
         // Add new scope
         this.createScope(classSymbol);
-
-        try {
-            Optional<String> extendedClass = node.getOptional("extends");
-            if (!extendedClass.isEmpty()) {
-                MySymbol extendedSymbol = new MySymbol(new Type(Types.NONE.toString(), false), extendedClass.get(), EntityTypes.EXTENDS);
-                this.symbolTable.put(this.scopeStack.peek(), extendedSymbol);
-            }
-        } catch(Error err){
-            ;
-        }
 
         Integer visitResult = 0;
         for (int i = 0; i < node.getNumChildren(); ++i) {
             JmmNode childNode = node.getJmmChild(i);
             visitResult = visit(childNode);
-            System.out.println("Visited class Decl child: " + i + " with result " + visitResult);
+            // System.out.println("Visited class Decl child: " + i + " with result " + visitResult);
         }
 
         this.scopeStack.pop();
@@ -76,44 +71,19 @@ public class VisitorAnalyser extends AJmmVisitor<Object, Integer> {
     private Integer mainDeclVisit(JmmNode node, Object dummy) {
         MySymbol mainSymbol = new MySymbol(new Type(Types.VOID.toString(), false), "main", EntityTypes.METHOD);
 
-        // Insert next scope pointer in previous scope
-        this.symbolTable.put(this.scopeStack.peek(), mainSymbol);
-
         // Add new scope
         this.createScope(mainSymbol);
-
-        String argName = node.get("mainArgs");
-        MySymbol argSymbol = new MySymbol(new Type(Types.STRING.toString(), true), argName, EntityTypes.ARG);
-        this.symbolTable.put(this.scopeStack.peek(), argSymbol);
 
         Integer visitResult = 0;
         for (int i = 0; i < node.getNumChildren(); ++i) {
             JmmNode childNode = node.getJmmChild(i);
             visitResult = visit(childNode);
-            System.out.println("Visited main Decl child: " + i + " with result " + visitResult);
+            // System.out.println("Visited main Decl child: " + i + " with result " + visitResult);
         }
 
         this.scopeStack.pop();
 
         return visitResult;
-    }
-
-    private Integer importDeclVisit(JmmNode node, Object dummy) {
-        if (node.getNumChildren() >= 1) {
-            JmmNode childNode = node.getJmmChild(0);
-            String importName = childNode.get("id");
-            for (int i = 1; i < node.getNumChildren(); ++i) {
-                childNode = node.getJmmChild(i);
-                importName = importName + "." + childNode.get("id");
-            }
-
-            MySymbol importSymbol = new MySymbol(new Type(Types.NONE.toString(), false), importName, EntityTypes.IMPORT);
-            this.symbolTable.put(this.scopeStack.peek(), importSymbol);
-
-            return 0;
-        }
-
-        throw new RuntimeException("Illegal number of children in node " + "." + node.getKind());
     }
 
     private Integer varDeclVisit(JmmNode node, Object dummy) {

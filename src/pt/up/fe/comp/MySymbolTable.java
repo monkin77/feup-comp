@@ -4,7 +4,6 @@ import pt.up.fe.comp.jmm.analysis.table.Symbol;
 import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
 import pt.up.fe.comp.jmm.analysis.table.Type;
 
-import javax.swing.text.html.parser.Entity;
 import java.util.*;
 
 public class MySymbolTable implements SymbolTable {
@@ -14,16 +13,35 @@ public class MySymbolTable implements SymbolTable {
         this.map = new HashMap<>();
     }
 
-    public void openScope(MySymbol symbol) {
+    /**
+     *
+     * @param symbol
+     * @return true if the open scope operation was successful. Returns false, if the scope was already defined.
+     */
+    public boolean openScope(MySymbol symbol) {
+        if (this.map.get(symbol) != null) return false;
+
         this.map.put(symbol, new HashMap<>());
         System.out.println("----------------------------------------");
         System.out.println("Opened scope " + symbol.getName() + " Current map: ");
         this.myPrint();
         System.out.println("----------------------------------------\n");
+
+        return true;
     }
 
-    public void put(MySymbol scope, MySymbol symbol) {
-        this.map.get(scope).put(symbol, symbol);
+    /**
+     *
+     * @param scope
+     * @param symbol
+     * @return true if the put operation was successful. Returns false, if the variable was already declared in the scope.
+     */
+    public boolean put(MySymbol scope, MySymbol symbol) {
+        Map<MySymbol, MySymbol> currScope = this.map.get(scope);
+        if (currScope.get(symbol) != null) return false;
+
+        currScope.put(symbol, symbol);
+        return true;
         //System.out.print("Inserted new symbol " + symbol.getName() + " in scope. Current Scope:" + this.map.get(scope).toString());
     }
 
