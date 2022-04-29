@@ -206,7 +206,13 @@ public class VisitorAnalyser extends AJmmVisitor<Object, Integer> {
             MySymbol firstSymbol = this.existsInScope(firstName);
             if (firstSymbol == null) throw new RuntimeException("Invalid reference to " + firstName + ". Identifier does not exist!");
 
-            visit(node.getJmmChild(1));
+            JmmNode secondChild = node.getJmmChild(1);
+            if (secondChild.getKind().equals("DotLength")) {
+                // verify if first child is an array
+                if (!firstSymbol.getType().isArray()) throw new RuntimeException("Invalid property length of " + firstName + ". Variable is not an array.");
+            } else {
+                visit(secondChild);
+            }
 
             return 0;
         }
@@ -219,7 +225,6 @@ public class VisitorAnalyser extends AJmmVisitor<Object, Integer> {
             String firstName = node.get("id");
             MySymbol firstSymbol = this.existsInScope(firstName);
             if (firstSymbol == null) throw new RuntimeException("Invalid reference to " + firstName + ". Identifier does not exist!");
-            System.out.println("FOUND FIRST SYMBOL: " + firstName);
             return 0;
         }
 
