@@ -2,13 +2,12 @@ package pt.up.fe.comp;
 
 import pt.up.fe.comp.jmm.analysis.JmmAnalysis;
 import pt.up.fe.comp.jmm.analysis.JmmSemanticsResult;
-import pt.up.fe.comp.jmm.analysis.table.Symbol;
-import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
 import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp.jmm.parser.JmmParserResult;
+import pt.up.fe.comp.visitors.ExistenceVisitor;
+import pt.up.fe.comp.visitors.VisitorEval;
 
 import java.util.Collections;
-import java.util.List;
 
 public class JmmAnalyser implements JmmAnalysis {
     @Override
@@ -32,7 +31,7 @@ public class JmmAnalyser implements JmmAnalysis {
         System.out.println("Method Local Variables: " + symbolTable.getLocalVariables("main"));
         */
 
-        VisitorAnalyser analyser = new VisitorAnalyser(symbolTable);
+        ExistenceVisitor analyser = new ExistenceVisitor(symbolTable);
         System.out.println("visitor analyser: " + analyser.visit(root, null));
 
         return new JmmSemanticsResult(parserResult, symbolTable, Collections.emptyList() /* LIST OF REPORTS */);
