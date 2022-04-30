@@ -198,6 +198,8 @@ public class ExistenceVisitor extends AJmmVisitor<Object, Integer> {
                 this.hasThisDotMethod(secondChild);
             }
 
+            // TODO: VISIT CHILD NODES??
+
             return 0;
         }
 
