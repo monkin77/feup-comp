@@ -1,5 +1,6 @@
 package pt.up.fe.comp;
 
+import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.specs.util.SpecsEnums;
 
 public enum Types {

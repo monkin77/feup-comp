@@ -7,9 +7,12 @@ import pt.up.fe.comp.Types;
 import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.AJmmVisitor;
 import pt.up.fe.comp.jmm.ast.JmmNode;
+import pt.up.fe.comp.jmm.ast.PreorderJmmVisitor;
 
 import java.util.Iterator;
 import java.util.Stack;
+
+import static pt.up.fe.comp.visitors.Utils.existsInScope;
 
 public class ExistenceVisitor extends AJmmVisitor<Object, Integer> {
     private final MySymbolTable symbolTable;
@@ -37,30 +40,11 @@ public class ExistenceVisitor extends AJmmVisitor<Object, Integer> {
         addVisit("_Identifier", this::identifierVisit);
         addVisit("DotMethod", this::dotMethodVisit);
         addVisit("IntArray", this::intArrayVisit);
-
-        setDefaultVisit(this::defaultVisit);
     }
 
     private void createScope(MySymbol symbol) {
         this.scopeStack.push(symbol);
         this.symbolTable.openScope(symbol);
-    }
-
-    /**
-     * Iterates all the existing scopes to look for the symbol given as argument
-     * @param name
-     * @return symbol if found, null otherwise
-     */
-    private MySymbol existsInScope(String name) {
-        Iterator<MySymbol> scopeIter = this.scopeStack.iterator();
-
-        MySymbol symbol;
-        while(scopeIter.hasNext()) {
-            symbol = this.symbolTable.get(scopeIter.next(), name);
-            if (symbol != null) return symbol;
-        }
-
-        return null;
     }
 
     private Integer importDeclVisit(JmmNode node, Object dummy) {
@@ -178,16 +162,30 @@ public class ExistenceVisitor extends AJmmVisitor<Object, Integer> {
 
     private Integer dotExpressionVisit(JmmNode node, Object dummy) {
         if (node.getNumChildren() == 2) {
-            String firstName = node.getJmmChild(0).get("id");
-            MySymbol firstSymbol = this.existsInScope(firstName);
-            if (firstSymbol == null) throw new RuntimeException("Invalid reference to " + firstName + ". Identifier does not exist!");
-
+            JmmNode firstChild = node.getJmmChild(0);
             JmmNode secondChild = node.getJmmChild(1);
+
+            // Check length property
             if (secondChild.getKind().equals("DotLength")) {
+                if (!this.validateLength(firstChild)) {
+                    throw new RuntimeException("Built-in \"length\" is only valid over arrays.");
+                }
                 // verify if first child is an array
-                if (!firstSymbol.getType().isArray()) throw new RuntimeException("Invalid property length of " + firstName + ". Variable is not an array.");
-            } else {
-                visit(secondChild);
+                return 0;
+            }
+
+            // Check imported methods
+            if (firstChild.getKind().equals("_Identifier")) {
+                String firstName = firstChild.get("id");
+                MySymbol firstSymbol = existsInScope(firstName, this.scopeStack, this.symbolTable);
+                if (firstSymbol == null) throw new RuntimeException("Invalid reference to " + firstName + ". Identifier does not exist!");
+                return 0;
+            }
+
+            // Check class methods
+            if (firstChild.getKind().equals("_This") && secondChild.getKind().equals("DotMethod")) {
+                if (this.hasInheritance()) return 0; // Assume the method exists
+                this.hasThisDotMethod(secondChild);
             }
 
             return 0;
@@ -199,7 +197,8 @@ public class ExistenceVisitor extends AJmmVisitor<Object, Integer> {
     private Integer identifierVisit(JmmNode node, Object dummy) {
         if (node.getNumChildren() == 0) {
             String firstName = node.get("id");
-            MySymbol firstSymbol = this.existsInScope(firstName);
+            System.out.println("VISITING IDENTIFIER ---->" + node.toString());
+            MySymbol firstSymbol = existsInScope(firstName, this.scopeStack, this.symbolTable);
             if (firstSymbol == null) throw new RuntimeException("Invalid reference to " + firstName + ". Identifier does not exist!");
             return 0;
         }
@@ -240,19 +239,25 @@ public class ExistenceVisitor extends AJmmVisitor<Object, Integer> {
         throw new RuntimeException("Illegal number of children in node " + node.getKind() + ".");
     }
 
-    private Integer defaultVisit(JmmNode node, Object dummy) {
-        if (node.getNumChildren() <= 0) {
-            throw new RuntimeException("Illegal number of children in node " + node.getKind() + ".");
-        }
+    public boolean validateLength(JmmNode left) {
+        String type = Utils.getNodeType(left, this.scopeStack, this.symbolTable);  // send symbol table
+        // TODO: CHANGE THIS LOGIC
+        return type.equals(new Type(Types.INT_ARRAY.toString(), Types.INT_ARRAY.getIsArray()).toString());
+    }
 
-        // System.out.println("Currently in node: " + node.getKind());
-        Integer visitResult = 0;
-        for (int i = 0; i < node.getNumChildren(); ++i) {
-            JmmNode childNode = node.getJmmChild(i);
-            visitResult = visit(childNode);
-            //System.out.println("Intermediate result: " + visitResult);
-        }
+    private boolean hasInheritance() {
+        return this.symbolTable.getSuper() != null;
+    }
 
-        return visitResult;
+    /**
+     * Verifies if dot method exists
+     * @param node
+     */
+    public void hasThisDotMethod(JmmNode node){
+        String identifier = node.get("method");
+        if (!this.symbolTable.getMethods().contains(identifier)) {
+            throw new RuntimeException("Method \"" + identifier + "\" is undefined");
+            // analysis.addReport(node,"Function \"" + identifier + "\" is undefined");
+        }
     }
 }

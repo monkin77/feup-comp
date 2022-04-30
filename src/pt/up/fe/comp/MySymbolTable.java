@@ -22,10 +22,13 @@ public class MySymbolTable implements SymbolTable {
         if (this.map.get(symbol) != null) return false;
 
         this.map.put(symbol, new HashMap<>());
+
+        /*
         System.out.println("----------------------------------------");
         System.out.println("Opened scope " + symbol.getName() + " Current map: ");
         this.myPrint();
         System.out.println("----------------------------------------\n");
+        */
 
         return true;
     }
