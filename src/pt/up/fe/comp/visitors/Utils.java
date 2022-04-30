@@ -69,4 +69,16 @@ public class Utils {
     private static boolean isMathExpression(String kind) {
         return kind.equals("MultExpr") || kind.equals("AddExpr") || kind.equals("SubExpr") || kind.equals("DivExpr");
     }
+
+    public static boolean hasImport(String checkImport, MySymbolTable symbolTable){
+        for(String importName : symbolTable.getImports()) {
+            String[] splitImport = importName.split("\\.");
+            if (splitImport[splitImport.length - 1].equals(checkImport)) return true;
+        }
+        return false;
+    }
+
+    public static Boolean isCustomType(String typeName) {
+        return !typeName.equals(Types.INT.toString()) && !typeName.equals(Types.STRING.toString()) && !typeName.equals(Types.BOOLEAN.toString());
+    }
 }

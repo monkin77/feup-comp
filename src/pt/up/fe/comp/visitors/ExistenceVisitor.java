@@ -4,12 +4,13 @@ import pt.up.fe.comp.EntityTypes;
 import pt.up.fe.comp.MySymbol;
 import pt.up.fe.comp.MySymbolTable;
 import pt.up.fe.comp.Types;
+import pt.up.fe.comp.jmm.analysis.table.Symbol;
 import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.AJmmVisitor;
 import pt.up.fe.comp.jmm.ast.JmmNode;
-import pt.up.fe.comp.jmm.ast.PreorderJmmVisitor;
 
 import java.util.Iterator;
+import java.util.List;
 import java.util.Stack;
 
 import static pt.up.fe.comp.visitors.Utils.existsInScope;
@@ -40,6 +41,8 @@ public class ExistenceVisitor extends AJmmVisitor<Object, Integer> {
         addVisit("_Identifier", this::identifierVisit);
         addVisit("DotMethod", this::dotMethodVisit);
         addVisit("IntArray", this::intArrayVisit);
+
+        setDefaultVisit(this::defaultVisit);
     }
 
     private void createScope(MySymbol symbol) {
@@ -174,9 +177,16 @@ public class ExistenceVisitor extends AJmmVisitor<Object, Integer> {
                 return 0;
             }
 
-            // Check imported methods
+            // Check imported method
             if (firstChild.getKind().equals("_Identifier")) {
                 String firstName = firstChild.get("id");
+                if (!Utils.hasImport(firstName, this.symbolTable)) {
+                    // Check if Object
+                    String calledMethod = secondChild.get("method");
+                    if (!this.checkObjectMethod(firstName, calledMethod)) {
+                        throw new RuntimeException("\"" + calledMethod + "\" is not a class method");
+                    }
+                }
                 MySymbol firstSymbol = existsInScope(firstName, this.scopeStack, this.symbolTable);
                 if (firstSymbol == null) throw new RuntimeException("Invalid reference to " + firstName + ". Identifier does not exist!");
                 return 0;
@@ -197,7 +207,6 @@ public class ExistenceVisitor extends AJmmVisitor<Object, Integer> {
     private Integer identifierVisit(JmmNode node, Object dummy) {
         if (node.getNumChildren() == 0) {
             String firstName = node.get("id");
-            System.out.println("VISITING IDENTIFIER ---->" + node.toString());
             MySymbol firstSymbol = existsInScope(firstName, this.scopeStack, this.symbolTable);
             if (firstSymbol == null) throw new RuntimeException("Invalid reference to " + firstName + ". Identifier does not exist!");
             return 0;
@@ -259,5 +268,42 @@ public class ExistenceVisitor extends AJmmVisitor<Object, Integer> {
             throw new RuntimeException("Method \"" + identifier + "\" is undefined");
             // analysis.addReport(node,"Function \"" + identifier + "\" is undefined");
         }
+    }
+
+    public Boolean checkObjectMethod(String nodeName, String calledMethod) {
+        // TODO: CHECK IF THIS EXISTSINSCOPE IS CORRECT. DO WE NEED TO COMPARE MORE THAN JUST THE VARIABLE NAME??
+        MySymbol foundSymbol = existsInScope(nodeName, this.scopeStack, this.symbolTable);
+        String foundType = foundSymbol.getType().getName();
+        // If the variable type is custom
+        if (Utils.isCustomType(foundType)) {
+            // Check if it is an object of the Class and if so check if the method exists
+            if (foundType.equals(this.symbolTable.getClassName())) {
+                if (hasInheritance()) return true;  // Assume it exists
+                else if(!this.symbolTable.getMethods().contains(calledMethod)) {
+                    // TODO: ADD ANALYSIS REPORT
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+    private Integer defaultVisit(JmmNode node, Object dummy) {
+        if (node.getNumChildren() <= 0) {
+            throw new RuntimeException("Illegal number of children in node " + node.getKind() + ".");
+        }
+
+        // System.out.println("Currently in node: " + node.getKind());
+        Integer visitResult = 0;
+        for (int i = 0; i < node.getNumChildren(); ++i) {
+            JmmNode childNode = node.getJmmChild(i);
+            visitResult = visit(childNode);
+            //System.out.println("Intermediate result: " + visitResult);
+        }
+
+        return visitResult;
     }
 }
