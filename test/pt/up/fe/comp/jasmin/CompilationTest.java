@@ -20,8 +20,14 @@ public class CompilationTest {
         JasminBackend backend = new JasminBackendJmm();
         JasminResult jasminResult = backend.toJasmin(ollirResult);
 
+        System.out.println("Program's source code:");
         System.out.println(jasminResult.getJasminCode());
+
+        System.out.println("Compiling program...");
         jasminResult.compile();
+        System.out.println("Program compiled successfully!");
+        System.out.println("\nExecuting program...");
         jasminResult.run();
+        System.out.println("End of execution");
     }
 }
