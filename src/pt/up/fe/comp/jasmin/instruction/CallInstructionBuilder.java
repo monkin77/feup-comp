@@ -52,17 +52,16 @@ public class CallInstructionBuilder extends AbstractBuilder {
 
     private void buildInvokeSpecial() {
         final Element firstArg = instruction.getFirstArg();
-        String className, invokeType;
+        String className;
 
         // TODO: This should *definitely* not be here
         if (method.isConstructMethod() && JasminUtils.getElementName(instruction.getSecondArg()).equals("\"<init>\"")) {
             className = classUnit.getSuperClass() == null ? JasminConstants.DEFAULT_SUPERCLASS : classUnit.getSuperClass();
-            invokeType = "invokenonvirtual";
         } else {
             className = JasminUtils.getTypeName(firstArg.getType(), classUnit);
-            invokeType = "invokespecial";
         }
-        this.buildInvocation(invokeType, className, true);
+        // TODO: What is invokenonvirtual ?
+        this.buildInvocation("invokespecial", className, true);
     }
 
     private void buildInvokeStatic() {
