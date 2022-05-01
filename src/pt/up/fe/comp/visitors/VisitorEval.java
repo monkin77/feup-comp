@@ -93,7 +93,7 @@ public class VisitorEval extends AJmmVisitor<Object, Integer> {
         this.createScope(mainSymbol);
 
         String argName = node.get("mainArgs");
-        MySymbol argSymbol = new MySymbol(new Type(Types.STRING.toString(), true), argName, EntityTypes.ARG);
+        MySymbol argSymbol = new MySymbol(new Type(Types.STRING_ARRAY.toString(), true), argName, EntityTypes.ARG);
         this.putSymbol(argSymbol);
 
         Integer visitResult = 0;
@@ -130,23 +130,9 @@ public class VisitorEval extends AJmmVisitor<Object, Integer> {
         if (node.getNumChildren() == 1) {
             String varName = node.get("name");
 
-            Types varType = Types.getType(node.getJmmChild(0).getKind());
-            boolean isArray = varType.getIsArray();
+            Type returnNodeType = Utils.getNodeType(node.getJmmChild(0));
 
-            String typeName = varType.toString();
-
-            // Check if it is a custom type
-            if (varType == Types.CUSTOM) {
-                JmmNode child = node.getJmmChild(0);
-                // Should we create constants for the types?
-                if (child.getKind().equals("CustomType")) {
-                    typeName = child.get("name");
-                } else
-                    throw new RuntimeException("Illegal variable type " + child.getKind() + " in node " + node.getKind() + ".");
-            }
-
-
-            MySymbol varSymbol = new MySymbol(new Type(typeName, isArray), varName, EntityTypes.VARIABLE);
+            MySymbol varSymbol = new MySymbol(returnNodeType, varName, EntityTypes.VARIABLE);
 
             this.putSymbol(varSymbol);
 
@@ -160,11 +146,9 @@ public class VisitorEval extends AJmmVisitor<Object, Integer> {
         if (node.getNumChildren() <= 0)
             throw new RuntimeException("Illegal number of children in node " + node.getKind() + ".");
 
-        // Get the return type of the method
-        Types varType = Types.getType(node.getJmmChild(0).getKind());
-        boolean isArray = varType.getIsArray();
+        Type returnNodeType = Utils.getNodeType(node.getJmmChild(0));
 
-        MySymbol methodSymbol = new MySymbol(new Type(varType.toString(), isArray), node.get("name"), EntityTypes.METHOD);
+        MySymbol methodSymbol = new MySymbol(returnNodeType, node.get("name"), EntityTypes.METHOD);
 
         // Insert next scope pointer in previous scope
         this.putSymbol(methodSymbol);
@@ -199,11 +183,10 @@ public class VisitorEval extends AJmmVisitor<Object, Integer> {
 
     private Integer argumentVisit(JmmNode node, Object dummy) {
         if (node.getNumChildren() == 1) {
-            Types varType = Types.getType(node.getJmmChild(0).getKind());
-            boolean isArray = varType.getIsArray();
-
+            Type returnNodeType = Utils.getNodeType(node.getJmmChild(0));
             String argName = node.get("arg");
-            MySymbol argSymbol = new MySymbol(new Type(varType.toString(), isArray), argName, EntityTypes.ARG);
+
+            MySymbol argSymbol = new MySymbol(returnNodeType, argName, EntityTypes.ARG);
             this.putSymbol(argSymbol);
             return 0;
         }

@@ -102,11 +102,9 @@ public class ExistenceVisitor extends AJmmVisitor<Object, Integer> {
         if (node.getNumChildren() <= 0)
             throw new RuntimeException("Illegal number of children in node " + node.getKind() + ".");
 
-        // Get the return type of the method
-        Types varType = Types.getType(node.getJmmChild(0).getKind());
-        boolean isArray = varType.getIsArray();
+        Type returnNodeType = Utils.getNodeType(node.getJmmChild(0));
 
-        MySymbol methodSymbol = new MySymbol(new Type(varType.toString(), isArray), node.get("name"), EntityTypes.METHOD);
+        MySymbol methodSymbol = new MySymbol(returnNodeType, node.get("name"), EntityTypes.METHOD);
 
         // Insert next scope pointer in previous scope
         this.symbolTable.put(this.scopeStack.peek(), methodSymbol);
@@ -141,11 +139,10 @@ public class ExistenceVisitor extends AJmmVisitor<Object, Integer> {
 
     private Integer argumentVisit(JmmNode node, Object dummy) {
         if (node.getNumChildren() == 1) {
-            Types varType = Types.getType(node.getJmmChild(0).getKind());
-            boolean isArray = varType.getIsArray();
+            Type returnNodeType = Utils.getNodeType(node.getJmmChild(0));
 
             String argName = node.get("arg");
-            MySymbol argSymbol = new MySymbol(new Type(varType.toString(), isArray), argName, EntityTypes.ARG);
+            MySymbol argSymbol = new MySymbol(returnNodeType, argName, EntityTypes.ARG);
             this.symbolTable.put(this.scopeStack.peek(), argSymbol);
             return 0;
         }
@@ -184,7 +181,7 @@ public class ExistenceVisitor extends AJmmVisitor<Object, Integer> {
                     // Check if Object
                     String calledMethod = secondChild.get("method");
                     if (!this.checkObjectMethod(firstName, calledMethod)) {
-                        throw new RuntimeException("\"" + calledMethod + "\" is not a class method");
+                        throw new RuntimeException("\"" + calledMethod + "\" is not an existing method of a class");
                     }
                 }
                 MySymbol firstSymbol = existsInScope(firstName, this.scopeStack, this.symbolTable);
@@ -251,9 +248,9 @@ public class ExistenceVisitor extends AJmmVisitor<Object, Integer> {
     }
 
     public boolean validateLength(JmmNode left) {
-        String type = Utils.getNodeType(left, this.scopeStack, this.symbolTable);  // send symbol table
-        // TODO: CHANGE THIS LOGIC
-        return type.equals(new Type(Types.INT_ARRAY.toString(), Types.INT_ARRAY.getIsArray()).toString());
+        Type type = Utils.getNodeType(left, this.scopeStack, this.symbolTable);  // send symbol table
+        System.out.println("NODE LEFT: " + left.toString() + " GOT TYPE: " + type.toString());
+        return type.isArray();
     }
 
     private boolean hasInheritance() {

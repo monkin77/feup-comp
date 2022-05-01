@@ -6,15 +6,17 @@ import pt.up.fe.specs.util.SpecsEnums;
 public enum Types {
     INT("int", false),
     BOOLEAN("boolean", false),
-    STRING("string", false),
+    STRING_ARRAY("string", true),
     INT_ARRAY("int", true),
     VOID("void", false),
     CUSTOM("custom", false),
     NONE("none", false),
+    UNKNOWN("unknown", true),
     INVALID("invalid", false);
 
     private final String code;
     private final boolean isArray;
+
 
     Types(String code, boolean isArray) {
         this.code = code;
