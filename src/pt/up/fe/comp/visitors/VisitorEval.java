@@ -5,6 +5,7 @@ import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp.jmm.ast.AJmmVisitor;
 import pt.up.fe.comp.jmm.report.Report;
+import pt.up.fe.comp.jmm.report.Stage;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,7 +23,7 @@ public class VisitorEval extends AJmmVisitor<Object, Integer> {
         this.reports = new ArrayList<>();
 
         MySymbol globalScope = new MySymbol(new Type(Types.NONE.toString(), false), "global", EntityTypes.GLOBAL);
-        this.createScope(globalScope);
+        this.createScope(globalScope, null);
 
         addVisit("ClassDecl", this::classDeclVisit);
         addVisit("MainDecl", this::mainDeclVisit);
@@ -43,34 +44,45 @@ public class VisitorEval extends AJmmVisitor<Object, Integer> {
         setDefaultVisit(this::defaultVisit);
     }
 
-    private void createScope(MySymbol symbol) {
-        this.scopeStack.push(symbol);
-        boolean opStatus =  this.symbolTable.openScope(symbol);
+    private boolean createScope(MySymbol symbol, JmmNode node) {
+        boolean opStatus = this.symbolTable.openScope(symbol);
 
-        if (!opStatus) throw new RuntimeException("Error attempting to create a scope that is already defined: " + symbol.getName());
+        if (!opStatus) {
+            this.reports.add(Report.newError(Stage.SEMANTIC, Integer.valueOf(node.get("line")), Integer.valueOf(node.get("col")),
+                    "Error attempting to create a scope that is already defined: " + symbol.getName(),
+                    null));
+        } else
+            this.scopeStack.push(symbol);
+
+        return opStatus;
     }
 
-    private void putSymbol(MySymbol symbol) {
+    private boolean putSymbol(MySymbol symbol, JmmNode node) {
         // Insert next scope pointer in previous scope
         boolean opStatus = this.symbolTable.put(this.scopeStack.peek(), symbol);
 
-        if (!opStatus) throw new RuntimeException("Error attempting to put a symbol that is already defined: " + symbol.getName() + " in the scope: " + this.scopeStack.peek().getName());
+        if (!opStatus) {
+            this.reports.add(Report.newError(Stage.SEMANTIC, Integer.valueOf(node.get("line")), Integer.valueOf(node.get("col")),
+                    "Error attempting to put a symbol that is already defined: " + symbol.getName() + " in the scope: " + this.scopeStack.peek().getName(),
+                    null));
+        }
+        return opStatus;
     }
 
     private Integer classDeclVisit(JmmNode node, Object dummy) {
         MySymbol classSymbol = new MySymbol(new Type(Types.NONE.toString(), false), node.get("name"), EntityTypes.CLASS);
 
         // Insert next scope pointer in previous scope
-        this.putSymbol(classSymbol);
+        if (!this.putSymbol(classSymbol, node)) return -1;
 
         // Add new scope
-        this.createScope(classSymbol);
+        if (!this.createScope(classSymbol, node)) return -1;
 
         try {
             Optional<String> extendedClass = node.getOptional("extends");
             if (!extendedClass.isEmpty()) {
                 MySymbol extendedSymbol = new MySymbol(new Type(Types.NONE.toString(), false), extendedClass.get(), EntityTypes.EXTENDS);
-                this.putSymbol(extendedSymbol);
+                if (!this.putSymbol(extendedSymbol, node)) return -1;
             }
         } catch(Error err){
             ;
@@ -92,14 +104,14 @@ public class VisitorEval extends AJmmVisitor<Object, Integer> {
         MySymbol mainSymbol = new MySymbol(new Type(Types.VOID.toString(), false), "main", EntityTypes.METHOD);
 
         // Insert next scope pointer in previous scope
-        this.putSymbol(mainSymbol);
+        if (!this.putSymbol(mainSymbol, node)) return -1;
 
         // Add new scope
-        this.createScope(mainSymbol);
+        if (!this.createScope(mainSymbol, node)) return -1;
 
         String argName = node.get("mainArgs");
         MySymbol argSymbol = new MySymbol(new Type(Types.STRING_ARRAY.toString(), true), argName, EntityTypes.ARG);
-        this.putSymbol(argSymbol);
+       if (!this.putSymbol(argSymbol, node)) return -1;
 
         Integer visitResult = 0;
         for (int i = 0; i < node.getNumChildren(); ++i) {
@@ -123,7 +135,7 @@ public class VisitorEval extends AJmmVisitor<Object, Integer> {
             }
 
             MySymbol importSymbol = new MySymbol(new Type(Types.NONE.toString(), false), importName, EntityTypes.IMPORT);
-            this.putSymbol(importSymbol);
+            if (!this.putSymbol(importSymbol, childNode)) return -1;
 
             return 0;
         }
@@ -139,7 +151,7 @@ public class VisitorEval extends AJmmVisitor<Object, Integer> {
 
             MySymbol varSymbol = new MySymbol(returnNodeType, varName, EntityTypes.VARIABLE);
 
-            this.putSymbol(varSymbol);
+            if (!this.putSymbol(varSymbol, node)) return -1;
 
             return 0;
         }
@@ -156,10 +168,10 @@ public class VisitorEval extends AJmmVisitor<Object, Integer> {
         MySymbol methodSymbol = new MySymbol(returnNodeType, node.get("name"), EntityTypes.METHOD);
 
         // Insert next scope pointer in previous scope
-        this.putSymbol(methodSymbol);
+        if (!this.putSymbol(methodSymbol, node)) return -1;
 
         // Add new scope
-        this.createScope(methodSymbol);
+        if (!this.createScope(methodSymbol, node)) return -1;
 
         Integer visitResult = 0;
         for (int i = 1; i < node.getNumChildren(); ++i) {
@@ -192,7 +204,7 @@ public class VisitorEval extends AJmmVisitor<Object, Integer> {
             String argName = node.get("arg");
 
             MySymbol argSymbol = new MySymbol(returnNodeType, argName, EntityTypes.ARG);
-            this.putSymbol(argSymbol);
+            if (!this.putSymbol(argSymbol, node)) return -1;
             return 0;
         }
 

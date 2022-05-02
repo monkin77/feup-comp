@@ -42,5 +42,9 @@ public class SymbolTableTest {
 
         // Semantic Analysis stage
         JmmSemanticsResult analysisResult = analyser.semanticAnalysis(parserResult);
+
+        // Check if there are parsing errors
+        System.out.println("REPORTS --->" + analysisResult.getReports().toString());
+        TestUtils.noErrors(analysisResult.getReports());
     }
 }
