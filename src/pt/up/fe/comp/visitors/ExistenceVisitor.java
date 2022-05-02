@@ -9,6 +9,7 @@ import pt.up.fe.comp.jmm.report.Stage;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Stack;
 
 import static pt.up.fe.comp.visitors.Utils.existsInScope;
@@ -32,7 +33,8 @@ public class ExistenceVisitor extends AJmmVisitor<Object, Integer> {
         addVisit("DotExpression", this::dotExpressionVisit);
         addVisit("_Identifier", this::identifierVisit);
         addVisit("VarDecl", this::varDeclVisit);
-        // CHECK IF EXTENDED CLASS WAS IMPORTED
+        // ADD VISITOR TO CHECK IF EXTENDED CLASS WAS IMPORTED (ClassDecl)
+        // ADD VISITOR TO CHECK IF CLASS EXISTS WITH NEW (NewObjectExpression)
 
         setDefaultVisit(this::defaultVisit);
     }
@@ -44,6 +46,17 @@ public class ExistenceVisitor extends AJmmVisitor<Object, Integer> {
 
     private Integer classDeclVisit(JmmNode node, Object dummy) {
         MySymbol classSymbol = new MySymbol(new Type(Types.NONE.toString(), false), node.get("name"), EntityTypes.CLASS);
+
+        // Check if extended class was imported
+        Optional<String> extendedClass = node.getOptional("extends");
+        if (!extendedClass.isEmpty()) {
+            if (!Utils.hasImport(extendedClass.get(), this.symbolTable)) {
+                this.reports.add(Report.newError(Stage.SEMANTIC, Integer.valueOf(node.get("line")), Integer.valueOf(node.get("col")),
+                        "Extended class was not imported.",
+                        null));
+                return -1;
+            }
+        }
 
         // Add new scope
         this.createScope(classSymbol);
