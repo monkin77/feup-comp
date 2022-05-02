@@ -1,16 +1,11 @@
 package pt.up.fe.comp.visitors;
 
-import pt.up.fe.comp.EntityTypes;
-import pt.up.fe.comp.MySymbol;
-import pt.up.fe.comp.MySymbolTable;
-import pt.up.fe.comp.Types;
-import pt.up.fe.comp.jmm.analysis.table.Symbol;
+import pt.up.fe.comp.*;
 import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.AJmmVisitor;
 import pt.up.fe.comp.jmm.ast.JmmNode;
 
-import java.util.Iterator;
-import java.util.List;
+import java.sql.PreparedStatement;
 import java.util.Stack;
 
 import static pt.up.fe.comp.visitors.Utils.existsInScope;
@@ -191,11 +186,19 @@ public class ExistenceVisitor extends AJmmVisitor<Object, Integer> {
 
             // Check class methods
             if (firstChild.getKind().equals("_This") && secondChild.getKind().equals("DotMethod")) {
-                if (this.hasInheritance()) return 0; // Assume the method exists
+                if (this.symbolTable.hasInheritance()) return 0; // Assume the method exists
                 this.hasThisDotMethod(secondChild);
             }
 
             // TODO: VISIT CHILD NODES??
+
+            if (!this.validateDotExpression(firstChild, secondChild)){
+                throw new RuntimeException("Invalid method call " + secondChild.get("method") + ".");
+            }
+
+            for (int i = 0; i < node.getNumChildren(); ++i) {
+                visit(node.getJmmChild(i));
+            }
 
             return 0;
         }
@@ -248,13 +251,22 @@ public class ExistenceVisitor extends AJmmVisitor<Object, Integer> {
     }
 
     public boolean validateLength(JmmNode left) {
-        Type type = Utils.getNodeType(left, this.scopeStack, this.symbolTable);  // send symbol table
-        System.out.println("NODE LEFT: " + left.toString() + " GOT TYPE: " + type.toString());
+        Type type = Utils.calculateNodeType(left, this.scopeStack, this.symbolTable);  // send symbol table
         return type.isArray();
     }
 
-    private boolean hasInheritance() {
-        return this.symbolTable.getSuper() != null;
+    /**
+     * Validates a nested Dot Expression by checking the type recursively and verifying the method exists in the class
+     * @param dotExpr
+     * @param dotMethod
+     * @return true if valid, false otherwise
+     */
+    public boolean validateDotExpression(JmmNode dotExpr, JmmNode dotMethod) {
+        Type type = Utils.calculateNodeType(dotExpr, this.scopeStack, this.symbolTable);
+
+        String methodName = dotMethod.get("method");
+        int result = Utils.isValidMethodCall(methodName, type.toString(), dotExpr.getKind(), this.symbolTable.getClassName(), symbolTable);
+        return result <= 1;
     }
 
     /**
@@ -277,7 +289,7 @@ public class ExistenceVisitor extends AJmmVisitor<Object, Integer> {
         if (Utils.isCustomType(foundType)) {
             // Check if it is an object of the Class and if so check if the method exists
             if (foundType.equals(this.symbolTable.getClassName())) {
-                if (hasInheritance()) return true;  // Assume it exists
+                if (this.symbolTable.hasInheritance()) return true;  // Assume it exists
                 else if(!this.symbolTable.getMethods().contains(calledMethod)) {
                     // TODO: ADD ANALYSIS REPORT
                     return false;
@@ -291,7 +303,7 @@ public class ExistenceVisitor extends AJmmVisitor<Object, Integer> {
     }
 
     private Integer defaultVisit(JmmNode node, Object dummy) {
-        if (node.getNumChildren() <= 0) {
+        if (node.getNumChildren() < 0) {
             throw new RuntimeException("Illegal number of children in node " + node.getKind() + ".");
         }
 

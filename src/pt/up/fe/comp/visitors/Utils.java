@@ -29,7 +29,14 @@ public class Utils {
         return null;
     }
 
-    public static Type getNodeType(JmmNode node, Stack<MySymbol> scopeStack, MySymbolTable symbolTable){
+    /**
+     * Calculates the type of a Node, iterating the tree recursively.
+     * @param node
+     * @param scopeStack
+     * @param symbolTable
+     * @return
+     */
+    public static Type calculateNodeType(JmmNode node, Stack<MySymbol> scopeStack, MySymbolTable symbolTable){
         String kind = node.getKind();
 
         if(isMathExpression(kind)) return new Type(Types.INT.toString(), Types.INT.getIsArray());
@@ -66,22 +73,23 @@ public class Utils {
         JmmNode rightNode = node.getJmmChild(1);
 
         // Recursive step that finds the type of the left node
-        Type leftNodeType = Utils.getNodeType(leftNode, scopeStack, symbolTable);
+        Type leftNodeType = Utils.calculateNodeType(leftNode, scopeStack, symbolTable);
 
         String className = symbolTable.getClassName();
 
         if (rightNode.getKind().equals("DotLength")) return new Type(Types.INT.toString(), Types.INT.getIsArray());
 
         String methodName = rightNode.get("method");
-        boolean containsMethodName = symbolTable.getMethods().contains(methodName);
-
-        System.out.println("------------- " + node.toString() + " leftNodeType: " + leftNodeType.toString());
-        if (containsMethodName && (leftNodeType.getName().equals(className) || node.getKind().equals(AstTypes.THIS.toString()))) {
-            System.out.println("XXXXXXXXX " + symbolTable.getReturnType(methodName));
-            return symbolTable.getReturnType(methodName);
+        int result = isValidMethodCall(methodName, leftNodeType.toString(), leftNode.getKind(), className, symbolTable);
+        switch (result) {
+            case 0:
+                return symbolTable.getReturnType(methodName);
+            case 1:
+                return new Type(Types.UNKNOWN.toString(), Types.UNKNOWN.getIsArray());
+            default:
+                // ERROR
+                throw new RuntimeException("Invalid method call to method: " + methodName + ".");
         }
-
-        return new Type(Types.UNKNOWN.toString(), Types.UNKNOWN.getIsArray());
     }
 
     private static boolean isBooleanExpression(String kind) {
@@ -120,5 +128,36 @@ public class Utils {
             typeName = node.get("name");
 
         return new Type(typeName, isArray);
+    }
+
+    /**
+     *
+     * @param methodName
+     * @param leftNodeType
+     * @param nodeKind
+     * @param className
+     * @param symbolTable
+     * @return 0 -> Method is valid; 1 -> Assuming Method exists; 2 -> Method is invalid
+     */
+    public static int isValidMethodCall(String methodName, String leftNodeType, String nodeKind, String className, MySymbolTable symbolTable) {
+        boolean containsMethodName = symbolTable.getMethods().contains(methodName);
+        boolean leftNodeIsClass = (leftNodeType.equals(className) || nodeKind.equals(AstTypes.THIS.toString()));
+
+        if (isCustomType(leftNodeType)) {
+            // Check if it is an object of the Class and if so check if the method exists
+            if (leftNodeIsClass) {
+                if (containsMethodName) return 0;   // Method is valid
+                if (symbolTable.hasInheritance()) return 1;  // Assume it exists
+                else {
+                    // TODO: ADD ANALYSIS REPORT
+                    return 2;
+                }
+            }
+
+            // Assume it exists since it's an import
+            return 1;
+        }
+
+        return 2;
     }
 }

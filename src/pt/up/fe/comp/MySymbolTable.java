@@ -63,6 +63,10 @@ public class MySymbolTable implements SymbolTable {
         return null;
     }
 
+    public boolean hasInheritance() {
+        return this.getSuper() != null;
+    }
+
     /**
      *
      * @return Symbol of the Class
