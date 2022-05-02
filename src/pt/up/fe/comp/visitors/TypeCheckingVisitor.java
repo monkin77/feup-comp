@@ -46,23 +46,6 @@ public class TypeCheckingVisitor extends AJmmVisitor<Object, Integer> {
         this.symbolTable.openScope(symbol);
     }
 
-    /**
-     * Iterates all the existing scopes to look for the symbol given as argument
-     * @param name
-     * @return symbol if found, null otherwise
-     */
-    private MySymbol existsInScope(String name) {
-        Iterator<MySymbol> scopeIter = this.scopeStack.iterator();
-
-        MySymbol symbol;
-        while(scopeIter.hasNext()) {
-            symbol = this.symbolTable.get(scopeIter.next(), name);
-            if (symbol != null) return symbol;
-        }
-
-        return null;
-    }
-
     private Integer importDeclVisit(JmmNode node, Object dummy) {
         if (node.getNumChildren() >= 1) {
             return 0;
@@ -177,34 +160,11 @@ public class TypeCheckingVisitor extends AJmmVisitor<Object, Integer> {
     }
 
     private Integer dotExpressionVisit(JmmNode node, Object dummy) {
-        if (node.getNumChildren() == 2) {
-            String firstName = node.getJmmChild(0).get("id");
-            MySymbol firstSymbol = this.existsInScope(firstName);
-            if (firstSymbol == null) throw new RuntimeException("Invalid reference to " + firstName + ". Identifier does not exist!");
-
-            JmmNode secondChild = node.getJmmChild(1);
-            if (secondChild.getKind().equals("DotLength")) {
-                // verify if first child is an array
-                if (!firstSymbol.getType().isArray()) throw new RuntimeException("Invalid property length of " + firstName + ". Variable is not an array.");
-            } else {
-                visit(secondChild);
-            }
-
-            return 0;
-        }
-
-        throw new RuntimeException("Illegal number of children in node " + "." + node.getKind());
+        return 0;
     }
 
     private Integer identifierVisit(JmmNode node, Object dummy) {
-        if (node.getNumChildren() == 0) {
-            String firstName = node.get("id");
-            MySymbol firstSymbol = this.existsInScope(firstName);
-            if (firstSymbol == null) throw new RuntimeException("Invalid reference to " + firstName + ". Identifier does not exist!");
-            return 0;
-        }
-
-        throw new RuntimeException("Illegal number of children in node " + node.getKind() + ".");
+        return 0;
     }
 
     private Integer dotMethodVisit(JmmNode node, Object dummy) {

@@ -63,6 +63,22 @@ public class MySymbolTable implements SymbolTable {
         return null;
     }
 
+    /**
+     * Get a symbol from a given scope that belongs to the list of Entities
+     * @param scope
+     * @param symbolName
+     * @param entityTypes
+     * @return
+     */
+    public MySymbol get(MySymbol scope, String symbolName, List<EntityTypes> entityTypes) {
+        for (MySymbol symbol : this.map.get(scope).values()) {
+            if (symbol.getName().equals(symbolName) && entityTypes.contains(symbol.getEntity()))
+                return symbol;
+        }
+
+        return null;
+    }
+
     public boolean hasInheritance() {
         return this.getSuper() != null;
     }

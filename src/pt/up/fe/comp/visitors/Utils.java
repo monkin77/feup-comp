@@ -1,28 +1,27 @@
 package pt.up.fe.comp.visitors;
 
-import pt.up.fe.comp.AstTypes;
-import pt.up.fe.comp.MySymbol;
-import pt.up.fe.comp.MySymbolTable;
-import pt.up.fe.comp.Types;
+import pt.up.fe.comp.*;
 import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.JmmNode;
 
-import java.util.Iterator;
-import java.util.Stack;
+import java.util.*;
 
 public class Utils {
+    public static final ArrayList<EntityTypes> identifierTypes = new ArrayList<>(Arrays.asList(EntityTypes.VARIABLE, EntityTypes.ARG, EntityTypes.IMPORT));
+
     /**
      * Iterates all the existing scopes to look for the symbol given as argument
      * @param name
+     * @param entityTypes List of entityTypes to be accepted
      * @return symbol if found, null otherwise
      */
-    public static MySymbol existsInScope(String name, Stack<MySymbol> scopeStack, MySymbolTable symbolTable) {
+    public static MySymbol existsInScope(String name, List<EntityTypes> entityTypes, Stack<MySymbol> scopeStack, MySymbolTable symbolTable) {
         Iterator<MySymbol> scopeIter = scopeStack.iterator();
 
         MySymbol symbol;
         while(scopeIter.hasNext()) {
             MySymbol nextScope = scopeIter.next();
-            symbol = symbolTable.get(nextScope, name);
+            symbol = symbolTable.get(nextScope, name, entityTypes);
             if (symbol != null) return symbol;
         }
 
@@ -56,7 +55,7 @@ public class Utils {
             default:
                 // Identifier
                 String nodeName = node.get("id");
-                MySymbol identifier = existsInScope(nodeName, scopeStack, symbolTable);
+                MySymbol identifier = existsInScope(nodeName, identifierTypes, scopeStack, symbolTable);
                 if (identifier == null) {
                     throw new RuntimeException("Unknown reference to symbol " + nodeName + ".");
                 }

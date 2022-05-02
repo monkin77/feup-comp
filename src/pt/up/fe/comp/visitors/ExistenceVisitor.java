@@ -4,8 +4,6 @@ import pt.up.fe.comp.*;
 import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.AJmmVisitor;
 import pt.up.fe.comp.jmm.ast.JmmNode;
-
-import java.sql.PreparedStatement;
 import java.util.Stack;
 
 import static pt.up.fe.comp.visitors.Utils.existsInScope;
@@ -179,7 +177,8 @@ public class ExistenceVisitor extends AJmmVisitor<Object, Integer> {
                         throw new RuntimeException("\"" + calledMethod + "\" is not an existing method of a class");
                     }
                 }
-                MySymbol firstSymbol = existsInScope(firstName, this.scopeStack, this.symbolTable);
+
+                MySymbol firstSymbol = existsInScope(firstName, Utils.identifierTypes, this.scopeStack, this.symbolTable);
                 if (firstSymbol == null) throw new RuntimeException("Invalid reference to " + firstName + ". Identifier does not exist!");
                 return 0;
             }
@@ -206,7 +205,7 @@ public class ExistenceVisitor extends AJmmVisitor<Object, Integer> {
     private Integer identifierVisit(JmmNode node, Object dummy) {
         if (node.getNumChildren() == 0) {
             String firstName = node.get("id");
-            MySymbol firstSymbol = existsInScope(firstName, this.scopeStack, this.symbolTable);
+            MySymbol firstSymbol = existsInScope(firstName, Utils.identifierTypes, this.scopeStack, this.symbolTable);
             if (firstSymbol == null) throw new RuntimeException("Invalid reference to " + firstName + ". Identifier does not exist!");
             return 0;
         }
@@ -283,7 +282,7 @@ public class ExistenceVisitor extends AJmmVisitor<Object, Integer> {
 
     public Boolean checkObjectMethod(String nodeName, String calledMethod) {
         // TODO: CHECK IF THIS EXISTSINSCOPE IS CORRECT. DO WE NEED TO COMPARE MORE THAN JUST THE VARIABLE NAME??
-        MySymbol foundSymbol = existsInScope(nodeName, this.scopeStack, this.symbolTable);
+        MySymbol foundSymbol = existsInScope(nodeName, Utils.identifierTypes, this.scopeStack, this.symbolTable);
         if (foundSymbol == null) {
             throw new RuntimeException("Unknown reference to symbol " + nodeName + " when attempting to call " + nodeName + "." + calledMethod + "().");
         }
