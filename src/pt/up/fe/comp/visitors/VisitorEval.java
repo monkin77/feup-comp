@@ -4,17 +4,22 @@ import pt.up.fe.comp.*;
 import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp.jmm.ast.AJmmVisitor;
+import pt.up.fe.comp.jmm.report.Report;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.Stack;
 
 public class VisitorEval extends AJmmVisitor<Object, Integer> {
     private final MySymbolTable symbolTable;
     private final Stack<MySymbol> scopeStack;
+    private final List<Report> reports;
 
     public VisitorEval(MySymbolTable symbolTable) {
         this.symbolTable = symbolTable;
         this.scopeStack = new Stack<>();
+        this.reports = new ArrayList<>();
 
         MySymbol globalScope = new MySymbol(new Type(Types.NONE.toString(), false), "global", EntityTypes.GLOBAL);
         this.createScope(globalScope);
@@ -264,5 +269,9 @@ public class VisitorEval extends AJmmVisitor<Object, Integer> {
         }
 
         return visitResult;
+    }
+
+    public List<Report> getReports() {
+        return reports;
     }
 }

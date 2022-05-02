@@ -4,6 +4,10 @@ import pt.up.fe.comp.*;
 import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.AJmmVisitor;
 import pt.up.fe.comp.jmm.ast.JmmNode;
+import pt.up.fe.comp.jmm.report.Report;
+
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Stack;
 
 import static pt.up.fe.comp.visitors.Utils.existsInScope;
@@ -11,10 +15,12 @@ import static pt.up.fe.comp.visitors.Utils.existsInScope;
 public class ExistenceVisitor extends AJmmVisitor<Object, Integer> {
     private final MySymbolTable symbolTable;
     private final Stack<MySymbol> scopeStack;
+    private final List<Report> reports;
 
     public ExistenceVisitor(MySymbolTable symbolTable) {
         this.symbolTable = symbolTable;
         this.scopeStack = new Stack<>();
+        this.reports = new ArrayList<>();
 
         MySymbol globalScope = new MySymbol(new Type(Types.NONE.toString(), false), "global", EntityTypes.GLOBAL);
         this.createScope(globalScope);
@@ -189,7 +195,6 @@ public class ExistenceVisitor extends AJmmVisitor<Object, Integer> {
                 this.hasThisDotMethod(secondChild);
             }
 
-            // TODO: VISIT CHILD NODES?
             this.validateDotExpression(firstChild, secondChild);
 
             for (int i = 0; i < node.getNumChildren(); ++i) {
@@ -319,5 +324,9 @@ public class ExistenceVisitor extends AJmmVisitor<Object, Integer> {
         }
 
         return visitResult;
+    }
+
+    public List<Report> getReports() {
+        return reports;
     }
 }
