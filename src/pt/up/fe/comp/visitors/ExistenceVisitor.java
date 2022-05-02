@@ -190,11 +190,8 @@ public class ExistenceVisitor extends AJmmVisitor<Object, Integer> {
                 this.hasThisDotMethod(secondChild);
             }
 
-            // TODO: VISIT CHILD NODES??
-
-            if (!this.validateDotExpression(firstChild, secondChild)){
-                throw new RuntimeException("Invalid method call " + secondChild.get("method") + ".");
-            }
+            // TODO: VISIT CHILD NODES?
+            this.validateDotExpression(firstChild, secondChild);
 
             for (int i = 0; i < node.getNumChildren(); ++i) {
                 visit(node.getJmmChild(i));
@@ -261,12 +258,15 @@ public class ExistenceVisitor extends AJmmVisitor<Object, Integer> {
      * @param dotMethod
      * @return true if valid, false otherwise
      */
-    public boolean validateDotExpression(JmmNode dotExpr, JmmNode dotMethod) {
+    public void validateDotExpression(JmmNode dotExpr, JmmNode dotMethod) {
         Type type = Utils.calculateNodeType(dotExpr, this.scopeStack, this.symbolTable);
 
         String methodName = dotMethod.get("method");
         int result = Utils.isValidMethodCall(methodName, type.toString(), dotExpr.getKind(), this.symbolTable.getClassName(), symbolTable);
-        return result <= 1;
+
+        if (result >= 2) {
+            throw new RuntimeException("Invalid method call " + methodName + " to element of type " + type.getName() + ".");
+        }
     }
 
     /**
@@ -284,6 +284,10 @@ public class ExistenceVisitor extends AJmmVisitor<Object, Integer> {
     public Boolean checkObjectMethod(String nodeName, String calledMethod) {
         // TODO: CHECK IF THIS EXISTSINSCOPE IS CORRECT. DO WE NEED TO COMPARE MORE THAN JUST THE VARIABLE NAME??
         MySymbol foundSymbol = existsInScope(nodeName, this.scopeStack, this.symbolTable);
+        if (foundSymbol == null) {
+            throw new RuntimeException("Unknown reference to symbol " + nodeName + " when attempting to call " + nodeName + "." + calledMethod + "().");
+        }
+
         String foundType = foundSymbol.getType().getName();
         // If the variable type is custom
         if (Utils.isCustomType(foundType)) {

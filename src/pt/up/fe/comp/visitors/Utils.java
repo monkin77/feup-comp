@@ -55,7 +55,11 @@ public class Utils {
                 return new Type(symbolTable.getClassName(), false);
             default:
                 // Identifier
-                MySymbol identifier = existsInScope(node.get("id"), scopeStack, symbolTable);
+                String nodeName = node.get("id");
+                MySymbol identifier = existsInScope(nodeName, scopeStack, symbolTable);
+                if (identifier == null) {
+                    throw new RuntimeException("Unknown reference to symbol " + nodeName + ".");
+                }
                 return identifier.getType();
         }
     }
@@ -88,7 +92,7 @@ public class Utils {
                 return new Type(Types.UNKNOWN.toString(), Types.UNKNOWN.getIsArray());
             default:
                 // ERROR
-                throw new RuntimeException("Invalid method call to method: " + methodName + ".");
+                throw new RuntimeException("Invalid method call to method: " + methodName + " to element of type " + leftNodeType.getName() + ".");
         }
     }
 
