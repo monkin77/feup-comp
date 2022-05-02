@@ -68,7 +68,7 @@ public class MySymbolTable implements SymbolTable {
      * @param scope
      * @param symbolName
      * @param entityTypes
-     * @return
+     * @return Symbol if found, null otherwise
      */
     public MySymbol get(MySymbol scope, String symbolName, List<EntityTypes> entityTypes) {
         for (MySymbol symbol : this.map.get(scope).values()) {

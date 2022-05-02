@@ -5,6 +5,7 @@ import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.AJmmVisitor;
 import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp.jmm.report.Report;
+import pt.up.fe.comp.jmm.report.Stage;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,21 +26,13 @@ public class ExistenceVisitor extends AJmmVisitor<Object, Integer> {
         MySymbol globalScope = new MySymbol(new Type(Types.NONE.toString(), false), "global", EntityTypes.GLOBAL);
         this.createScope(globalScope);
 
-        addVisit("ImportDecl", this::importDeclVisit);
         addVisit("ClassDecl", this::classDeclVisit);
         addVisit("MainDecl", this::mainDeclVisit);
-        addVisit("VarDecl", this::varDeclVisit);
         addVisit("PublicMethod", this::publicMethodVisit);
-        addVisit("Argument", this::argumentVisit);
-        addVisit("AssignmentExpr", this::assignExprVisit);
-        addVisit("WhileSt", this::whileStVisit);
-        addVisit("IntegerLiteral", this::integerLiteralVisit);
-        addVisit("BooleanLiteral", this::booleanLiteralVisit);
-
         addVisit("DotExpression", this::dotExpressionVisit);
         addVisit("_Identifier", this::identifierVisit);
-        addVisit("DotMethod", this::dotMethodVisit);
-        addVisit("IntArray", this::intArrayVisit);
+        addVisit("VarDecl", this::varDeclVisit);
+        // CHECK IF EXTENDED CLASS WAS IMPORTED
 
         setDefaultVisit(this::defaultVisit);
     }
@@ -47,14 +40,6 @@ public class ExistenceVisitor extends AJmmVisitor<Object, Integer> {
     private void createScope(MySymbol symbol) {
         this.scopeStack.push(symbol);
         this.symbolTable.openScope(symbol);
-    }
-
-    private Integer importDeclVisit(JmmNode node, Object dummy) {
-        if (node.getNumChildren() >= 1) {
-            return 0;
-        }
-
-        throw new RuntimeException("Illegal number of children in node " + "." + node.getKind());
     }
 
     private Integer classDeclVisit(JmmNode node, Object dummy) {
@@ -93,10 +78,6 @@ public class ExistenceVisitor extends AJmmVisitor<Object, Integer> {
         return visitResult;
     }
 
-    private Integer varDeclVisit(JmmNode node, Object dummy) {
-        return 0;
-    }
-
     private Integer publicMethodVisit(JmmNode node, Object dummy) {
         if (node.getNumChildren() <= 0)
             throw new RuntimeException("Illegal number of children in node " + node.getKind() + ".");
@@ -124,41 +105,6 @@ public class ExistenceVisitor extends AJmmVisitor<Object, Integer> {
         return visitResult;
     }
 
-    private Integer whileStVisit(JmmNode node, Object dummy) {
-        // Children: Expr and While Block
-        if (node.getNumChildren() < 2) {
-            throw new RuntimeException("Illegal number of children in node " + node.getKind() + ".");
-        }
-
-        //TODO Should we be checking anything here? I think we can't declare variables
-        // inside while loops; We can iterate the children and visit them in order to
-        // accomplish this
-        return 0;
-    }
-
-    private Integer argumentVisit(JmmNode node, Object dummy) {
-        if (node.getNumChildren() == 1) {
-            Type returnNodeType = Utils.getNodeType(node.getJmmChild(0));
-
-            String argName = node.get("arg");
-            MySymbol argSymbol = new MySymbol(returnNodeType, argName, EntityTypes.ARG);
-            this.symbolTable.put(this.scopeStack.peek(), argSymbol);
-            return 0;
-        }
-
-        throw new RuntimeException("Illegal number of children in node " + node.getKind() + ".");
-    }
-
-    private Integer assignExprVisit(JmmNode node, Object dummy) {
-        // TODO: Confirm we don't need to store anything
-        if (node.getNumChildren() == 2) {
-            // System.out.println("Assign Expr with " + node.getNumChildren() + " children");
-            return 0;
-        }
-
-        throw new RuntimeException("Illegal number of children in node " + "." + node.getKind());
-    }
-
     private Integer dotExpressionVisit(JmmNode node, Object dummy) {
         if (node.getNumChildren() == 2) {
             JmmNode firstChild = node.getJmmChild(0);
@@ -167,7 +113,10 @@ public class ExistenceVisitor extends AJmmVisitor<Object, Integer> {
             // Check length property
             if (secondChild.getKind().equals("DotLength")) {
                 if (!this.validateLength(firstChild)) {
-                    throw new RuntimeException("Built-in \"length\" is only valid over arrays.");
+                    this.reports.add(Report.newError(Stage.SEMANTIC, Integer.valueOf(firstChild.get("line")), Integer.valueOf(firstChild.get("col")),
+                            "Built-in \"length\" is only valid over arrays.",
+                            null));
+                    return -1;
                 }
                 // verify if first child is an array
                 return 0;
@@ -180,22 +129,31 @@ public class ExistenceVisitor extends AJmmVisitor<Object, Integer> {
                     // Check if Object
                     String calledMethod = secondChild.get("method");
                     if (!this.checkObjectMethod(firstName, calledMethod)) {
-                        throw new RuntimeException("\"" + calledMethod + "\" is not an existing method of a class");
+                        this.reports.add(Report.newError(Stage.SEMANTIC, Integer.valueOf(firstChild.get("line")), Integer.valueOf(firstChild.get("col")),
+                                "\"" + calledMethod + "\" is not an existing method of a class",
+                                null));
+
+                        return -1;
                     }
                 }
 
                 MySymbol firstSymbol = existsInScope(firstName, Utils.identifierTypes, this.scopeStack, this.symbolTable);
-                if (firstSymbol == null) throw new RuntimeException("Invalid reference to " + firstName + ". Identifier does not exist!");
+                if (firstSymbol == null) {
+                    this.reports.add(Report.newError(Stage.SEMANTIC, Integer.valueOf(firstChild.get("line")), Integer.valueOf(firstChild.get("col")),
+                            "Invalid reference to " + firstName + ". Identifier does not exist!",
+                            null));
+                    return -1;
+                }
                 return 0;
             }
 
             // Check class methods
             if (firstChild.getKind().equals("_This") && secondChild.getKind().equals("DotMethod")) {
                 if (this.symbolTable.hasInheritance()) return 0; // Assume the method exists
-                this.hasThisDotMethod(secondChild);
+                if (!this.hasThisDotMethod(secondChild)) return -1;
             }
 
-            this.validateDotExpression(firstChild, secondChild);
+            if (!this.validateDotExpression(firstChild, secondChild)) return -1;
 
             for (int i = 0; i < node.getNumChildren(); ++i) {
                 visit(node.getJmmChild(i));
@@ -211,41 +169,36 @@ public class ExistenceVisitor extends AJmmVisitor<Object, Integer> {
         if (node.getNumChildren() == 0) {
             String firstName = node.get("id");
             MySymbol firstSymbol = existsInScope(firstName, Utils.identifierTypes, this.scopeStack, this.symbolTable);
-            if (firstSymbol == null) throw new RuntimeException("Invalid reference to " + firstName + ". Identifier does not exist!");
+            if (firstSymbol == null) {
+                this.reports.add(Report.newError(Stage.SEMANTIC, Integer.valueOf(node.get("line")), Integer.valueOf(node.get("col")),
+                        "Invalid reference to " + firstName + ". Identifier does not exist!",
+                        null));
+                return -1;
+            }
             return 0;
         }
 
         throw new RuntimeException("Illegal number of children in node " + node.getKind() + ".");
     }
 
-    private Integer dotMethodVisit(JmmNode node, Object dummy) {
-        for (int i = 0; i < node.getNumChildren(); ++i) {
-            visit(node.getJmmChild(i));
-        }
+    private Integer varDeclVisit(JmmNode node, Object dummy) {
+        if (node.getNumChildren() == 1) {
+            Type returnNodeType = Utils.getNodeType(node.getJmmChild(0));
+            String typeStr = returnNodeType.getName();
 
-        return 0;
-    }
+            // If not a custom type
+            if (!Utils.isCustomType(typeStr)) return 0;
 
-    private Integer intArrayVisit(JmmNode node, Object dummy) {
-        if (node.getNumChildren() == 0) {
-            // System.out.println("Analysing the " + node.getKind());
-            return 2;   // Return 2 if IntArray; Return 1 if Int, and so on... ?
-        }
+            // If type is an import or the class
+            if (Utils.hasImport(typeStr, this.symbolTable) || this.symbolTable.getClassName().equals(typeStr)) return 0;
 
-        throw new RuntimeException("Illegal number of children in node " + node.getKind() + ".");
-    }
+            // if type is the extended class
+            if (this.symbolTable.hasInheritance() && this.symbolTable.getSuper().equals(typeStr)) return 0;
 
-    private Integer integerLiteralVisit(JmmNode node, Object dummy) {
-        if (node.getNumChildren() == 0) {
-            return Integer.parseInt(node.get("value"));
-        }
-
-        throw new RuntimeException("Illegal number of children in node " + node.getKind() + ".");
-    }
-
-    private Integer booleanLiteralVisit(JmmNode node, Object dummy) {
-        if (node.getNumChildren() == 0) {
-            return 1;
+            this.reports.add(Report.newError(Stage.SEMANTIC, Integer.valueOf(node.get("line")), Integer.valueOf(node.get("col")),
+                    "Invalid attempt to create a variable of non-existing type " + typeStr + ".",
+                    null));
+            return -1;
         }
 
         throw new RuntimeException("Illegal number of children in node " + node.getKind() + ".");
@@ -262,27 +215,35 @@ public class ExistenceVisitor extends AJmmVisitor<Object, Integer> {
      * @param dotMethod
      * @return true if valid, false otherwise
      */
-    public void validateDotExpression(JmmNode dotExpr, JmmNode dotMethod) {
+    public boolean validateDotExpression(JmmNode dotExpr, JmmNode dotMethod) {
         Type type = Utils.calculateNodeType(dotExpr, this.scopeStack, this.symbolTable);
 
         String methodName = dotMethod.get("method");
         int result = Utils.isValidMethodCall(methodName, type.toString(), dotExpr.getKind(), this.symbolTable.getClassName(), symbolTable);
 
         if (result >= 2) {
-            throw new RuntimeException("Invalid method call " + methodName + " to element of type " + type.getName() + ".");
+            this.reports.add(Report.newError(Stage.SEMANTIC, Integer.valueOf(dotExpr.get("line")), Integer.valueOf(dotExpr.get("col")),
+                    "Invalid method call " + methodName + " to element of type " + type.getName() + ".",
+                    null));
+            return false;
         }
+        return true;
     }
 
     /**
      * Verifies if dot method exists
      * @param node
      */
-    public void hasThisDotMethod(JmmNode node){
+    public boolean hasThisDotMethod(JmmNode node){
         String identifier = node.get("method");
         if (!this.symbolTable.getMethods().contains(identifier)) {
-            throw new RuntimeException("Method \"" + identifier + "\" is undefined");
-            // analysis.addReport(node,"Function \"" + identifier + "\" is undefined");
+            this.reports.add(Report.newError(Stage.SEMANTIC, Integer.valueOf(node.get("line")), Integer.valueOf(node.get("col")),
+                    "Method \"" + identifier + "\" is undefined",
+                    null));
+            return false;
         }
+
+        return true;
     }
 
     public Boolean checkObjectMethod(String nodeName, String calledMethod) {

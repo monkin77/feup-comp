@@ -149,8 +149,11 @@ public class TypeCheckingVisitor extends AJmmVisitor<Object, Integer> {
         throw new RuntimeException("Illegal number of children in node " + node.getKind() + ".");
     }
 
+
     private Integer assignExprVisit(JmmNode node, Object dummy) {
-        // TODO: Confirm we don't need to store anything
+        // TODO: Check right side type by looking at its second child if it is a DotExpression.
+        // IF .length -> type is int
+        // IF method -> use SymbolTable method to check method return type
         if (node.getNumChildren() == 2) {
             // System.out.println("Assign Expr with " + node.getNumChildren() + " children");
             return 0;

@@ -112,7 +112,8 @@ public class Utils {
     }
 
     public static Boolean isCustomType(String typeName) {
-        return !typeName.equals(Types.INT.toString()) && !typeName.equals(Types.STRING_ARRAY.toString()) && !typeName.equals(Types.BOOLEAN.toString());
+        return !typeName.equals(Types.INT.toString()) && !typeName.equals(Types.STRING_ARRAY.toString()) &&
+                !typeName.equals(Types.BOOLEAN.toString()) && !typeName.equals(Types.INT_ARRAY.toString());
     }
 
     /**
