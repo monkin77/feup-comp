@@ -128,11 +128,7 @@ public class ExistenceVisitor extends AJmmVisitor<Object, Integer> {
                 if (!Utils.hasImport(firstName, this.symbolTable)) {
                     // Check if Object
                     String calledMethod = secondChild.get("method");
-                    if (!this.checkObjectMethod(firstName, calledMethod)) {
-                        this.reports.add(Report.newError(Stage.SEMANTIC, Integer.valueOf(firstChild.get("line")), Integer.valueOf(firstChild.get("col")),
-                                "\"" + calledMethod + "\" is not an existing method of a class",
-                                null));
-
+                    if (!this.checkObjectMethod(firstName, calledMethod, firstChild)) {
                         return -1;
                     }
                 }
@@ -246,11 +242,15 @@ public class ExistenceVisitor extends AJmmVisitor<Object, Integer> {
         return true;
     }
 
-    public Boolean checkObjectMethod(String nodeName, String calledMethod) {
+    public boolean checkObjectMethod(String nodeName, String calledMethod, JmmNode node) {
         // TODO: CHECK IF THIS EXISTSINSCOPE IS CORRECT. DO WE NEED TO COMPARE MORE THAN JUST THE VARIABLE NAME??
         MySymbol foundSymbol = existsInScope(nodeName, Utils.identifierTypes, this.scopeStack, this.symbolTable);
         if (foundSymbol == null) {
-            throw new RuntimeException("Unknown reference to symbol " + nodeName + " when attempting to call " + nodeName + "." + calledMethod + "().");
+            this.reports.add(Report.newError(Stage.SEMANTIC, Integer.valueOf(node.get("line")), Integer.valueOf(node.get("col")),
+                    "Unknown reference to symbol " + nodeName + " when attempting to call " + nodeName + "." + calledMethod + "().",
+                    null));
+
+            return false;
         }
 
         String foundType = foundSymbol.getType().getName();
@@ -260,7 +260,9 @@ public class ExistenceVisitor extends AJmmVisitor<Object, Integer> {
             if (foundType.equals(this.symbolTable.getClassName())) {
                 if (this.symbolTable.hasInheritance()) return true;  // Assume it exists
                 else if(!this.symbolTable.getMethods().contains(calledMethod)) {
-                    // TODO: ADD ANALYSIS REPORT
+                    this.reports.add(Report.newError(Stage.SEMANTIC, Integer.valueOf(node.get("line")), Integer.valueOf(node.get("col")),
+                            "Unknown reference to method " + calledMethod + " when attempting to call " + nodeName + "." + calledMethod + "().",
+                            null));
                     return false;
                 }
             }
@@ -268,6 +270,9 @@ public class ExistenceVisitor extends AJmmVisitor<Object, Integer> {
             return true;
         }
 
+        this.reports.add(Report.newError(Stage.SEMANTIC, Integer.valueOf(node.get("line")), Integer.valueOf(node.get("col")),
+                "Invalid attempt to call method " + calledMethod + " in primitive type " + foundType + ".",
+                null));
         return false;
     }
 
