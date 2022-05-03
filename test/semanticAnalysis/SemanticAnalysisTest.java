@@ -104,8 +104,8 @@ public class SemanticAnalysisTest {
     }
 
     @Test
-    public void DotExpressionNoError() {
-        String file = "fixtures/public/semanticAnalysis/DotExpressionNoError.jmm";
+    public void DotLengthNoError() {
+        String file = "fixtures/public/semanticAnalysis/DotLengthNoError.jmm";
         execute(file);
         TestUtils.noErrors(analysisResult.getReports());
     }
@@ -117,9 +117,21 @@ public class SemanticAnalysisTest {
         execute(file);
 
         TestUtils.mustFail(analysisResult.getReports());
-        System.out.println("Error: " + analysisResult.getReports().get(0).getMessage());
         assertTrue(hasError(analysisResult.getReports(), error));
     }
+    @Test
+    public void DotExpressionError() {
+        String file = "fixtures/public/semanticAnalysis/DotExpressionError.jmm";
+        String error1 = "Invalid method call get_array to element of type int.";
+        String error2 = "Invalid method call find_maximum to element of type int[].";
+
+        execute(file);
+
+        TestUtils.mustFail(analysisResult.getReports());
+        assertTrue(hasError(analysisResult.getReports(), error1));
+        assertTrue(hasError(analysisResult.getReports(), error2));
+    }
+
 }
 
 

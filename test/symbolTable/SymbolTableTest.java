@@ -15,7 +15,7 @@ public class SymbolTableTest {
 
     @Test
     public void testFileInput() {
-        String input = "fixtures/public/semanticAnalysis/DotLengthError.jmm";
+        String input = "fixtures/public/FindMaximum.jmm";
         String inputResource = SpecsIo.getResource(input);
 
         // Create config

@@ -91,7 +91,7 @@ public class Utils {
                 return new Type(Types.UNKNOWN.toString(), Types.UNKNOWN.getIsArray());
             default:
                 // ERROR
-                throw new RuntimeException("Invalid method call to method: " + methodName + " to element of type " + leftNodeType.getName() + ".");
+                throw new RuntimeException("Invalid method call to method: " + methodName + " to element of type " + leftNodeType.getName() + (leftNodeType.isArray() ? "[]" : "")  + ".");
         }
     }
 
