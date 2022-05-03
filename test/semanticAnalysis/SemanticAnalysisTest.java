@@ -140,6 +140,15 @@ public class SemanticAnalysisTest {
         TestUtils.noErrors(analysisResult.getReports());
     }
 
+    @Test
+    public void NewObjectNoError() {
+        String file = "fixtures/public/semanticAnalysis/NewObjectError.jmm";
+        String error1 = "Invalid attempt to create a dynamic variable of type UnknownClass.";
+        execute(file);
+
+        TestUtils.mustFail(analysisResult.getReports());
+        assertTrue(hasError(analysisResult.getReports(), error1));
+    }
 }
 
 
