@@ -83,7 +83,7 @@ public class Utils {
         if (rightNode.getKind().equals("DotLength")) return new Type(Types.INT.toString(), Types.INT.getIsArray());
 
         String methodName = rightNode.get("method");
-        int result = isValidMethodCall(methodName, leftNodeType.toString(), leftNode.getKind(), className, symbolTable);
+        int result = isValidMethodCall(methodName, leftNodeType.getName(), leftNode.getKind(), className, symbolTable);
         switch (result) {
             case 0:
                 return symbolTable.getReturnType(methodName);

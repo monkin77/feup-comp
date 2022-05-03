@@ -33,7 +33,6 @@ public class ExistenceVisitor extends AJmmVisitor<Object, Integer> {
         addVisit("DotExpression", this::dotExpressionVisit);
         addVisit("_Identifier", this::identifierVisit);
         addVisit("VarDecl", this::varDeclVisit);
-        // ADD VISITOR TO CHECK IF EXTENDED CLASS WAS IMPORTED (ClassDecl)
         // ADD VISITOR TO CHECK IF CLASS EXISTS WITH NEW (NewObjectExpression)
 
         setDefaultVisit(this::defaultVisit);
@@ -228,7 +227,7 @@ public class ExistenceVisitor extends AJmmVisitor<Object, Integer> {
         Type type = Utils.calculateNodeType(dotExpr, this.scopeStack, this.symbolTable);
 
         String methodName = dotMethod.get("method");
-        int result = Utils.isValidMethodCall(methodName, type.toString(), dotExpr.getKind(), this.symbolTable.getClassName(), symbolTable);
+        int result = Utils.isValidMethodCall(methodName, type.getName(), dotExpr.getKind(), this.symbolTable.getClassName(), symbolTable);
 
         if (result >= 2) {
             this.reports.add(Report.newError(Stage.SEMANTIC, Integer.valueOf(dotExpr.get("line")), Integer.valueOf(dotExpr.get("col")),
