@@ -7,18 +7,15 @@ import pt.up.fe.comp.TestUtils;
 import pt.up.fe.comp.jmm.analysis.JmmSemanticsResult;
 import pt.up.fe.comp.jmm.parser.JmmParserResult;
 import pt.up.fe.specs.util.SpecsIo;
-import pt.up.fe.specs.util.SpecsStrings;
 
 import java.util.HashMap;
 import java.util.Map;
-
-import static org.junit.Assert.assertEquals;
 
 public class SymbolTableTest {
 
     @Test
     public void testFileInput() {
-        String input = "./fixtures/public/FindMaximum.jmm";
+        String input = "fixtures/public/semanticAnalysis/DotLengthError.jmm";
         String inputResource = SpecsIo.getResource(input);
 
         // Create config
