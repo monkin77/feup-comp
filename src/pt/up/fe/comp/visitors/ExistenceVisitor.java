@@ -33,6 +33,7 @@ public class ExistenceVisitor extends AJmmVisitor<Object, Integer> {
         addVisit("DotExpression", this::dotExpressionVisit);
         addVisit("_Identifier", this::identifierVisit);
         addVisit("VarDecl", this::varDeclVisit);
+        addVisit("NewObjExpr", this::newObjExprVisit);
         // ADD VISITOR TO CHECK IF CLASS EXISTS WITH NEW (NewObjectExpression)
 
         setDefaultVisit(this::defaultVisit);
@@ -205,6 +206,34 @@ public class ExistenceVisitor extends AJmmVisitor<Object, Integer> {
 
             this.reports.add(Report.newError(Stage.SEMANTIC, Integer.valueOf(node.get("line")), Integer.valueOf(node.get("col")),
                     "Invalid attempt to create a variable of non-existing type " + typeStr + ".",
+                    null));
+            return -1;
+        }
+
+        throw new RuntimeException("Illegal number of children in node " + node.getKind() + ".");
+    }
+
+    private Integer newObjExprVisit(JmmNode node, Object dummy) {
+        if (node.getNumChildren() == 0) {
+            String objectName = node.get("object");
+
+            // If not a custom type
+            if (!Utils.isCustomType(objectName)) {
+                this.reports.add(Report.newError(Stage.SEMANTIC, Integer.valueOf(node.get("line")), Integer.valueOf(node.get("col")),
+                        "Invalid attempt to create a dynamic variable of primitive type " + objectName + ".",
+                        null));
+                return -1;
+            }
+
+            // If type is an import or the class
+            if (Utils.hasImport(objectName, this.symbolTable) || this.symbolTable.getClassName().equals(objectName)) return 0;
+
+            // if type is the extended class
+            if (this.symbolTable.hasInheritance() && this.symbolTable.getSuper().equals(objectName)) return 0;
+
+
+            this.reports.add(Report.newError(Stage.SEMANTIC, Integer.valueOf(node.get("line")), Integer.valueOf(node.get("col")),
+                    "Invalid attempt to create a dynamic variable of type " + objectName + ".",
                     null));
             return -1;
         }
