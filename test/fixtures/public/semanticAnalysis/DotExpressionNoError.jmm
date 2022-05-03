@@ -1,0 +1,39 @@
+import ioPlus;
+
+
+class FindMaximum {
+	int[] test_arr;
+
+	public FindMaximum find_maximum(int[] arr) {
+		int i;
+		int maximum;
+		int value;
+
+		this.find_maximum().get_array();
+
+		i = 1;
+		maximum = arr[0];
+		while (i < arr.length) {
+			value = arr[i];
+			if (maximum < value) {
+				maximum = value;
+			} else {
+			}
+			i = i + 1;
+		}
+
+		return maximum;
+	}
+
+    public int[] get_array() {
+        return test_arr;
+    }
+
+	public static void main(String[] args) {
+		FindMaximum fm;
+		int max;
+		fm = new FindMaximum();
+
+		ioPlus.printResult(max);
+	}
+}

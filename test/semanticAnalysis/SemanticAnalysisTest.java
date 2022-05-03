@@ -119,6 +119,7 @@ public class SemanticAnalysisTest {
         TestUtils.mustFail(analysisResult.getReports());
         assertTrue(hasError(analysisResult.getReports(), error));
     }
+
     @Test
     public void DotExpressionError() {
         String file = "fixtures/public/semanticAnalysis/DotExpressionError.jmm";
@@ -130,6 +131,13 @@ public class SemanticAnalysisTest {
         TestUtils.mustFail(analysisResult.getReports());
         assertTrue(hasError(analysisResult.getReports(), error1));
         assertTrue(hasError(analysisResult.getReports(), error2));
+    }
+
+    @Test
+    public void DotExpressionNoError() {
+        String file = "fixtures/public/semanticAnalysis/DotExpressionNoError.jmm";
+        execute(file);
+        TestUtils.noErrors(analysisResult.getReports());
     }
 
 }
