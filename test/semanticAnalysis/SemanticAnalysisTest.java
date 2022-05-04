@@ -149,6 +149,17 @@ public class SemanticAnalysisTest {
         TestUtils.mustFail(analysisResult.getReports());
         assertTrue(hasError(analysisResult.getReports(), error1));
     }
+
+    @Test
+    public void InvalidTypeAssign() {
+        String file = "fixtures/public/semanticAnalysis/InvalidTypeAssign.jmm";
+        String error1 = "Type error. Attempting to assign value of type int to a variable of type boolean.";
+        execute(file);
+
+        TestUtils.mustFail(analysisResult.getReports());
+        assertTrue(hasError(analysisResult.getReports(), error1));
+    }
+
 }
 
 

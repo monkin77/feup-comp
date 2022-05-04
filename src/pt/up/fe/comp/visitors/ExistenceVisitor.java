@@ -34,7 +34,6 @@ public class ExistenceVisitor extends AJmmVisitor<Object, Integer> {
         addVisit("_Identifier", this::identifierVisit);
         addVisit("VarDecl", this::varDeclVisit);
         addVisit("NewObjExpr", this::newObjExprVisit);
-        // ADD VISITOR TO CHECK IF CLASS EXISTS WITH NEW (NewObjectExpression)
 
         setDefaultVisit(this::defaultVisit);
     }
@@ -98,9 +97,6 @@ public class ExistenceVisitor extends AJmmVisitor<Object, Integer> {
         Type returnNodeType = Utils.getNodeType(node.getJmmChild(0));
 
         MySymbol methodSymbol = new MySymbol(returnNodeType, node.get("name"), EntityTypes.METHOD);
-
-        // Insert next scope pointer in previous scope
-        this.symbolTable.put(this.scopeStack.peek(), methodSymbol);
 
         // Add new scope
         this.createScope(methodSymbol);

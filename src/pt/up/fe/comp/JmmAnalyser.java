@@ -6,6 +6,7 @@ import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp.jmm.parser.JmmParserResult;
 import pt.up.fe.comp.jmm.report.Report;
 import pt.up.fe.comp.visitors.ExistenceVisitor;
+import pt.up.fe.comp.visitors.TypeCheckingVisitor;
 import pt.up.fe.comp.visitors.VisitorEval;
 
 import java.util.ArrayList;
@@ -40,6 +41,10 @@ public class JmmAnalyser implements JmmAnalysis {
         ExistenceVisitor analyser = new ExistenceVisitor(symbolTable);
         System.out.println("visitor analyser: " + analyser.visit(root, null));
         reports.addAll(analyser.getReports());
+
+        TypeCheckingVisitor typeCheckVisitor = new TypeCheckingVisitor(symbolTable);
+        System.out.println("Type check Visitor: " + typeCheckVisitor.visit(root, null));
+        reports.addAll(typeCheckVisitor.getReports());
 
         return new JmmSemanticsResult(parserResult, symbolTable, reports);
     }

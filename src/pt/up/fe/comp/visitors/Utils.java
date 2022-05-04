@@ -45,13 +45,23 @@ public class Utils {
             case "DotExpression":
                 return getReturnValueMethod(node, scopeStack, symbolTable);
             case "ArrayExpr":
+            case "IntegerLiteral":
+            case "MultExpr":
+            case "AddExpr":
+            case "SubExpr":
                 return new Type(Types.INT.toString(), Types.INT.getIsArray());
+            case "BooleanLiteral":
+            case "LessExpr":
+            case "AndExpr":
+            case "NotExpr":
+                return new Type(Types.BOOLEAN.toString(), Types.BOOLEAN.getIsArray());
             case "NewObjExpr":
-                return new Type(node.getChildren().get(0).get("object"), Types.CUSTOM.getIsArray()); // return the class name
+                return new Type(node.get("object"), Types.CUSTOM.getIsArray()); // return the class name
             case "NewArrayExpr":
                 return new Type(Types.INT_ARRAY.toString(), Types.INT_ARRAY.getIsArray());
             case "_This":
                 return new Type(symbolTable.getClassName(), false);
+
             default:
                 // Identifier
                 String nodeName = node.get("id");
