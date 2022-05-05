@@ -29,9 +29,15 @@ public class TypeCheckingVisitor extends AJmmVisitor<Object, Integer> {
         addVisit("MainDecl", this::mainDeclVisit);
         addVisit("PublicMethod", this::publicMethodVisit);
         addVisit("AssignmentExpr", this::assignExprVisit);
+        //TODO visit of AndExpr... ArrayExpr
         addVisit("WhileSt", this::whileStVisit);
+        //TODO Add if else visitor
         addVisit("DotMethod", this::dotMethodVisit);
         addVisit("IntArray", this::intArrayVisit);
+
+        addVisit("AddExpr", this::mathExprVisit);
+        addVisit("MultExpr", this::mathExprVisit);
+        addVisit("SubExpr", this::mathExprVisit);
 
         setDefaultVisit(this::defaultVisit);
     }
@@ -106,9 +112,7 @@ public class TypeCheckingVisitor extends AJmmVisitor<Object, Integer> {
             throw new RuntimeException("Illegal number of children in node " + node.getKind() + ".");
         }
 
-        //TODO Should we be checking anything here? I think we can't declare variables
-        // inside while loops; We can iterate the children and visit them in order to
-        // accomplish this
+        //TODO get first child, check its type and visit it
         return 0;
     }
 
@@ -122,9 +126,8 @@ public class TypeCheckingVisitor extends AJmmVisitor<Object, Integer> {
         for (int i = 0; i < node.getNumChildren(); ++i) {
             JmmNode childNode = node.getJmmChild(i);
             visitResult = visit(childNode);
+            if (visitResult == -1) return -1;
         }
-
-        if (visitResult == -1) return -1;
 
         if (node.getNumChildren() == 2) {
             JmmNode firstChild = node.getJmmChild(0);
@@ -144,6 +147,45 @@ public class TypeCheckingVisitor extends AJmmVisitor<Object, Integer> {
 
                 this.reports.add(Report.newError(Stage.SEMANTIC, Integer.valueOf(firstChild.get("line")), Integer.valueOf(firstChild.get("col")),
                         "Type error. Attempting to assign value of type " + assignTypeName + " to a variable of type " + typeName + ".",
+                        null));
+                return -1;
+            }
+
+            return 0;
+        }
+
+        throw new RuntimeException("Illegal number of children in node " + "." + node.getKind());
+    }
+
+    private Integer mathExprVisit(JmmNode node, Object dummy) {
+
+        Integer visitResult = 0;
+        for (int i = 0; i < node.getNumChildren(); ++i) {
+            JmmNode childNode = node.getJmmChild(i);
+            visitResult = visit(childNode);
+            if (visitResult == -1) return -1;
+        }
+
+        if (node.getNumChildren() == 2) {
+            JmmNode firstChild = node.getJmmChild(0);
+            Type leftType = Utils.calculateNodeType(firstChild, this.scopeStack, this.symbolTable);
+
+            JmmNode secondChild = node.getJmmChild(1);
+            Type rightType = Utils.calculateNodeType(secondChild, this.scopeStack, this.symbolTable);
+            Type intType = new Type(Types.INT.toString(), Types.INT.getIsArray());
+            // check if it's INT
+            if (!(leftType.equals(intType) && rightType.equals(intType))) {
+
+                String typeName = leftType.getName();
+                String rightTypeName = rightType.getName();
+                // TODO should we accept if both sides are imports? Like we can add 2 classes by overloading the operator?
+                if (Utils.hasImport(typeName, this.symbolTable) && Utils.hasImport(rightTypeName, this.symbolTable)) {
+                    return 0;
+                }
+
+                // TODO what should we be outputing? When we have Int and Int_Array we show "type int and type int."
+                this.reports.add(Report.newError(Stage.SEMANTIC, Integer.valueOf(firstChild.get("line")), Integer.valueOf(firstChild.get("col")),
+                        "Type error. Attempting to add value of type " + leftType.toString() + " with value of type " + rightType.toString() + ".",
                         null));
                 return -1;
             }
