@@ -20,18 +20,8 @@ import pt.up.fe.specs.util.SpecsIo;
 import pt.up.fe.specs.util.SpecsStrings;
 
 public class BackendTest {
-
-    // @Test
-    // public void testHelloWorld() {
-    // var result = TestUtils.pt.up.fe.comp.backend(SpecsIo.getResource("pt.up.fe.comp.fixtures/public/HelloWorld.jmm"));
-    // TestUtils.noErrors(result.getReports());
-    // var output = result.run();
-    // assertEquals("Hello, World!", output.trim());
-    // }
-
     @Test
     public void testHelloWorld() {
-
         String jasminCode = SpecsIo.getResource("pt/up/fe/comp/fixtures/public/jasmin/HelloWorld.j");
         var output = TestUtils.runJasmin(jasminCode);
         assertEquals("Hello World!\nHello World Again!\n", SpecsStrings.normalizeFileContents(output));
