@@ -1,9 +1,6 @@
 package pt.up.fe.comp.visitors;
 
-import pt.up.fe.comp.EntityTypes;
-import pt.up.fe.comp.MySymbol;
-import pt.up.fe.comp.MySymbolTable;
-import pt.up.fe.comp.Types;
+import pt.up.fe.comp.*;
 import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.AJmmVisitor;
 import pt.up.fe.comp.jmm.ast.JmmNode;
@@ -36,8 +33,10 @@ public class TypeCheckingVisitor extends AJmmVisitor<Object, Integer> {
         addVisit("IntArray", this::intArrayVisit);
 
         addVisit("AddExpr", this::mathExprVisit);
-        addVisit("MultExpr", this::mathExprVisit);
         addVisit("SubExpr", this::mathExprVisit);
+        addVisit("MultExpr", this::mathExprVisit);
+        addVisit("DivExpr", this::mathExprVisit);
+
 
         setDefaultVisit(this::defaultVisit);
     }
@@ -137,13 +136,14 @@ public class TypeCheckingVisitor extends AJmmVisitor<Object, Integer> {
 
             Type assignType = Utils.calculateNodeType(secondChild, this.scopeStack, this.symbolTable);
 
-            if (!idType.equals(assignType)) {
+            if (!this.isVariable(firstChild)) {
+                this.reports.add(Report.newError(Stage.SEMANTIC, Integer.valueOf(firstChild.get("line")), Integer.valueOf(firstChild.get("col")),
+                        "Type error. Attempting to assign a value to a '" + firstChild.getKind() + "' .",
+                        null));
+                return -1;
+            } else if (!(this.isSameType(idType, assignType))) {
                 String typeName = idType.getName();
                 String assignTypeName = assignType.getName();
-                // TODO should we accept if both sides are imports?
-                if (Utils.hasImport(typeName, this.symbolTable) && Utils.hasImport(assignTypeName, this.symbolTable)) {
-                    return 0;
-                }
 
                 this.reports.add(Report.newError(Stage.SEMANTIC, Integer.valueOf(firstChild.get("line")), Integer.valueOf(firstChild.get("col")),
                         "Type error. Attempting to assign value of type " + assignTypeName + " to a variable of type " + typeName + ".",
@@ -172,20 +172,13 @@ public class TypeCheckingVisitor extends AJmmVisitor<Object, Integer> {
 
             JmmNode secondChild = node.getJmmChild(1);
             Type rightType = Utils.calculateNodeType(secondChild, this.scopeStack, this.symbolTable);
-            Type intType = new Type(Types.INT.toString(), Types.INT.getIsArray());
-            // check if it's INT
-            if (!(leftType.equals(intType) && rightType.equals(intType))) {
 
-                String typeName = leftType.getName();
-                String rightTypeName = rightType.getName();
-                // TODO should we accept if both sides are imports? Like we can add 2 classes by overloading the operator?
-                if (Utils.hasImport(typeName, this.symbolTable) && Utils.hasImport(rightTypeName, this.symbolTable)) {
-                    return 0;
-                }
-
-                // TODO what should we be outputing? When we have Int and Int_Array we show "type int and type int."
+            // check if it's an accepted type
+            String leftTypeName = leftType.getName();
+            String rightTypeName = rightType.getName();
+            if (!(this.isArithmeticType(leftTypeName) && this.isArithmeticType(rightTypeName))) {
                 this.reports.add(Report.newError(Stage.SEMANTIC, Integer.valueOf(firstChild.get("line")), Integer.valueOf(firstChild.get("col")),
-                        "Type error. Attempting to add value of type " + leftType.toString() + " with value of type " + rightType.toString() + ".",
+                        "Type error. Attempting to do a " + node.getKind() + " with types: '" + Utils.printTypeName(leftType) + "' and '" + Utils.printTypeName(rightType) + "'.",
                         null));
                 return -1;
             }
@@ -227,6 +220,18 @@ public class TypeCheckingVisitor extends AJmmVisitor<Object, Integer> {
         }
 
         return visitResult;
+    }
+
+    private boolean isArithmeticType(String type){
+        return type.equals(Types.UNKNOWN.toString()) || type.equals(Types.INT.toString());
+    }
+
+    private boolean isSameType(Type type1, Type type2){
+        return type1.equals(type2) || type1.getName().equals(Types.UNKNOWN.toString()) || type2.getName().equals(Types.UNKNOWN.toString());
+    }
+
+    private boolean isVariable(JmmNode node) {
+        return node.getKind().equals(AstTypes.IDENTIFIER.toString()) || node.getKind().equals(AstTypes.ARRAY_EXPR.toString());
     }
 
     public List<Report> getReports() {

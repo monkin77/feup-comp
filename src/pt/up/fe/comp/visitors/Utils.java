@@ -47,6 +47,7 @@ public class Utils {
             case "ArrayExpr":
             case "IntegerLiteral":
             case "MultExpr":
+            case "DivExpr":
             case "AddExpr":
             case "SubExpr":
                 return new Type(Types.INT.toString(), Types.INT.getIsArray());
@@ -101,7 +102,7 @@ public class Utils {
                 return new Type(Types.UNKNOWN.toString(), Types.UNKNOWN.getIsArray());
             default:
                 // ERROR
-                throw new RuntimeException("Invalid method call to method: " + methodName + " to element of type " + leftNodeType.getName() + (leftNodeType.isArray() ? "[]" : "")  + ".");
+                throw new RuntimeException("Invalid method call to method: " + methodName + " to element of type " + Utils.printTypeName(leftNodeType) + ".");
         }
     }
 
@@ -173,5 +174,13 @@ public class Utils {
         }
 
         return 2;
+    }
+
+    /**
+     * Prints a type taking into account if it is an array or not
+     * @return
+     */
+    public static String printTypeName(Type type) {
+        return type.getName() + (type.isArray() ? "[]" : "");
     }
 }

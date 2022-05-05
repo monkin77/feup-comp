@@ -256,7 +256,7 @@ public class ExistenceVisitor extends AJmmVisitor<Object, Integer> {
 
         if (result >= 2) {
             this.reports.add(Report.newError(Stage.SEMANTIC, Integer.valueOf(dotExpr.get("line")), Integer.valueOf(dotExpr.get("col")),
-                    "Invalid method call " + methodName + " to element of type " + type.getName() + (type.isArray() ? "[]" : "") + ".",
+                    "Invalid method call " + methodName + " to element of type " + Utils.printTypeName(type) + ".",
                     null));
             return false;
         }
