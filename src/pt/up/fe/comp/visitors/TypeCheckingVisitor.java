@@ -26,7 +26,6 @@ public class TypeCheckingVisitor extends AJmmVisitor<Object, Integer> {
         addVisit("MainDecl", this::mainDeclVisit);
         addVisit("PublicMethod", this::publicMethodVisit);
         addVisit("AssignmentExpr", this::assignExprVisit);
-        //TODO visit of AndExpr... ArrayExpr
         addVisit("WhileSt", this::whileStVisit);
         //TODO Add if else visitor
         addVisit("DotMethod", this::dotMethodVisit);
@@ -40,6 +39,8 @@ public class TypeCheckingVisitor extends AJmmVisitor<Object, Integer> {
 
         addVisit("AndExpr", this::boolExprVisit);
         addVisit("NotExpr", this::boolExprVisit);
+
+        addVisit("ArrayExpr", this::arrayExprVisit);
 
 
         setDefaultVisit(this::defaultVisit);
@@ -177,8 +178,8 @@ public class TypeCheckingVisitor extends AJmmVisitor<Object, Integer> {
             Type rightType = Utils.calculateNodeType(secondChild, this.scopeStack, this.symbolTable);
 
             // check if it's an accepted type
-            String leftTypeName = leftType.getName();
-            String rightTypeName = rightType.getName();
+            String leftTypeName = Utils.printTypeName(leftType);;
+            String rightTypeName = Utils.printTypeName(rightType); // Using printTypeName to differ the case of int from int[]
             if (!(this.isArithmeticType(leftTypeName) && this.isArithmeticType(rightTypeName))) {
                 this.reports.add(Report.newError(Stage.SEMANTIC, Integer.valueOf(firstChild.get("line")), Integer.valueOf(firstChild.get("col")),
                         "Type error. Attempting to do a " + node.getKind() + " with types: '" + Utils.printTypeName(leftType) + "' and '" + Utils.printTypeName(rightType) + "'.",
@@ -226,6 +227,42 @@ public class TypeCheckingVisitor extends AJmmVisitor<Object, Integer> {
             if (!(this.isBoolType(leftTypeName) && this.isBoolType(rightTypeName))) {
                 this.reports.add(Report.newError(Stage.SEMANTIC, Integer.valueOf(firstChild.get("line")), Integer.valueOf(firstChild.get("col")),
                         "Type error. Attempting to do a " + node.getKind() + " with types: '" + Utils.printTypeName(leftType) + "' and '" + Utils.printTypeName(rightType) + "'.",
+                        null));
+                return -1;
+            }
+
+            return 0;
+        }
+        throw new RuntimeException("Illegal number of children in node " + "." + node.getKind());
+    }
+
+    private Integer arrayExprVisit(JmmNode node, Object dummy) {
+        Integer visitResult = 0;
+        for (int i = 0; i < node.getNumChildren(); ++i) {
+            JmmNode childNode = node.getJmmChild(i);
+            visitResult = visit(childNode);
+            if (visitResult == -1) return -1;
+        }
+
+        if (node.getNumChildren() == 2) {
+            JmmNode firstChild = node.getJmmChild(0);
+            Type leftType = Utils.calculateNodeType(firstChild, this.scopeStack, this.symbolTable);
+
+            JmmNode secondChild = node.getJmmChild(1);
+            Type rightType = Utils.calculateNodeType(secondChild, this.scopeStack, this.symbolTable);
+
+            // check if it's an accepted type
+            String leftTypeName = Utils.printTypeName(leftType);;
+            String rightTypeName = Utils.printTypeName(rightType); // Using printTypeName to differ the case of int from int[]
+
+            if (!leftType.isArray()) {
+                this.reports.add(Report.newError(Stage.SEMANTIC, Integer.valueOf(firstChild.get("line")), Integer.valueOf(firstChild.get("col")),
+                        "Type error. Attempting to access an array element in a variable of type '" + leftTypeName + "'.",
+                        null));
+                return -1;
+            } else if (!this.isArithmeticType(rightTypeName)) {
+                this.reports.add(Report.newError(Stage.SEMANTIC, Integer.valueOf(secondChild.get("line")), Integer.valueOf(secondChild.get("col")),
+                        "Type error. Attempting to index an array element with a variable of type '" + rightTypeName + "'.",
                         null));
                 return -1;
             }
