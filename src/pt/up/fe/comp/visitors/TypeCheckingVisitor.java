@@ -36,6 +36,10 @@ public class TypeCheckingVisitor extends AJmmVisitor<Object, Integer> {
         addVisit("SubExpr", this::mathExprVisit);
         addVisit("MultExpr", this::mathExprVisit);
         addVisit("DivExpr", this::mathExprVisit);
+        addVisit("LessExpr", this::mathExprVisit);
+
+        addVisit("AndExpr", this::boolExprVisit);
+        addVisit("NotExpr", this::boolExprVisit);
 
 
         setDefaultVisit(this::defaultVisit);
@@ -158,7 +162,6 @@ public class TypeCheckingVisitor extends AJmmVisitor<Object, Integer> {
     }
 
     private Integer mathExprVisit(JmmNode node, Object dummy) {
-
         Integer visitResult = 0;
         for (int i = 0; i < node.getNumChildren(); ++i) {
             JmmNode childNode = node.getJmmChild(i);
@@ -185,7 +188,50 @@ public class TypeCheckingVisitor extends AJmmVisitor<Object, Integer> {
 
             return 0;
         }
+        throw new RuntimeException("Illegal number of children in node " + "." + node.getKind());
+    }
 
+    private Integer boolExprVisit(JmmNode node, Object dummy) {
+        Integer visitResult = 0;
+        for (int i = 0; i < node.getNumChildren(); ++i) {
+            JmmNode childNode = node.getJmmChild(i);
+            visitResult = visit(childNode);
+            if (visitResult == -1) return -1;
+        }
+
+        if (node.getNumChildren() == 1) {
+            // Not Expression
+            JmmNode firstChild = node.getJmmChild(0);
+            Type leftType = Utils.calculateNodeType(firstChild, this.scopeStack, this.symbolTable);
+            // check if it's an accepted type
+            String leftTypeName = leftType.getName();
+            if (!this.isBoolType(leftTypeName)) {
+                this.reports.add(Report.newError(Stage.SEMANTIC, Integer.valueOf(firstChild.get("line")), Integer.valueOf(firstChild.get("col")),
+                        "Type error. Attempting to do a " + node.getKind() + " with type: '" + Utils.printTypeName(leftType) + "'.",
+                        null));
+                return -1;
+            }
+
+            return 0;
+        } else if (node.getNumChildren() == 2) {
+            JmmNode firstChild = node.getJmmChild(0);
+            Type leftType = Utils.calculateNodeType(firstChild, this.scopeStack, this.symbolTable);
+
+            JmmNode secondChild = node.getJmmChild(1);
+            Type rightType = Utils.calculateNodeType(secondChild, this.scopeStack, this.symbolTable);
+
+            // check if it's an accepted type
+            String leftTypeName = leftType.getName();
+            String rightTypeName = rightType.getName();
+            if (!(this.isBoolType(leftTypeName) && this.isBoolType(rightTypeName))) {
+                this.reports.add(Report.newError(Stage.SEMANTIC, Integer.valueOf(firstChild.get("line")), Integer.valueOf(firstChild.get("col")),
+                        "Type error. Attempting to do a " + node.getKind() + " with types: '" + Utils.printTypeName(leftType) + "' and '" + Utils.printTypeName(rightType) + "'.",
+                        null));
+                return -1;
+            }
+
+            return 0;
+        }
         throw new RuntimeException("Illegal number of children in node " + "." + node.getKind());
     }
 
@@ -224,6 +270,10 @@ public class TypeCheckingVisitor extends AJmmVisitor<Object, Integer> {
 
     private boolean isArithmeticType(String type){
         return type.equals(Types.UNKNOWN.toString()) || type.equals(Types.INT.toString());
+    }
+
+    private boolean isBoolType(String type){
+        return type.equals(Types.UNKNOWN.toString()) || type.equals(Types.BOOLEAN.toString());
     }
 
     private boolean isSameType(Type type1, Type type2){
