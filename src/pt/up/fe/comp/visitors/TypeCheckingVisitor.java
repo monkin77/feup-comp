@@ -27,7 +27,6 @@ public class TypeCheckingVisitor extends AJmmVisitor<Object, Integer> {
         addVisit("PublicMethod", this::publicMethodVisit);
         addVisit("AssignmentExpr", this::assignExprVisit);
         addVisit("WhileSt", this::whileStVisit);
-        //TODO Add if else visitor
         addVisit("DotMethod", this::dotMethodVisit);
         addVisit("IntArray", this::intArrayVisit);
 
@@ -42,6 +41,10 @@ public class TypeCheckingVisitor extends AJmmVisitor<Object, Integer> {
 
         addVisit("ArrayExpr", this::arrayExprVisit);
 
+        addVisit("IfElse", this::conditionalVisit);
+        addVisit("WhileSt", this::conditionalVisit);
+
+        // Check argument types
 
         setDefaultVisit(this::defaultVisit);
     }
@@ -263,6 +266,34 @@ public class TypeCheckingVisitor extends AJmmVisitor<Object, Integer> {
             } else if (!this.isArithmeticType(rightTypeName)) {
                 this.reports.add(Report.newError(Stage.SEMANTIC, Integer.valueOf(secondChild.get("line")), Integer.valueOf(secondChild.get("col")),
                         "Type error. Attempting to index an array element with a variable of type '" + rightTypeName + "'.",
+                        null));
+                return -1;
+            }
+
+            return 0;
+        }
+        throw new RuntimeException("Illegal number of children in node " + "." + node.getKind());
+    }
+
+    private Integer conditionalVisit(JmmNode node, Object dummy) {
+        Integer visitResult = 0;
+        for (int i = 0; i < node.getNumChildren(); ++i) {
+            JmmNode childNode = node.getJmmChild(i);
+            visitResult = visit(childNode);
+            if (visitResult == -1) return -1;
+        }
+
+        // can be a "while statement" or an "if statement"
+        if (node.getNumChildren() == 2 || node.getNumChildren() == 3) {
+            JmmNode conditionChild = node.getJmmChild(0);
+            Type leftType = Utils.calculateNodeType(conditionChild, this.scopeStack, this.symbolTable);
+
+            // check if it's an accepted type
+            String leftTypeName = Utils.printTypeName(leftType);
+
+           if (!this.isBoolType(leftTypeName)) {
+                this.reports.add(Report.newError(Stage.SEMANTIC, Integer.valueOf(conditionChild.get("line")), Integer.valueOf(conditionChild.get("col")),
+                        "Type error. Condition inside if else statement is not boolean. Type: '" + leftTypeName + "'.",
                         null));
                 return -1;
             }

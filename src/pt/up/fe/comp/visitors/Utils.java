@@ -181,6 +181,6 @@ public class Utils {
      * @return
      */
     public static String printTypeName(Type type) {
-        return type.getName() + (type.isArray() ? "[]" : "");
+        return type.getName() + (type.isArray() && !type.getName().equals(Types.UNKNOWN.toString()) ? "[]" : "");
     }
 }

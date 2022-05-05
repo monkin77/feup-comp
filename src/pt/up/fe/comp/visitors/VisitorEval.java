@@ -268,7 +268,7 @@ public class VisitorEval extends AJmmVisitor<Object, Integer> {
     }
 
     private Integer defaultVisit(JmmNode node, Object dummy) {
-        if (node.getNumChildren() <= 0) {
+        if (node.getNumChildren() < 0) {
             throw new RuntimeException("Illegal number of children in node " + node.getKind() + ".");
         }
 
