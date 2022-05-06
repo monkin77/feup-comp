@@ -57,7 +57,7 @@ public class InstructionBuilder extends AbstractBuilder {
                 break;
             case NOPER:
                 SingleOpInstruction sopInstruction = (SingleOpInstruction) instruction;
-                builder.append(JasminUtils.buildLoadInstructions(sopInstruction.getSingleOperand(), method));
+                builder.append(JasminUtils.buildLoadInstruction(sopInstruction.getSingleOperand(), method));
                 break;
             default:
                 System.out.println("The stupid guys forgot something: " + instruction.getInstType());

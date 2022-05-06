@@ -89,9 +89,9 @@ public class JasminUtilsTest {
         Mockito.when(arrayElement.getType()).thenReturn(arrayType);
         Mockito.when(arrayElement.getName()).thenReturn("OperandElement");
 
-        assertEquals("ldc LiteralElement\n", JasminUtils.buildLoadInstructions(literalElement, method));
-        assertEquals("aload 7\n", JasminUtils.buildLoadInstructions(objectElement, method));
-        assertEquals("iload 7\n", JasminUtils.buildLoadInstructions(intElement, method));
-        assertEquals("iaload 7\n", JasminUtils.buildLoadInstructions(arrayElement, method));
+        assertEquals("ldc LiteralElement\n", JasminUtils.buildLoadInstruction(literalElement, method));
+        assertEquals("aload 7\n", JasminUtils.buildLoadInstruction(objectElement, method));
+        assertEquals("iload 7\n", JasminUtils.buildLoadInstruction(intElement, method));
+        assertEquals("iaload 7\n", JasminUtils.buildLoadInstruction(arrayElement, method));
     }
 }

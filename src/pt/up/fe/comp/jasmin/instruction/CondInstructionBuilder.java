@@ -18,7 +18,7 @@ public class CondInstructionBuilder extends AbstractBuilder {
     public String compile() {
         if (instruction instanceof SingleOpCondInstruction) {
             Element operand = ((SingleOpCondInstruction) instruction).getCondition().getSingleOperand();
-            builder.append(JasminUtils.buildLoadInstructions(operand, method));
+            builder.append(JasminUtils.buildLoadInstruction(operand, method));
         }
         else if (instruction instanceof OpCondInstruction) {
             OpInstruction opInstruction = ((OpCondInstruction) instruction).getCondition();

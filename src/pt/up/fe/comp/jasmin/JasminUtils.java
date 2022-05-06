@@ -47,7 +47,7 @@ public class JasminUtils {
         return ((Operand) element).getName();
     }
 
-    public static String buildLoadInstructions(Element element, Method method) {
+    public static String buildLoadInstruction(Element element, Method method) {
         final StringBuilder builder = new StringBuilder();
         final String elementName = getElementName(element);
 

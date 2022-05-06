@@ -23,8 +23,8 @@ public class PutFieldInstructionBuilder extends AbstractBuilder {
         final String className = JasminUtils.getTypeName(firstArg.getType(), classUnit);
         final String fieldName = JasminUtils.getElementName(secondArg);
 
-        builder.append(JasminUtils.buildLoadInstructions(firstArg, method));
-        builder.append(JasminUtils.buildLoadInstructions(thirdArg, method));
+        builder.append(JasminUtils.buildLoadInstruction(firstArg, method));
+        builder.append(JasminUtils.buildLoadInstruction(thirdArg, method));
 
         final String typeName = JasminUtils.getTypeName(instruction.getFieldType(), classUnit);
 

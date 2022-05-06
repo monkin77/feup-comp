@@ -92,9 +92,9 @@ public class CallInstructionBuilder extends AbstractBuilder {
         final String rawMethodName = JasminUtils.getElementName(secondArg);
         final String methodName = rawMethodName.substring(1, rawMethodName.length() - 1);
 
-        if (loadObject) builder.append(JasminUtils.buildLoadInstructions(firstArg, method));
+        if (loadObject) builder.append(JasminUtils.buildLoadInstruction(firstArg, method));
         for (Element element : instruction.getListOfOperands())
-            builder.append(JasminUtils.buildLoadInstructions(element, method));
+            builder.append(JasminUtils.buildLoadInstruction(element, method));
 
         builder.append(invokeInstruction).append(" ");
         builder.append(className).append("/").append(methodName).append("(");

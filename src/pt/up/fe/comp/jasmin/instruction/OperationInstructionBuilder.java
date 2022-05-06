@@ -29,8 +29,8 @@ public class OperationInstructionBuilder extends AbstractBuilder {
         final BinaryOpInstruction binaryOpInstruction = (BinaryOpInstruction) instruction;
         final OperationType type = binaryOpInstruction.getOperation().getOpType();
 
-        builder.append(JasminUtils.buildLoadInstructions(binaryOpInstruction.getLeftOperand(), method));
-        builder.append(JasminUtils.buildLoadInstructions(binaryOpInstruction.getRightOperand(), method));
+        builder.append(JasminUtils.buildLoadInstruction(binaryOpInstruction.getLeftOperand(), method));
+        builder.append(JasminUtils.buildLoadInstruction(binaryOpInstruction.getRightOperand(), method));
 
         switch (type) {
             case AND: case ANDI32: case ANDB:

@@ -24,7 +24,7 @@ public class ReturnInstructionBuilder extends AbstractBuilder {
                 ElementType.VOID
         );
 
-        builder.append(JasminUtils.buildLoadInstructions(instruction.getOperand(), method));
+        builder.append(JasminUtils.buildLoadInstruction(instruction.getOperand(), method));
 
         switch (instruction.getElementType()) {
             case OBJECTREF: case CLASS: case STRING:
