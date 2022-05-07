@@ -34,10 +34,9 @@ public class JmmAnalyser implements JmmAnalysis {
         System.out.println("Fields: " + symbolTable.getFields());
         System.out.println("Methods: " + symbolTable.getMethods());
         System.out.println("Return type: " + symbolTable.getReturnType("init"));
-        System.out.println("Method Parameters: " + symbolTable.getParameters("trIdx"));
+        System.out.println("Method Parameters: " + symbolTable.getListParameters("find_maximum"));
         System.out.println("Method Local Variables: " + symbolTable.getLocalVariables("main"));
-        */
-
+         */
         ExistenceVisitor analyser = new ExistenceVisitor(symbolTable);
         System.out.println("visitor analyser: " + analyser.visit(root, null));
         reports.addAll(analyser.getReports());

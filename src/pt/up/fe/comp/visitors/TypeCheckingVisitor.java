@@ -1,6 +1,7 @@
 package pt.up.fe.comp.visitors;
 
 import pt.up.fe.comp.*;
+import pt.up.fe.comp.jmm.analysis.table.Symbol;
 import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.AJmmVisitor;
 import pt.up.fe.comp.jmm.ast.JmmNode;
@@ -26,7 +27,6 @@ public class TypeCheckingVisitor extends AJmmVisitor<Object, Integer> {
         addVisit("MainDecl", this::mainDeclVisit);
         addVisit("PublicMethod", this::publicMethodVisit);
         addVisit("AssignmentExpr", this::assignExprVisit);
-        addVisit("WhileSt", this::whileStVisit);
         addVisit("DotMethod", this::dotMethodVisit);
         addVisit("IntArray", this::intArrayVisit);
 
@@ -43,8 +43,6 @@ public class TypeCheckingVisitor extends AJmmVisitor<Object, Integer> {
 
         addVisit("IfElse", this::conditionalVisit);
         addVisit("WhileSt", this::conditionalVisit);
-
-        // Check argument types
 
         setDefaultVisit(this::defaultVisit);
     }
@@ -113,19 +111,9 @@ public class TypeCheckingVisitor extends AJmmVisitor<Object, Integer> {
         return visitResult;
     }
 
-    private Integer whileStVisit(JmmNode node, Object dummy) {
-        // Children: Expr and While Block
-        if (node.getNumChildren() < 2) {
-            throw new RuntimeException("Illegal number of children in node " + node.getKind() + ".");
-        }
-
-        //TODO get first child, check its type and visit it
-        return 0;
-    }
 
 
     private Integer assignExprVisit(JmmNode node, Object dummy) {
-        // TODO: Check right side type by looking at its second child if it is a DotExpression.
         // IF .length -> type is int
         // IF method -> use SymbolTable method to check method return type
 
@@ -304,7 +292,28 @@ public class TypeCheckingVisitor extends AJmmVisitor<Object, Integer> {
     }
 
     private Integer dotMethodVisit(JmmNode node, Object dummy) {
+        String methodName = node.get("method");
+        List<MySymbol> parameters = this.symbolTable.getMethodArguments(methodName);
+
+        boolean isImport = parameters == null;
+        if (!isImport && node.getNumChildren() != parameters.size()) {
+            this.reports.add(Report.newError(Stage.SEMANTIC, Integer.valueOf(node.get("line")), Integer.valueOf(node.get("col")),
+                    "Type error. Expected " + parameters.size() + " arguments but found " + node.getNumChildren() + " in method '" + methodName + "'.",
+                    null));
+            return -1;
+        }
+
         for (int i = 0; i < node.getNumChildren(); ++i) {
+            JmmNode argNode = node.getJmmChild(i);
+            Type argType = Utils.calculateNodeType(argNode, this.scopeStack, this.symbolTable);
+
+            // if has parameters check them
+            if (!isImport && !argType.equals(parameters.get(i).getType())) {
+                this.reports.add(Report.newError(Stage.SEMANTIC, Integer.valueOf(argNode.get("line")), Integer.valueOf(argNode.get("col")),
+                        "Type error. Expected argument of type '" + Utils.printTypeName(parameters.get(i).getType()) + "' but found argument of type '" + Utils.printTypeName(argType) + "' in method '" + methodName + "'.",
+                        null));
+                return -1;
+            }
             visit(node.getJmmChild(i));
         }
 

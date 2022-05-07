@@ -8,9 +8,11 @@ import java.util.*;
 
 public class MySymbolTable implements SymbolTable {
     private Map<MySymbol, Map<MySymbol, MySymbol>> map; // Map keys are hashes of symbols
+    private Map<MySymbol, List<MySymbol>> methodArgs;
 
     public MySymbolTable() {
         this.map = new HashMap<>();
+        this.methodArgs = new HashMap<>();
     }
 
     /**
@@ -50,6 +52,33 @@ public class MySymbolTable implements SymbolTable {
 
     /**
      *
+     * @param scope
+     * @return true if the put operation was successful. Returns false, if the variable was already declared in the scope.
+     */
+    public boolean createParamScope(MySymbol scope) {
+        if (this.methodArgs.containsKey(scope)) return false;
+        List<MySymbol> args = new ArrayList<>();
+        this.methodArgs.put(scope, args);
+        return true;
+    }
+
+    /**
+     *  Puts an argument in the list of parameters of the function
+     * @param scope
+     * @param symbol
+     * @return true if the put operation was successful. Returns false, if the variable was already declared in the scope.
+     */
+    public boolean putArgument(MySymbol scope, MySymbol symbol) {
+        List<MySymbol> args = this.methodArgs.get(scope);
+        if (args.contains(symbol)) return false;
+        args.add(symbol);
+        this.methodArgs.put(scope, args);
+        //System.out.print("Inserted new symbol " + symbol.getName() + " in parameters. Current parameters:" + this.parameters.get(scope));
+        return true;
+    }
+
+    /**
+     * Gets a symbol from all scopes
      * @param scope
      * @param symbolName
      * @return Symbol if exists in the scope, null otherwise
@@ -100,10 +129,14 @@ public class MySymbolTable implements SymbolTable {
         return null;
     }
 
+    /**
+     * Gets the scope of a method
+     * @param methodName name of the method
+     * @return scope if exists, empty map otherwise
+     */
     private Map<MySymbol, MySymbol> getMethodScope(String methodName) {
         MySymbol classSymbol = this.getClassSymbol();
         Map<MySymbol, MySymbol> currScope = this.map.get(classSymbol);
-
 
         for (MySymbol symbol : currScope.values()) {
             if (symbol.getName().equals(methodName) && symbol.getEntity() == EntityTypes.METHOD) {
@@ -204,6 +237,26 @@ public class MySymbolTable implements SymbolTable {
 
         return params;
     }
+
+    /**
+     * Gets a list with all the arguments of a method
+     * @param methodSignature
+     * @return list with args if it exists, null otherwise
+     */
+    public List<MySymbol> getMethodArguments(String methodSignature) {
+        MySymbol classSymbol = this.getClassSymbol();
+        Map<MySymbol, MySymbol> currScope = this.map.get(classSymbol);
+
+        for (MySymbol symbol : currScope.values()) {
+            if (symbol.getName().equals(methodSignature) && symbol.getEntity() == EntityTypes.METHOD) {
+                return this.methodArgs.get(symbol);
+            }
+        }
+
+        return null;
+    }
+
+
 
     @Override
     public List<Symbol> getLocalVariables(String methodSignature) {

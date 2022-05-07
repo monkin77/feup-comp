@@ -173,6 +173,9 @@ public class VisitorEval extends AJmmVisitor<Object, Integer> {
         // Add new scope
         if (!this.createScope(methodSymbol, node)) return -1;
 
+        // Adds an entry of the list of parameters of the function
+        if (!this.symbolTable.createParamScope(methodSymbol)) return -1;
+
         Integer visitResult = 0;
         for (int i = 1; i < node.getNumChildren(); ++i) {
             JmmNode childNode = node.getJmmChild(i);
@@ -198,6 +201,12 @@ public class VisitorEval extends AJmmVisitor<Object, Integer> {
         return 0;
     }
 
+    /**
+     * Visit argument, puts it in symbol table and in function arguments list
+     * @param node
+     * @param dummy
+     * @return
+     */
     private Integer argumentVisit(JmmNode node, Object dummy) {
         if (node.getNumChildren() == 1) {
             Type returnNodeType = Utils.getNodeType(node.getJmmChild(0));
@@ -205,6 +214,10 @@ public class VisitorEval extends AJmmVisitor<Object, Integer> {
 
             MySymbol argSymbol = new MySymbol(returnNodeType, argName, EntityTypes.ARG);
             if (!this.putSymbol(argSymbol, node)) return -1;
+
+            // Adds argument to List of arguments of the function
+            if (!this.symbolTable.putArgument(this.scopeStack.peek(), argSymbol)) return -1;
+
             return 0;
         }
 
