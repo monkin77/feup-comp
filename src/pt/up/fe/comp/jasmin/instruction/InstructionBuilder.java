@@ -40,7 +40,7 @@ public class InstructionBuilder extends AbstractBuilder {
                 break;
             case RETURN:
                 ReturnInstruction returnInstruction = (ReturnInstruction) instruction;
-                builder.append((new ReturnInstructionBuilder(classUnit, returnInstruction, method)).compile());
+                builder.append((new ReturnInstructionBuilder(classUnit, method, returnInstruction)).compile());
                 break;
             case PUTFIELD:
                 PutFieldInstruction putFieldInstruction = (PutFieldInstruction) instruction;
