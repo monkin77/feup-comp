@@ -3,6 +3,7 @@ package pt.up.fe.comp.jasmin;
 import static org.junit.Assert.assertEquals;
 import static pt.up.fe.comp.jasmin.JasminConstants.DEFAULT_SUPERCLASS;
 
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -15,11 +16,17 @@ import java.util.ArrayList;
 public class JasminBuilderTest {
     private JasminBuilder jasminBuilder;
     private ClassUnit classUnit;
+    private static MockedStatic<JasminUtils> mockedUtils;
 
     @BeforeClass
     public static void setupStatic() {
-        MockedStatic<JasminUtils> mockedUtils = Mockito.mockStatic(JasminUtils.class);
+        mockedUtils = Mockito.mockStatic(JasminUtils.class);
         mockedUtils.when(() -> JasminUtils.getAccessModifier(Mockito.any())).thenReturn("public");
+    }
+
+    @AfterClass
+    public static void teardown() {
+        mockedUtils.close();
     }
 
     @Before

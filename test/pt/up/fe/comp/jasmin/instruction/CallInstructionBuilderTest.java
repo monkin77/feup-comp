@@ -1,5 +1,6 @@
 package pt.up.fe.comp.jasmin.instruction;
 
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -27,6 +28,11 @@ public class CallInstructionBuilderTest {
         mockedUtils.when(() -> JasminUtils.getElementName(Mockito.any())).thenReturn("\"elem\"");
         mockedUtils.when(() -> JasminUtils.getTypeName(Mockito.any(), Mockito.any())).thenReturn("T");
         mockedUtils.when(() -> JasminUtils.buildLoadInstruction(Mockito.any(), Mockito.any())).thenReturn("aload 7\n");
+    }
+
+    @AfterClass
+    public static void teardown() {
+        mockedUtils.close();
     }
 
     @Before

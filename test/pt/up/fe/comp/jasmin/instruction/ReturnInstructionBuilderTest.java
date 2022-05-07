@@ -2,6 +2,7 @@ package pt.up.fe.comp.jasmin.instruction;
 
 import static org.junit.Assert.assertEquals;
 
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -18,6 +19,11 @@ public class ReturnInstructionBuilderTest {
     @BeforeClass
     public static void setupStatic() {
         mockedUtils = Mockito.mockStatic(JasminUtils.class);
+    }
+
+    @AfterClass
+    public static void teardown() {
+        mockedUtils.close();
     }
 
     @Before

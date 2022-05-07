@@ -2,6 +2,7 @@ package pt.up.fe.comp.jasmin.instruction;
 
 import static org.junit.Assert.assertEquals;
 
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -15,12 +16,18 @@ import java.util.HashMap;
 public class AssignInstructionBuilderTest {
     private AssignInstructionBuilder assignInstructionBuilder;
     private Type assignType;
+    private static MockedStatic<JasminUtils> mockedUtils;
 
     @BeforeClass
     public static void setupStatic() {
-        MockedStatic<JasminUtils> mockedUtils = Mockito.mockStatic(JasminUtils.class);
+        mockedUtils = Mockito.mockStatic(JasminUtils.class);
         mockedUtils.when(() -> JasminUtils.getElementName(Mockito.any())).thenReturn("destiny");
         mockedUtils.when(() -> JasminUtils.buildLoadInstruction(Mockito.any(), Mockito.any())).thenReturn("ldc 0");
+    }
+
+    @AfterClass
+    public static void teardown() {
+        mockedUtils.close();
     }
 
     @Before

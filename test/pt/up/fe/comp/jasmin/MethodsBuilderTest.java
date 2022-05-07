@@ -2,6 +2,7 @@ package pt.up.fe.comp.jasmin;
 
 import static org.junit.Assert.assertEquals;
 
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -18,12 +19,18 @@ public class MethodsBuilderTest {
     private ArrayList<Method> methods;
     private ArrayList<Element> params;
     private Method method;
+    private static MockedStatic<JasminUtils> mockedUtils;
 
     @BeforeClass
     public static void setupStatic() {
-        MockedStatic<JasminUtils> mockedUtils = Mockito.mockStatic(JasminUtils.class);
+        mockedUtils = Mockito.mockStatic(JasminUtils.class);
         mockedUtils.when(() -> JasminUtils.getAccessModifier(Mockito.any())).thenReturn("public");
         mockedUtils.when(() -> JasminUtils.getTypeName(Mockito.any(), Mockito.any())).thenReturn("T");
+    }
+
+    @AfterClass
+    public static void teardown() {
+        mockedUtils.close();
     }
 
     @Before

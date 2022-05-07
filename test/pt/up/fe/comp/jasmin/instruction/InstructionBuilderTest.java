@@ -1,5 +1,6 @@
 package pt.up.fe.comp.jasmin.instruction;
 
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -17,11 +18,17 @@ public class InstructionBuilderTest {
     private InstructionBuilder gotoInstructionBuilder;
     private InstructionBuilder noperInstructionBuilder;
     private List<String> labels;
+    private static MockedStatic<JasminUtils> mockedUtils;
 
     @BeforeClass
     public static void setupStatic() {
-        MockedStatic<JasminUtils> mockedUtils = Mockito.mockStatic(JasminUtils.class);
+        mockedUtils = Mockito.mockStatic(JasminUtils.class);
         mockedUtils.when(() -> JasminUtils.buildLoadInstruction(Mockito.any(), Mockito.any())).thenReturn("aload 7\n");
+    }
+
+    @AfterClass
+    public static void teardown() {
+        mockedUtils.close();
     }
 
     @Before

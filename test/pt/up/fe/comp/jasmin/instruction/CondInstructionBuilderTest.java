@@ -2,6 +2,7 @@ package pt.up.fe.comp.jasmin.instruction;
 
 import static org.junit.Assert.assertEquals;
 
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -13,11 +14,17 @@ import pt.up.fe.comp.jasmin.JasminUtils;
 public class CondInstructionBuilderTest {
     private CondInstructionBuilder singleOpCondInstructionBuilder;
     private CondInstructionBuilder opCondInstructionBuilder;
+    private static MockedStatic<JasminUtils> mockedUtils;
 
     @BeforeClass
     public static void setupStatic() {
-        MockedStatic<JasminUtils> mockedUtils = Mockito.mockStatic(JasminUtils.class);
+        mockedUtils = Mockito.mockStatic(JasminUtils.class);
         mockedUtils.when(() -> JasminUtils.buildLoadInstruction(Mockito.any(), Mockito.any())).thenReturn("iload 7\n");
+    }
+
+    @AfterClass
+    public static void teardown() {
+        mockedUtils.close();
     }
 
     @Before
