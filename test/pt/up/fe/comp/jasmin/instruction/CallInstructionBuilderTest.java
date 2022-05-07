@@ -127,6 +127,17 @@ public class CallInstructionBuilderTest {
     }
 
     @Test
+    public void loadConstant() {
+        Mockito.when(callInstruction.getInvocationType()).thenReturn(CallType.ldc);
+
+        final LiteralElement element = Mockito.mock(LiteralElement.class);
+        Mockito.when(element.getLiteral()).thenReturn("10");
+        Mockito.when(callInstruction.getFirstArg()).thenReturn(element);
+
+        assertEquals("ldc 10", callInstructionBuilder.compile());
+    }
+
+    @Test
     public void arrayLength() {
         Mockito.when(callInstruction.getInvocationType()).thenReturn(CallType.arraylength);
 
