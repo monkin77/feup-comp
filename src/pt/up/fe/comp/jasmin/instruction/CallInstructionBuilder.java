@@ -29,7 +29,6 @@ public class CallInstructionBuilder extends AbstractBuilder {
             case invokeinterface:
                 builInvokeInterface();
                 break;
-            // TODO: What to do with this?
             case NEW:
                 buildNew();
                 break;
@@ -37,7 +36,6 @@ public class CallInstructionBuilder extends AbstractBuilder {
                 // TODO
                 break;
             case ldc:
-                // TODO: Review
                 LiteralElement literal = (LiteralElement) (instruction.getFirstArg());
                 builder.append("ldc ").append(literal.getLiteral());
                 break;
