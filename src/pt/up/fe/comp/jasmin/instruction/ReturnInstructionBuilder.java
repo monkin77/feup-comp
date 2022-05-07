@@ -11,7 +11,7 @@ public class ReturnInstructionBuilder extends AbstractBuilder {
     private final ReturnInstruction instruction;
     private final Method method;
 
-    public ReturnInstructionBuilder(ClassUnit classUnit, ReturnInstruction instruction, Method method) {
+    public ReturnInstructionBuilder(ClassUnit classUnit, Method method, ReturnInstruction instruction) {
         super(classUnit);
         this.instruction = instruction;
         this.method = method;
@@ -24,7 +24,8 @@ public class ReturnInstructionBuilder extends AbstractBuilder {
                 ElementType.VOID
         );
 
-        builder.append(JasminUtils.buildLoadInstruction(instruction.getOperand(), method));
+        if (instruction.hasReturnValue())
+            builder.append(JasminUtils.buildLoadInstruction(instruction.getOperand(), method));
 
         switch (instruction.getElementType()) {
             case OBJECTREF: case CLASS: case STRING:
