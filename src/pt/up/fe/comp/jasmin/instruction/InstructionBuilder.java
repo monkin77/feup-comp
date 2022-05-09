@@ -60,7 +60,7 @@ public class InstructionBuilder extends AbstractBuilder {
                 builder.append(JasminUtils.buildLoadInstruction(sopInstruction.getSingleOperand(), method));
                 break;
             default:
-                System.out.println("The stupid guys forgot something: " + instruction.getInstType());
+                System.out.println("The guys forgot something: " + instruction.getInstType());
                 break;
         }
 
