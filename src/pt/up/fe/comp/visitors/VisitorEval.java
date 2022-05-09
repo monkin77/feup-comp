@@ -1,30 +1,29 @@
-package pt.up.fe.comp;
+package pt.up.fe.comp.visitors;
 
-import pt.up.fe.comp.jmm.analysis.table.Symbol;
-import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
+import pt.up.fe.comp.*;
 import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp.jmm.ast.AJmmVisitor;
+import pt.up.fe.comp.jmm.report.Report;
+import pt.up.fe.comp.jmm.report.Stage;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.Stack;
 
 public class VisitorEval extends AJmmVisitor<Object, Integer> {
     private final MySymbolTable symbolTable;
     private final Stack<MySymbol> scopeStack;
+    private final List<Report> reports;
 
     public VisitorEval(MySymbolTable symbolTable) {
         this.symbolTable = symbolTable;
         this.scopeStack = new Stack<>();
+        this.reports = new ArrayList<>();
 
         MySymbol globalScope = new MySymbol(new Type(Types.NONE.toString(), false), "global", EntityTypes.GLOBAL);
-        this.createScope(globalScope);
-
-        /*
-        addVisit("UnaryOp", this::unaryOpVisit);
-        addVisit("BinOp", this::binOpVisit);
-        addVisit("SymbolReference", this::symbolReference);
-        addVisit("Assign", this::assignVisit); */
+        this.createScope(globalScope, null);
 
         addVisit("ClassDecl", this::classDeclVisit);
         addVisit("MainDecl", this::mainDeclVisit);
@@ -45,25 +44,45 @@ public class VisitorEval extends AJmmVisitor<Object, Integer> {
         setDefaultVisit(this::defaultVisit);
     }
 
-    private void createScope(MySymbol symbol) {
-        this.scopeStack.push(symbol);
-        this.symbolTable.openScope(symbol);
+    private boolean createScope(MySymbol symbol, JmmNode node) {
+        boolean opStatus = this.symbolTable.openScope(symbol);
+
+        if (!opStatus) {
+            this.reports.add(Report.newError(Stage.SEMANTIC, Integer.valueOf(node.get("line")), Integer.valueOf(node.get("col")),
+                    "Error attempting to create a scope that is already defined: " + symbol.getName(),
+                    null));
+        } else
+            this.scopeStack.push(symbol);
+
+        return opStatus;
+    }
+
+    private boolean putSymbol(MySymbol symbol, JmmNode node) {
+        // Insert next scope pointer in previous scope
+        boolean opStatus = this.symbolTable.put(this.scopeStack.peek(), symbol);
+
+        if (!opStatus) {
+            this.reports.add(Report.newError(Stage.SEMANTIC, Integer.valueOf(node.get("line")), Integer.valueOf(node.get("col")),
+                    "Error attempting to put a symbol that is already defined: " + symbol.getName() + " in the scope: " + this.scopeStack.peek().getName(),
+                    null));
+        }
+        return opStatus;
     }
 
     private Integer classDeclVisit(JmmNode node, Object dummy) {
         MySymbol classSymbol = new MySymbol(new Type(Types.NONE.toString(), false), node.get("name"), EntityTypes.CLASS);
 
         // Insert next scope pointer in previous scope
-        this.symbolTable.put(this.scopeStack.peek(), classSymbol);
+        if (!this.putSymbol(classSymbol, node)) return -1;
 
         // Add new scope
-        this.createScope(classSymbol);
+        if (!this.createScope(classSymbol, node)) return -1;
 
         try {
             Optional<String> extendedClass = node.getOptional("extends");
             if (!extendedClass.isEmpty()) {
                 MySymbol extendedSymbol = new MySymbol(new Type(Types.NONE.toString(), false), extendedClass.get(), EntityTypes.EXTENDS);
-                this.symbolTable.put(this.scopeStack.peek(), extendedSymbol);
+                if (!this.putSymbol(extendedSymbol, node)) return -1;
             }
         } catch(Error err){
             ;
@@ -73,7 +92,7 @@ public class VisitorEval extends AJmmVisitor<Object, Integer> {
         for (int i = 0; i < node.getNumChildren(); ++i) {
             JmmNode childNode = node.getJmmChild(i);
             visitResult = visit(childNode);
-            System.out.println("Visited class Decl child: " + i + " with result " + visitResult);
+            // System.out.println("Visited class Decl child: " + i + " with result " + visitResult);
         }
 
         this.scopeStack.pop();
@@ -85,20 +104,20 @@ public class VisitorEval extends AJmmVisitor<Object, Integer> {
         MySymbol mainSymbol = new MySymbol(new Type(Types.VOID.toString(), false), "main", EntityTypes.METHOD);
 
         // Insert next scope pointer in previous scope
-        this.symbolTable.put(this.scopeStack.peek(), mainSymbol);
+        if (!this.putSymbol(mainSymbol, node)) return -1;
 
         // Add new scope
-        this.createScope(mainSymbol);
+        if (!this.createScope(mainSymbol, node)) return -1;
 
         String argName = node.get("mainArgs");
-        MySymbol argSymbol = new MySymbol(new Type(Types.STRING.toString(), true), argName, EntityTypes.ARG);
-        this.symbolTable.put(this.scopeStack.peek(), argSymbol);
+        MySymbol argSymbol = new MySymbol(new Type(Types.STRING_ARRAY.toString(), true), argName, EntityTypes.ARG);
+       if (!this.putSymbol(argSymbol, node)) return -1;
 
         Integer visitResult = 0;
         for (int i = 0; i < node.getNumChildren(); ++i) {
             JmmNode childNode = node.getJmmChild(i);
             visitResult = visit(childNode);
-            System.out.println("Visited main Decl child: " + i + " with result " + visitResult);
+            // System.out.println("Visited main Decl child: " + i + " with result " + visitResult);
         }
 
         this.scopeStack.pop();
@@ -116,7 +135,7 @@ public class VisitorEval extends AJmmVisitor<Object, Integer> {
             }
 
             MySymbol importSymbol = new MySymbol(new Type(Types.NONE.toString(), false), importName, EntityTypes.IMPORT);
-            this.symbolTable.put(this.scopeStack.peek(), importSymbol);
+            if (!this.putSymbol(importSymbol, childNode)) return -1;
 
             return 0;
         }
@@ -128,25 +147,11 @@ public class VisitorEval extends AJmmVisitor<Object, Integer> {
         if (node.getNumChildren() == 1) {
             String varName = node.get("name");
 
-            Types varType = Types.getType(node.getJmmChild(0).getKind());
-            boolean isArray = varType.getIsArray();
+            Type returnNodeType = Utils.getNodeType(node.getJmmChild(0));
 
-            String typeName = varType.toString();
+            MySymbol varSymbol = new MySymbol(returnNodeType, varName, EntityTypes.VARIABLE);
 
-            // Check if it is a custom type
-            if (varType == Types.CUSTOM) {
-                JmmNode child = node.getJmmChild(0);
-                // Should we create constants for the types?
-                if (child.getKind().equals("CustomType")) {
-                    typeName = child.get("name");
-                } else
-                    throw new RuntimeException("Illegal variable type " + child.getKind() + " in node " + node.getKind() + ".");
-            }
-
-
-            MySymbol varSymbol = new MySymbol(new Type(typeName, isArray), varName, EntityTypes.VARIABLE);
-
-            this.symbolTable.put(this.scopeStack.peek(), varSymbol);
+            if (!this.putSymbol(varSymbol, node)) return -1;
 
             return 0;
         }
@@ -158,23 +163,24 @@ public class VisitorEval extends AJmmVisitor<Object, Integer> {
         if (node.getNumChildren() <= 0)
             throw new RuntimeException("Illegal number of children in node " + node.getKind() + ".");
 
-        // Get the return type of the method
-        Types varType = Types.getType(node.getJmmChild(0).getKind());
-        boolean isArray = varType.getIsArray();
+        Type returnNodeType = Utils.getNodeType(node.getJmmChild(0));
 
-        MySymbol methodSymbol = new MySymbol(new Type(varType.toString(), isArray), node.get("name"), EntityTypes.METHOD);
+        MySymbol methodSymbol = new MySymbol(returnNodeType, node.get("name"), EntityTypes.METHOD);
 
         // Insert next scope pointer in previous scope
-        this.symbolTable.put(this.scopeStack.peek(), methodSymbol);
+        if (!this.putSymbol(methodSymbol, node)) return -1;
 
         // Add new scope
-        this.createScope(methodSymbol);
+        if (!this.createScope(methodSymbol, node)) return -1;
+
+        // Adds an entry of the list of parameters of the function
+        if (!this.symbolTable.createParamScope(methodSymbol)) return -1;
 
         Integer visitResult = 0;
         for (int i = 1; i < node.getNumChildren(); ++i) {
             JmmNode childNode = node.getJmmChild(i);
             visitResult = visit(childNode);
-            System.out.println("Visited method Decl child: " + i + " with result " + visitResult);
+            // System.out.println("Visited method Decl child: " + i + " with result " + visitResult);
         }
 
         // Pop current scope
@@ -195,14 +201,23 @@ public class VisitorEval extends AJmmVisitor<Object, Integer> {
         return 0;
     }
 
+    /**
+     * Visit argument, puts it in symbol table and in function arguments list
+     * @param node
+     * @param dummy
+     * @return
+     */
     private Integer argumentVisit(JmmNode node, Object dummy) {
         if (node.getNumChildren() == 1) {
-            Types varType = Types.getType(node.getJmmChild(0).getKind());
-            boolean isArray = varType.getIsArray();
-
+            Type returnNodeType = Utils.getNodeType(node.getJmmChild(0));
             String argName = node.get("arg");
-            MySymbol argSymbol = new MySymbol(new Type(varType.toString(), isArray), argName, EntityTypes.ARG);
-            this.symbolTable.put(this.scopeStack.peek(), argSymbol);
+
+            MySymbol argSymbol = new MySymbol(returnNodeType, argName, EntityTypes.ARG);
+            if (!this.putSymbol(argSymbol, node)) return -1;
+
+            // Adds argument to List of arguments of the function
+            if (!this.symbolTable.putArgument(this.scopeStack.peek(), argSymbol)) return -1;
+
             return 0;
         }
 
@@ -212,7 +227,7 @@ public class VisitorEval extends AJmmVisitor<Object, Integer> {
     private Integer assignExprVisit(JmmNode node, Object dummy) {
         // TODO: Confirm we don't need to store anything
         if (node.getNumChildren() == 2) {
-            System.out.println("Assign Expr with " + node.getNumChildren() + " children");
+            // System.out.println("Assign Expr with " + node.getNumChildren() + " children");
             return 0;
         }
 
@@ -229,7 +244,7 @@ public class VisitorEval extends AJmmVisitor<Object, Integer> {
 
     private Integer identifierVisit(JmmNode node, Object dummy) {
         if (node.getNumChildren() == 0) {
-            System.out.println("Analysing the " + node.getKind() + " " + node.get("id"));
+            // System.out.println("Analysing the " + node.getKind() + " " + node.get("id"));
             return 0;
         }
 
@@ -237,18 +252,12 @@ public class VisitorEval extends AJmmVisitor<Object, Integer> {
     }
 
     private Integer dotMethodVisit(JmmNode node, Object dummy) {
-        if (node.getNumChildren() == 0) {   // Could have children?
-            // Check if method exists?
-            System.out.println("Analysing the " + node.getKind() + " " + node.get("method"));
-            return 0;
-        }
-
-        throw new RuntimeException("Illegal number of children in node " + node.getKind() + ".");
+        return 0;
     }
 
     private Integer intArrayVisit(JmmNode node, Object dummy) {
         if (node.getNumChildren() == 0) {
-            System.out.println("Analysing the " + node.getKind());
+            // System.out.println("Analysing the " + node.getKind());
             return 2;   // Return 2 if IntArray; Return 1 if Int, and so on... ?
         }
 
@@ -271,89 +280,12 @@ public class VisitorEval extends AJmmVisitor<Object, Integer> {
         throw new RuntimeException("Illegal number of children in node " + node.getKind() + ".");
     }
 
-    private Integer symbolReference(JmmNode node, Object dummy) {
-        if (node.getNumChildren() == 0) {
-            // Integer value = this.map.get(String.valueOf(node.get("image")));
-            //if (value == null) throw new RuntimeException("Error. Tried to dereference variable" + node.get("image") + "before assignment!");
-            // return value;
-        }
-
-        throw new RuntimeException("Illegal number of children in node " + node.getKind() + ".");
-    }
-
-    private Integer unaryOpVisit(JmmNode node, Object dummy) {
-
-        String opString = node.get("op");
-        if (opString != null) {
-
-            if (node.getNumChildren() != 1) {
-                throw new RuntimeException("Illegal number of children in node " + node.getKind() + ".");
-            }
-
-            CalculatorOps op = CalculatorOps.fromName(opString);
-            switch (op) {
-                case NEG:
-                    return -1 * visit(node.getJmmChild(0));
-
-                default:
-                    throw new RuntimeException("Illegal operation '" + op + "' in " + node.getKind() + ".");
-            }
-        }
-
-        if (node.getNumChildren() != 1) {
-            throw new RuntimeException("Illegal number of children in node " + node.getKind() + ".");
-        }
-
-        return visit(node.getJmmChild(0));
-    }
-
-    private Integer binOpVisit(JmmNode node, Object dummy) {
-
-        String opString = node.get("op");
-        if (opString != null) {
-
-            if (node.getNumChildren() != 2) {
-                throw new RuntimeException("Illegal number of children in node " + node.getKind() + ".");
-            }
-
-            CalculatorOps op = CalculatorOps.fromName(opString);
-            switch (op) {
-                case MUL:
-                    return visit(node.getJmmChild(0)) * visit(node.getJmmChild(1));
-
-                case DIV:
-                    return visit(node.getJmmChild(0)) / visit(node.getJmmChild(1));
-
-                case ADD:
-                    return visit(node.getJmmChild(0)) + visit(node.getJmmChild(1));
-
-                case SUB:
-                    return visit(node.getJmmChild(0)) - visit(node.getJmmChild(1));
-
-                case EQ:
-                    String key = String.valueOf(node.getJmmChild(0).get("image"));
-                    Integer value = visit(node.getJmmChild(1));
-                    // this.map.put(key, value);
-                    return value;
-
-                default:
-                    throw new RuntimeException("Illegal operation '" + op + "' in " + node.getKind() + ".");
-            }
-        }
-
-        if (node.getNumChildren() != 1) {
-            throw new RuntimeException("Illegal number of children in node " + node.getKind() + ".");
-        }
-
-        return visit(node.getJmmChild(0));
-    }
-
     private Integer defaultVisit(JmmNode node, Object dummy) {
-        if (node.getNumChildren() <= 0) {
+        if (node.getNumChildren() < 0) {
             throw new RuntimeException("Illegal number of children in node " + node.getKind() + ".");
         }
 
-        System.out.println("Currently in node: " + node.getKind());
+        // System.out.println("Currently in node: " + node.getKind());
         Integer visitResult = 0;
         for (int i = 0; i < node.getNumChildren(); ++i) {
             JmmNode childNode = node.getJmmChild(i);
@@ -362,5 +294,9 @@ public class VisitorEval extends AJmmVisitor<Object, Integer> {
         }
 
         return visitResult;
+    }
+
+    public List<Report> getReports() {
+        return reports;
     }
 }

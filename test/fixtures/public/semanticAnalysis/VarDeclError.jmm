@@ -2,16 +2,13 @@ import ioPlus;
 
 
 class FindMaximum {
-	int[] test_arr;
+	// must fail
+	Ola test_arr;
 
 	public int find_maximum(int[] arr) {
 		int i;
 		int maximum;
 		int value;
-
-		while (1) {
-
-		}
 
 		i = 1;
 		maximum = arr[0];

@@ -7,18 +7,15 @@ import pt.up.fe.comp.TestUtils;
 import pt.up.fe.comp.jmm.analysis.JmmSemanticsResult;
 import pt.up.fe.comp.jmm.parser.JmmParserResult;
 import pt.up.fe.specs.util.SpecsIo;
-import pt.up.fe.specs.util.SpecsStrings;
 
 import java.util.HashMap;
 import java.util.Map;
-
-import static org.junit.Assert.assertEquals;
 
 public class SymbolTableTest {
 
     @Test
     public void testFileInput() {
-        String input = "./fixtures/public/Life.jmm";
+        String input = "fixtures/public/FindMaximum.jmm";
         String inputResource = SpecsIo.getResource(input);
 
         // Create config
@@ -42,5 +39,9 @@ public class SymbolTableTest {
 
         // Semantic Analysis stage
         JmmSemanticsResult analysisResult = analyser.semanticAnalysis(parserResult);
+
+        // Check if there are parsing errors
+        System.out.println("REPORTS --->" + analysisResult.getReports().toString());
+        TestUtils.noErrors(analysisResult.getReports());
     }
 }

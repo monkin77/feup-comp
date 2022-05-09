@@ -4,30 +4,112 @@ import pt.up.fe.comp.jmm.analysis.table.Symbol;
 import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
 import pt.up.fe.comp.jmm.analysis.table.Type;
 
-import javax.swing.text.html.parser.Entity;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class MySymbolTable implements SymbolTable {
     private Map<MySymbol, Map<MySymbol, MySymbol>> map; // Map keys are hashes of symbols
+    private Map<MySymbol, List<MySymbol>> methodArgs;
 
     public MySymbolTable() {
         this.map = new HashMap<>();
+        this.methodArgs = new HashMap<>();
     }
 
-    public void openScope(MySymbol symbol) {
+    /**
+     *
+     * @param symbol
+     * @return true if the open scope operation was successful. Returns false, if the scope was already defined.
+     */
+    public boolean openScope(MySymbol symbol) {
+        if (this.map.get(symbol) != null) return false;
+
         this.map.put(symbol, new HashMap<>());
+
+        /*
         System.out.println("----------------------------------------");
         System.out.println("Opened scope " + symbol.getName() + " Current map: ");
         this.myPrint();
         System.out.println("----------------------------------------\n");
+        */
+
+        return true;
     }
 
-    public void put(MySymbol scope, MySymbol symbol) {
-        this.map.get(scope).put(symbol, symbol);
+    /**
+     *
+     * @param scope
+     * @param symbol
+     * @return true if the put operation was successful. Returns false, if the variable was already declared in the scope.
+     */
+    public boolean put(MySymbol scope, MySymbol symbol) {
+        Map<MySymbol, MySymbol> currScope = this.map.get(scope);
+        if (currScope.get(symbol) != null) return false;
+
+        currScope.put(symbol, symbol);
+        return true;
         //System.out.print("Inserted new symbol " + symbol.getName() + " in scope. Current Scope:" + this.map.get(scope).toString());
+    }
+
+    /**
+     *
+     * @param scope
+     * @return true if the put operation was successful. Returns false, if the variable was already declared in the scope.
+     */
+    public boolean createParamScope(MySymbol scope) {
+        if (this.methodArgs.containsKey(scope)) return false;
+        List<MySymbol> args = new ArrayList<>();
+        this.methodArgs.put(scope, args);
+        return true;
+    }
+
+    /**
+     *  Puts an argument in the list of parameters of the function
+     * @param scope
+     * @param symbol
+     * @return true if the put operation was successful. Returns false, if the variable was already declared in the scope.
+     */
+    public boolean putArgument(MySymbol scope, MySymbol symbol) {
+        List<MySymbol> args = this.methodArgs.get(scope);
+        if (args.contains(symbol)) return false;
+        args.add(symbol);
+        this.methodArgs.put(scope, args);
+        //System.out.print("Inserted new symbol " + symbol.getName() + " in parameters. Current parameters:" + this.parameters.get(scope));
+        return true;
+    }
+
+    /**
+     * Gets a symbol from all scopes
+     * @param scope
+     * @param symbolName
+     * @return Symbol if exists in the scope, null otherwise
+     */
+    public MySymbol get(MySymbol scope, String symbolName) {
+        for (MySymbol symbol : this.map.get(scope).values()) {
+            if (symbol.getName().equals(symbolName))
+                return symbol;
+        }
+
+        return null;
+    }
+
+    /**
+     * Get a symbol from a given scope that belongs to the list of Entities
+     * @param scope
+     * @param symbolName
+     * @param entityTypes
+     * @return Symbol if found, null otherwise
+     */
+    public MySymbol get(MySymbol scope, String symbolName, List<EntityTypes> entityTypes) {
+        for (MySymbol symbol : this.map.get(scope).values()) {
+            if (symbol.getName().equals(symbolName) && entityTypes.contains(symbol.getEntity()))
+                return symbol;
+        }
+
+        return null;
+    }
+
+    public boolean hasInheritance() {
+        return this.getSuper() != null;
     }
 
     /**
@@ -47,10 +129,14 @@ public class MySymbolTable implements SymbolTable {
         return null;
     }
 
+    /**
+     * Gets the scope of a method
+     * @param methodName name of the method
+     * @return scope if exists, empty map otherwise
+     */
     private Map<MySymbol, MySymbol> getMethodScope(String methodName) {
         MySymbol classSymbol = this.getClassSymbol();
         Map<MySymbol, MySymbol> currScope = this.map.get(classSymbol);
-
 
         for (MySymbol symbol : currScope.values()) {
             if (symbol.getName().equals(methodName) && symbol.getEntity() == EntityTypes.METHOD) {
@@ -58,7 +144,7 @@ public class MySymbolTable implements SymbolTable {
             }
         }
 
-        return null;
+        return Collections.emptyMap();
     }
 
     @Override
@@ -151,6 +237,26 @@ public class MySymbolTable implements SymbolTable {
 
         return params;
     }
+
+    /**
+     * Gets a list with all the arguments of a method
+     * @param methodSignature
+     * @return list with args if it exists, null otherwise
+     */
+    public List<MySymbol> getMethodArguments(String methodSignature) {
+        MySymbol classSymbol = this.getClassSymbol();
+        Map<MySymbol, MySymbol> currScope = this.map.get(classSymbol);
+
+        for (MySymbol symbol : currScope.values()) {
+            if (symbol.getName().equals(methodSignature) && symbol.getEntity() == EntityTypes.METHOD) {
+                return this.methodArgs.get(symbol);
+            }
+        }
+
+        return null;
+    }
+
+
 
     @Override
     public List<Symbol> getLocalVariables(String methodSignature) {

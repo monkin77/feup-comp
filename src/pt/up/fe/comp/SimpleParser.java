@@ -11,6 +11,7 @@ import pt.up.fe.comp.jmm.parser.JmmParserResult;
 import pt.up.fe.comp.jmm.report.Report;
 import pt.up.fe.comp.jmm.report.ReportType;
 import pt.up.fe.comp.jmm.report.Stage;
+import pt.up.fe.comp.visitors.LineColAnnotator;
 import pt.up.fe.specs.util.SpecsIo;
 import pt.up.fe.specs.util.SpecsSystem;
 
@@ -46,6 +47,9 @@ public class SimpleParser implements JmmParser {
                 throw new ParseException(parser, "Parsing problems, root is null");
             }
 
+            // Visit the tree to register each node's line and column
+            new LineColAnnotator().visit((JmmNode) root);
+
             JmmNode rootImpl = ((JmmNode) parser.rootNode()).sanitize();
             System.out.println(rootImpl.toTree());
 
@@ -55,7 +59,6 @@ public class SimpleParser implements JmmParser {
             }
 
             return new JmmParserResult((JmmNode) root, Collections.emptyList(), config);
-
         } catch (ParseException e) {
             return handleParseException(e, config);
         } catch (RuntimeException e) { // Thrown by SpecsSystem when it encounters ParseException

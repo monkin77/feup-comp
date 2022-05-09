@@ -9,7 +9,8 @@ public enum EntityTypes {
     IMPORT("import"),
     VARIABLE("variable"),
     ARG("argument"),
-    EXTENDS("extends");
+    EXTENDS("extends"),
+    NONE("none");
 
     private final String code;
 
