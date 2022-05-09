@@ -11,7 +11,6 @@ public class Utils {
 
     /**
      * Iterates all the existing scopes to look for the symbol given as argument
-     * @param name
      * @param entityTypes List of entityTypes to be accepted
      * @return symbol if found, null otherwise
      */
@@ -30,10 +29,6 @@ public class Utils {
 
     /**
      * Calculates the type of a Node, iterating the tree recursively.
-     * @param node
-     * @param scopeStack
-     * @param symbolTable
-     * @return
      */
     public static Type calculateNodeType(JmmNode node, Stack<MySymbol> scopeStack, MySymbolTable symbolTable){
         String kind = node.getKind();
@@ -72,14 +67,6 @@ public class Utils {
                 }
                 return identifier.getType();
         }
-    }
-
-    private static String getVariableType(JmmNode node, String parentMethodName) {
-        return "";
-    }
-
-    private static String getParentMethodName(JmmNode node) {
-        return "";
     }
 
     private static Type getReturnValueMethod(JmmNode node, Stack<MySymbol> scopeStack, MySymbolTable symbolTable) {
@@ -129,8 +116,6 @@ public class Utils {
 
     /**
      * Gets the type of a node. If custom, will return with the custom class name
-     * @param node
-     * @return
      */
     public static Type getNodeType(JmmNode node) {
         Types varType = Types.getType(node.getKind());
@@ -147,11 +132,6 @@ public class Utils {
 
     /**
      *
-     * @param methodName
-     * @param leftNodeType
-     * @param nodeKind
-     * @param className
-     * @param symbolTable
      * @return 0 -> Method is valid; 1 -> Assuming Method exists; 2 -> Method is invalid
      */
     public static int isValidMethodCall(String methodName, String leftNodeType, String nodeKind, String className, MySymbolTable symbolTable) {
@@ -178,7 +158,6 @@ public class Utils {
 
     /**
      * Prints a type taking into account if it is an array or not
-     * @return
      */
     public static String printTypeName(Type type) {
         return type.getName() + (type.isArray() && !type.getName().equals(Types.UNKNOWN.toString()) ? "[]" : "");

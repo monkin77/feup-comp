@@ -57,10 +57,7 @@ public class MySymbol extends Symbol {
         } else if (!this.getName().equals(other.getName()))
             return false;
         if (entity == null) {
-            if (other.getEntity() != null)
-                return false;
-        } else if (!entity.equals(other.getEntity()))
-            return false;
-        return true;
+            return other.getEntity() == null;
+        } else return entity.equals(other.getEntity());
     }
 }

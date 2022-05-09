@@ -7,8 +7,8 @@ import pt.up.fe.comp.jmm.analysis.table.Type;
 import java.util.*;
 
 public class MySymbolTable implements SymbolTable {
-    private Map<MySymbol, Map<MySymbol, MySymbol>> map; // Map keys are hashes of symbols
-    private Map<MySymbol, List<MySymbol>> methodArgs;
+    private final Map<MySymbol, Map<MySymbol, MySymbol>> map; // Map keys are hashes of symbols
+    private final Map<MySymbol, List<MySymbol>> methodArgs;
 
     public MySymbolTable() {
         this.map = new HashMap<>();
@@ -17,7 +17,6 @@ public class MySymbolTable implements SymbolTable {
 
     /**
      *
-     * @param symbol
      * @return true if the open scope operation was successful. Returns false, if the scope was already defined.
      */
     public boolean openScope(MySymbol symbol) {
@@ -25,20 +24,11 @@ public class MySymbolTable implements SymbolTable {
 
         this.map.put(symbol, new HashMap<>());
 
-        /*
-        System.out.println("----------------------------------------");
-        System.out.println("Opened scope " + symbol.getName() + " Current map: ");
-        this.myPrint();
-        System.out.println("----------------------------------------\n");
-        */
-
         return true;
     }
 
     /**
      *
-     * @param scope
-     * @param symbol
      * @return true if the put operation was successful. Returns false, if the variable was already declared in the scope.
      */
     public boolean put(MySymbol scope, MySymbol symbol) {
@@ -47,12 +37,10 @@ public class MySymbolTable implements SymbolTable {
 
         currScope.put(symbol, symbol);
         return true;
-        //System.out.print("Inserted new symbol " + symbol.getName() + " in scope. Current Scope:" + this.map.get(scope).toString());
     }
 
     /**
      *
-     * @param scope
      * @return true if the put operation was successful. Returns false, if the variable was already declared in the scope.
      */
     public boolean createParamScope(MySymbol scope) {
@@ -64,8 +52,6 @@ public class MySymbolTable implements SymbolTable {
 
     /**
      *  Puts an argument in the list of parameters of the function
-     * @param scope
-     * @param symbol
      * @return true if the put operation was successful. Returns false, if the variable was already declared in the scope.
      */
     public boolean putArgument(MySymbol scope, MySymbol symbol) {
@@ -73,14 +59,11 @@ public class MySymbolTable implements SymbolTable {
         if (args.contains(symbol)) return false;
         args.add(symbol);
         this.methodArgs.put(scope, args);
-        //System.out.print("Inserted new symbol " + symbol.getName() + " in parameters. Current parameters:" + this.parameters.get(scope));
         return true;
     }
 
     /**
      * Gets a symbol from all scopes
-     * @param scope
-     * @param symbolName
      * @return Symbol if exists in the scope, null otherwise
      */
     public MySymbol get(MySymbol scope, String symbolName) {
@@ -94,9 +77,6 @@ public class MySymbolTable implements SymbolTable {
 
     /**
      * Get a symbol from a given scope that belongs to the list of Entities
-     * @param scope
-     * @param symbolName
-     * @param entityTypes
      * @return Symbol if found, null otherwise
      */
     public MySymbol get(MySymbol scope, String symbolName, List<EntityTypes> entityTypes) {
@@ -164,7 +144,7 @@ public class MySymbolTable implements SymbolTable {
 
     @Override
     public String getClassName() {
-        return this.getClassSymbol().getName();
+        return Objects.requireNonNull(this.getClassSymbol()).getName();
     }
 
     @Override
@@ -240,7 +220,6 @@ public class MySymbolTable implements SymbolTable {
 
     /**
      * Gets a list with all the arguments of a method
-     * @param methodSignature
      * @return list with args if it exists, null otherwise
      */
     public List<MySymbol> getMethodArguments(String methodSignature) {
@@ -279,12 +258,12 @@ public class MySymbolTable implements SymbolTable {
     }
 
     public String buildMapString(Map<MySymbol, MySymbol> scope) {
-        String result = "{";
+        StringBuilder result = new StringBuilder("{");
 
         for (MySymbol symbol : scope.values()) {
-            result = result + symbol.toString() + ", ";
+            result.append(symbol.toString()).append(", ");
         }
-        result = result + "}";
-        return result;
+        result.append("}");
+        return result.toString();
     }
 }

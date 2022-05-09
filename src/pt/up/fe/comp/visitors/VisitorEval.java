@@ -48,7 +48,7 @@ public class VisitorEval extends AJmmVisitor<Object, Integer> {
         boolean opStatus = this.symbolTable.openScope(symbol);
 
         if (!opStatus) {
-            this.reports.add(Report.newError(Stage.SEMANTIC, Integer.valueOf(node.get("line")), Integer.valueOf(node.get("col")),
+            this.reports.add(Report.newError(Stage.SEMANTIC, Integer.parseInt(node.get("line")), Integer.parseInt(node.get("col")),
                     "Error attempting to create a scope that is already defined: " + symbol.getName(),
                     null));
         } else
@@ -62,7 +62,7 @@ public class VisitorEval extends AJmmVisitor<Object, Integer> {
         boolean opStatus = this.symbolTable.put(this.scopeStack.peek(), symbol);
 
         if (!opStatus) {
-            this.reports.add(Report.newError(Stage.SEMANTIC, Integer.valueOf(node.get("line")), Integer.valueOf(node.get("col")),
+            this.reports.add(Report.newError(Stage.SEMANTIC, Integer.parseInt(node.get("line")), Integer.parseInt(node.get("col")),
                     "Error attempting to put a symbol that is already defined: " + symbol.getName() + " in the scope: " + this.scopeStack.peek().getName(),
                     null));
         }
@@ -80,19 +80,17 @@ public class VisitorEval extends AJmmVisitor<Object, Integer> {
 
         try {
             Optional<String> extendedClass = node.getOptional("extends");
-            if (!extendedClass.isEmpty()) {
+            if (extendedClass.isPresent()) {
                 MySymbol extendedSymbol = new MySymbol(new Type(Types.NONE.toString(), false), extendedClass.get(), EntityTypes.EXTENDS);
                 if (!this.putSymbol(extendedSymbol, node)) return -1;
             }
-        } catch(Error err){
-            ;
+        } catch(Error ignored){
         }
 
         Integer visitResult = 0;
         for (int i = 0; i < node.getNumChildren(); ++i) {
             JmmNode childNode = node.getJmmChild(i);
             visitResult = visit(childNode);
-            // System.out.println("Visited class Decl child: " + i + " with result " + visitResult);
         }
 
         this.scopeStack.pop();
@@ -117,7 +115,6 @@ public class VisitorEval extends AJmmVisitor<Object, Integer> {
         for (int i = 0; i < node.getNumChildren(); ++i) {
             JmmNode childNode = node.getJmmChild(i);
             visitResult = visit(childNode);
-            // System.out.println("Visited main Decl child: " + i + " with result " + visitResult);
         }
 
         this.scopeStack.pop();
@@ -128,13 +125,13 @@ public class VisitorEval extends AJmmVisitor<Object, Integer> {
     private Integer importDeclVisit(JmmNode node, Object dummy) {
         if (node.getNumChildren() >= 1) {
             JmmNode childNode = node.getJmmChild(0);
-            String importName = childNode.get("id");
+            StringBuilder importName = new StringBuilder(childNode.get("id"));
             for (int i = 1; i < node.getNumChildren(); ++i) {
                 childNode = node.getJmmChild(i);
-                importName = importName + "." + childNode.get("id");
+                importName.append(".").append(childNode.get("id"));
             }
 
-            MySymbol importSymbol = new MySymbol(new Type(Types.NONE.toString(), false), importName, EntityTypes.IMPORT);
+            MySymbol importSymbol = new MySymbol(new Type(Types.NONE.toString(), false), importName.toString(), EntityTypes.IMPORT);
             if (!this.putSymbol(importSymbol, childNode)) return -1;
 
             return 0;
@@ -180,7 +177,6 @@ public class VisitorEval extends AJmmVisitor<Object, Integer> {
         for (int i = 1; i < node.getNumChildren(); ++i) {
             JmmNode childNode = node.getJmmChild(i);
             visitResult = visit(childNode);
-            // System.out.println("Visited method Decl child: " + i + " with result " + visitResult);
         }
 
         // Pop current scope
@@ -203,9 +199,6 @@ public class VisitorEval extends AJmmVisitor<Object, Integer> {
 
     /**
      * Visit argument, puts it in symbol table and in function arguments list
-     * @param node
-     * @param dummy
-     * @return
      */
     private Integer argumentVisit(JmmNode node, Object dummy) {
         if (node.getNumChildren() == 1) {
@@ -227,7 +220,6 @@ public class VisitorEval extends AJmmVisitor<Object, Integer> {
     private Integer assignExprVisit(JmmNode node, Object dummy) {
         // TODO: Confirm we don't need to store anything
         if (node.getNumChildren() == 2) {
-            // System.out.println("Assign Expr with " + node.getNumChildren() + " children");
             return 0;
         }
 
@@ -244,7 +236,6 @@ public class VisitorEval extends AJmmVisitor<Object, Integer> {
 
     private Integer identifierVisit(JmmNode node, Object dummy) {
         if (node.getNumChildren() == 0) {
-            // System.out.println("Analysing the " + node.getKind() + " " + node.get("id"));
             return 0;
         }
 
@@ -257,7 +248,6 @@ public class VisitorEval extends AJmmVisitor<Object, Integer> {
 
     private Integer intArrayVisit(JmmNode node, Object dummy) {
         if (node.getNumChildren() == 0) {
-            // System.out.println("Analysing the " + node.getKind());
             return 2;   // Return 2 if IntArray; Return 1 if Int, and so on... ?
         }
 
@@ -285,12 +275,10 @@ public class VisitorEval extends AJmmVisitor<Object, Integer> {
             throw new RuntimeException("Illegal number of children in node " + node.getKind() + ".");
         }
 
-        // System.out.println("Currently in node: " + node.getKind());
         Integer visitResult = 0;
         for (int i = 0; i < node.getNumChildren(); ++i) {
             JmmNode childNode = node.getJmmChild(i);
             visitResult = visit(childNode);
-            //System.out.println("Intermediate result: " + visitResult);
         }
 
         return visitResult;

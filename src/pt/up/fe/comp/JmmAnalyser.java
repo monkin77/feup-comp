@@ -10,7 +10,6 @@ import pt.up.fe.comp.visitors.TypeCheckingVisitor;
 import pt.up.fe.comp.visitors.VisitorEval;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 public class JmmAnalyser implements JmmAnalysis {
@@ -27,16 +26,6 @@ public class JmmAnalyser implements JmmAnalysis {
         reports.addAll(eval.getReports());
         // visitor code
 
-        /*
-        System.out.println("Imports: " + symbolTable.getImports());
-        System.out.println("Class Name: " + symbolTable.getClassName());
-        System.out.println("Super: " + symbolTable.getSuper());
-        System.out.println("Fields: " + symbolTable.getFields());
-        System.out.println("Methods: " + symbolTable.getMethods());
-        System.out.println("Return type: " + symbolTable.getReturnType("init"));
-        System.out.println("Method Parameters: " + symbolTable.getListParameters("find_maximum"));
-        System.out.println("Method Local Variables: " + symbolTable.getLocalVariables("main"));
-         */
         ExistenceVisitor analyser = new ExistenceVisitor(symbolTable);
         System.out.println("visitor analyser: " + analyser.visit(root, null));
         reports.addAll(analyser.getReports());

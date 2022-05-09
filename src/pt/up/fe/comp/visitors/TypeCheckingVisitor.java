@@ -1,14 +1,15 @@
 package pt.up.fe.comp.visitors;
 
 import pt.up.fe.comp.*;
-import pt.up.fe.comp.jmm.analysis.table.Symbol;
 import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.AJmmVisitor;
 import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp.jmm.report.Report;
 import pt.up.fe.comp.jmm.report.Stage;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Stack;
 
 public class TypeCheckingVisitor extends AJmmVisitor<Object, Integer> {
     private final MySymbolTable symbolTable;
@@ -117,7 +118,7 @@ public class TypeCheckingVisitor extends AJmmVisitor<Object, Integer> {
         // IF .length -> type is int
         // IF method -> use SymbolTable method to check method return type
 
-        Integer visitResult = 0;
+        Integer visitResult;
         for (int i = 0; i < node.getNumChildren(); ++i) {
             JmmNode childNode = node.getJmmChild(i);
             visitResult = visit(childNode);
@@ -133,7 +134,7 @@ public class TypeCheckingVisitor extends AJmmVisitor<Object, Integer> {
             Type assignType = Utils.calculateNodeType(secondChild, this.scopeStack, this.symbolTable);
 
             if (!this.isVariable(firstChild)) {
-                this.reports.add(Report.newError(Stage.SEMANTIC, Integer.valueOf(firstChild.get("line")), Integer.valueOf(firstChild.get("col")),
+                this.reports.add(Report.newError(Stage.SEMANTIC, Integer.parseInt(firstChild.get("line")), Integer.parseInt(firstChild.get("col")),
                         "Type error. Attempting to assign a value to a '" + firstChild.getKind() + "' .",
                         null));
                 return -1;
@@ -141,7 +142,7 @@ public class TypeCheckingVisitor extends AJmmVisitor<Object, Integer> {
                 String typeName = idType.getName();
                 String assignTypeName = assignType.getName();
 
-                this.reports.add(Report.newError(Stage.SEMANTIC, Integer.valueOf(firstChild.get("line")), Integer.valueOf(firstChild.get("col")),
+                this.reports.add(Report.newError(Stage.SEMANTIC, Integer.parseInt(firstChild.get("line")), Integer.parseInt(firstChild.get("col")),
                         "Type error. Attempting to assign value of type " + assignTypeName + " to a variable of type " + typeName + ".",
                         null));
                 return -1;
@@ -154,7 +155,7 @@ public class TypeCheckingVisitor extends AJmmVisitor<Object, Integer> {
     }
 
     private Integer mathExprVisit(JmmNode node, Object dummy) {
-        Integer visitResult = 0;
+        Integer visitResult;
         for (int i = 0; i < node.getNumChildren(); ++i) {
             JmmNode childNode = node.getJmmChild(i);
             visitResult = visit(childNode);
@@ -169,10 +170,10 @@ public class TypeCheckingVisitor extends AJmmVisitor<Object, Integer> {
             Type rightType = Utils.calculateNodeType(secondChild, this.scopeStack, this.symbolTable);
 
             // check if it's an accepted type
-            String leftTypeName = Utils.printTypeName(leftType);;
+            String leftTypeName = Utils.printTypeName(leftType);
             String rightTypeName = Utils.printTypeName(rightType); // Using printTypeName to differ the case of int from int[]
             if (!(this.isArithmeticType(leftTypeName) && this.isArithmeticType(rightTypeName))) {
-                this.reports.add(Report.newError(Stage.SEMANTIC, Integer.valueOf(firstChild.get("line")), Integer.valueOf(firstChild.get("col")),
+                this.reports.add(Report.newError(Stage.SEMANTIC, Integer.parseInt(firstChild.get("line")), Integer.parseInt(firstChild.get("col")),
                         "Type error. Attempting to do a " + node.getKind() + " with types: '" + Utils.printTypeName(leftType) + "' and '" + Utils.printTypeName(rightType) + "'.",
                         null));
                 return -1;
@@ -184,7 +185,7 @@ public class TypeCheckingVisitor extends AJmmVisitor<Object, Integer> {
     }
 
     private Integer boolExprVisit(JmmNode node, Object dummy) {
-        Integer visitResult = 0;
+        Integer visitResult;
         for (int i = 0; i < node.getNumChildren(); ++i) {
             JmmNode childNode = node.getJmmChild(i);
             visitResult = visit(childNode);
@@ -198,7 +199,7 @@ public class TypeCheckingVisitor extends AJmmVisitor<Object, Integer> {
             // check if it's an accepted type
             String leftTypeName = leftType.getName();
             if (!this.isBoolType(leftTypeName)) {
-                this.reports.add(Report.newError(Stage.SEMANTIC, Integer.valueOf(firstChild.get("line")), Integer.valueOf(firstChild.get("col")),
+                this.reports.add(Report.newError(Stage.SEMANTIC, Integer.parseInt(firstChild.get("line")), Integer.parseInt(firstChild.get("col")),
                         "Type error. Attempting to do a " + node.getKind() + " with type: '" + Utils.printTypeName(leftType) + "'.",
                         null));
                 return -1;
@@ -216,7 +217,7 @@ public class TypeCheckingVisitor extends AJmmVisitor<Object, Integer> {
             String leftTypeName = leftType.getName();
             String rightTypeName = rightType.getName();
             if (!(this.isBoolType(leftTypeName) && this.isBoolType(rightTypeName))) {
-                this.reports.add(Report.newError(Stage.SEMANTIC, Integer.valueOf(firstChild.get("line")), Integer.valueOf(firstChild.get("col")),
+                this.reports.add(Report.newError(Stage.SEMANTIC, Integer.parseInt(firstChild.get("line")), Integer.parseInt(firstChild.get("col")),
                         "Type error. Attempting to do a " + node.getKind() + " with types: '" + Utils.printTypeName(leftType) + "' and '" + Utils.printTypeName(rightType) + "'.",
                         null));
                 return -1;
@@ -228,7 +229,7 @@ public class TypeCheckingVisitor extends AJmmVisitor<Object, Integer> {
     }
 
     private Integer arrayExprVisit(JmmNode node, Object dummy) {
-        Integer visitResult = 0;
+        Integer visitResult;
         for (int i = 0; i < node.getNumChildren(); ++i) {
             JmmNode childNode = node.getJmmChild(i);
             visitResult = visit(childNode);
@@ -243,16 +244,16 @@ public class TypeCheckingVisitor extends AJmmVisitor<Object, Integer> {
             Type rightType = Utils.calculateNodeType(secondChild, this.scopeStack, this.symbolTable);
 
             // check if it's an accepted type
-            String leftTypeName = Utils.printTypeName(leftType);;
+            String leftTypeName = Utils.printTypeName(leftType);
             String rightTypeName = Utils.printTypeName(rightType); // Using printTypeName to differ the case of int from int[]
 
             if (!leftType.isArray()) {
-                this.reports.add(Report.newError(Stage.SEMANTIC, Integer.valueOf(firstChild.get("line")), Integer.valueOf(firstChild.get("col")),
+                this.reports.add(Report.newError(Stage.SEMANTIC, Integer.parseInt(firstChild.get("line")), Integer.parseInt(firstChild.get("col")),
                         "Type error. Attempting to access an array element in a variable of type '" + leftTypeName + "'.",
                         null));
                 return -1;
             } else if (!this.isArithmeticType(rightTypeName)) {
-                this.reports.add(Report.newError(Stage.SEMANTIC, Integer.valueOf(secondChild.get("line")), Integer.valueOf(secondChild.get("col")),
+                this.reports.add(Report.newError(Stage.SEMANTIC, Integer.parseInt(secondChild.get("line")), Integer.parseInt(secondChild.get("col")),
                         "Type error. Attempting to index an array element with a variable of type '" + rightTypeName + "'.",
                         null));
                 return -1;
@@ -264,7 +265,7 @@ public class TypeCheckingVisitor extends AJmmVisitor<Object, Integer> {
     }
 
     private Integer conditionalVisit(JmmNode node, Object dummy) {
-        Integer visitResult = 0;
+        Integer visitResult;
         for (int i = 0; i < node.getNumChildren(); ++i) {
             JmmNode childNode = node.getJmmChild(i);
             visitResult = visit(childNode);
@@ -280,7 +281,7 @@ public class TypeCheckingVisitor extends AJmmVisitor<Object, Integer> {
             String leftTypeName = Utils.printTypeName(leftType);
 
            if (!this.isBoolType(leftTypeName)) {
-                this.reports.add(Report.newError(Stage.SEMANTIC, Integer.valueOf(conditionChild.get("line")), Integer.valueOf(conditionChild.get("col")),
+                this.reports.add(Report.newError(Stage.SEMANTIC, Integer.parseInt(conditionChild.get("line")), Integer.parseInt(conditionChild.get("col")),
                         "Type error. Condition is not boolean. Type: '" + leftTypeName + "'.",
                         null));
                 return -1;
@@ -297,7 +298,7 @@ public class TypeCheckingVisitor extends AJmmVisitor<Object, Integer> {
 
         boolean isImport = parameters == null;
         if (!isImport && node.getNumChildren() != parameters.size()) {
-            this.reports.add(Report.newError(Stage.SEMANTIC, Integer.valueOf(node.get("line")), Integer.valueOf(node.get("col")),
+            this.reports.add(Report.newError(Stage.SEMANTIC, Integer.parseInt(node.get("line")), Integer.parseInt(node.get("col")),
                     "Type error. Expected " + parameters.size() + " arguments but found " + node.getNumChildren() + " in method '" + methodName + "'.",
                     null));
             return -1;
@@ -307,9 +308,9 @@ public class TypeCheckingVisitor extends AJmmVisitor<Object, Integer> {
             JmmNode argNode = node.getJmmChild(i);
             Type argType = Utils.calculateNodeType(argNode, this.scopeStack, this.symbolTable);
 
-            // if has parameters check them
+            // if it has parameters check them
             if (!isImport && !argType.equals(parameters.get(i).getType())) {
-                this.reports.add(Report.newError(Stage.SEMANTIC, Integer.valueOf(argNode.get("line")), Integer.valueOf(argNode.get("col")),
+                this.reports.add(Report.newError(Stage.SEMANTIC, Integer.parseInt(argNode.get("line")), Integer.parseInt(argNode.get("col")),
                         "Type error. Expected argument of type '" + Utils.printTypeName(parameters.get(i).getType()) + "' but found argument of type '" + Utils.printTypeName(argType) + "' in method '" + methodName + "'.",
                         null));
                 return -1;
@@ -322,7 +323,6 @@ public class TypeCheckingVisitor extends AJmmVisitor<Object, Integer> {
 
     private Integer intArrayVisit(JmmNode node, Object dummy) {
         if (node.getNumChildren() == 0) {
-            // System.out.println("Analysing the " + node.getKind());
             return 2;   // Return 2 if IntArray; Return 1 if Int, and so on... ?
         }
 
@@ -334,12 +334,10 @@ public class TypeCheckingVisitor extends AJmmVisitor<Object, Integer> {
             throw new RuntimeException("Illegal number of children in node " + node.getKind() + ".");
         }
 
-        // System.out.println("Currently in node: " + node.getKind());
         Integer visitResult = 0;
         for (int i = 0; i < node.getNumChildren(); ++i) {
             JmmNode childNode = node.getJmmChild(i);
             visitResult = visit(childNode);
-            //System.out.println("Intermediate result: " + visitResult);
         }
 
         return visitResult;
