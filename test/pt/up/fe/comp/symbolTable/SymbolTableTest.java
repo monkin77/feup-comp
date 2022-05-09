@@ -1,4 +1,4 @@
-package symbolTable;
+package pt.up.fe.comp.symbolTable;
 
 import org.junit.Test;
 import pt.up.fe.comp.JmmAnalyser;
@@ -15,7 +15,7 @@ public class SymbolTableTest {
 
     @Test
     public void testFileInput() {
-        String input = "fixtures/public/FindMaximum.jmm";
+        String input = "pt/up/fe/comp/fixtures/public/FindMaximum.jmm";
         String inputResource = SpecsIo.getResource(input);
 
         // Create config

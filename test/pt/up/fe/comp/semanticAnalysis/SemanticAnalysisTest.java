@@ -1,4 +1,4 @@
-package semanticAnalysis;
+package pt.up.fe.comp.semanticAnalysis;
 
 import org.junit.Test;
 import pt.up.fe.comp.JmmAnalyser;
@@ -62,28 +62,28 @@ public class SemanticAnalysisTest {
 
     @Test
     public void testFindMaxInput() {
-        String file = "./fixtures/public/FindMaximum.jmm";
+        String file = "pt/up/fe/comp/fixtures/public/FindMaximum.jmm";
         execute(file);
         TestUtils.noErrors(analysisResult.getReports());
     }
 
     @Test
     public void testHelloFile() {
-        String file = "./fixtures/public/HelloWorld.jmm";
+        String file = "pt/up/fe/comp/fixtures/public/HelloWorld.jmm";
         execute(file);
         TestUtils.noErrors(analysisResult.getReports());
     }
 
     @Test
     public void testLifeFile() {
-        String file = "./fixtures/public/Life.jmm";
+        String file = "pt/up/fe/comp/fixtures/public/Life.jmm";
         execute(file);
         TestUtils.noErrors(analysisResult.getReports());
     }
 
     @Test
     public void varDeclError() {
-        String file = "./fixtures/public/semanticAnalysis/VarDeclError.jmm";
+        String file = "pt/up/fe/comp/fixtures/public/semanticAnalysis/VarDeclError.jmm";
         String error = "Invalid attempt to create a variable of non-existing type Ola.";
         execute(file);
 
@@ -94,7 +94,7 @@ public class SemanticAnalysisTest {
 
     @Test
     public void noFunctionError() {
-        String file = "./fixtures/public/semanticAnalysis/NoFunctionError.jmm";
+        String file = "pt/up/fe/comp/fixtures/public/semanticAnalysis/NoFunctionError.jmm";
         String error = "Unknown reference to method build_test_arr when attempting to call fm.build_test_arr().";
 
         execute(file);
@@ -105,14 +105,14 @@ public class SemanticAnalysisTest {
 
     @Test
     public void DotLengthNoError() {
-        String file = "fixtures/public/semanticAnalysis/DotLengthNoError.jmm";
+        String file = "pt/up/fe/comp/fixtures/public/semanticAnalysis/DotLengthNoError.jmm";
         execute(file);
         TestUtils.noErrors(analysisResult.getReports());
     }
 
     @Test
     public void DotLengthError() {
-        String file = "fixtures/public/semanticAnalysis/DotLengthError.jmm";
+        String file = "pt/up/fe/comp/fixtures/public/semanticAnalysis/DotLengthError.jmm";
         String error = "Built-in \"length\" is only valid over arrays.";
         execute(file);
 
@@ -122,7 +122,7 @@ public class SemanticAnalysisTest {
 
     @Test
     public void DotExpressionError() {
-        String file = "fixtures/public/semanticAnalysis/DotExpressionError.jmm";
+        String file = "pt/up/fe/comp/fixtures/public/semanticAnalysis/DotExpressionError.jmm";
         String error1 = "Invalid method call get_array to element of type int.";
         String error2 = "Invalid method call find_maximum to element of type int[].";
 
@@ -135,14 +135,14 @@ public class SemanticAnalysisTest {
 
     @Test
     public void DotExpressionNoError() {
-        String file = "fixtures/public/semanticAnalysis/DotExpressionNoError.jmm";
+        String file = "pt/up/fe/comp/fixtures/public/semanticAnalysis/DotExpressionNoError.jmm";
         execute(file);
         TestUtils.noErrors(analysisResult.getReports());
     }
 
     @Test
     public void NewObjectNoError() {
-        String file = "fixtures/public/semanticAnalysis/NewObjectError.jmm";
+        String file = "pt/up/fe/comp/fixtures/public/semanticAnalysis/NewObjectError.jmm";
         String error1 = "Invalid attempt to create a dynamic variable of type UnknownClass.";
         execute(file);
 
@@ -152,7 +152,7 @@ public class SemanticAnalysisTest {
 
     @Test
     public void InvalidTypeAssign() {
-        String file = "fixtures/public/semanticAnalysis/InvalidTypeAssign.jmm";
+        String file = "pt/up/fe/comp/fixtures/public/semanticAnalysis/InvalidTypeAssign.jmm";
         String error1 = "Type error. Attempting to assign value of type int to a variable of type boolean.";
         execute(file);
 
@@ -162,8 +162,7 @@ public class SemanticAnalysisTest {
 
     @Test
     public void validConditional() {
-        String file = "fixtures/public/semanticAnalysis/ConditionalNoError.jmm";
-        String error1 = "Type error. Condition inside if else statement is not boolean. Type: 'int'.";
+        String file = "pt/up/fe/comp/fixtures/public/semanticAnalysis/ConditionalNoError.jmm";
         execute(file);
 
         TestUtils.noErrors(analysisResult.getReports());
@@ -171,7 +170,7 @@ public class SemanticAnalysisTest {
 
     @Test
     public void InvalidConditional() {
-        String file = "fixtures/public/semanticAnalysis/InvalidConditional.jmm";
+        String file = "pt/up/fe/comp/fixtures/public/semanticAnalysis/InvalidConditional.jmm";
         String error1 = "Type error. Condition is not boolean. Type: 'int'.";
         execute(file);
 
