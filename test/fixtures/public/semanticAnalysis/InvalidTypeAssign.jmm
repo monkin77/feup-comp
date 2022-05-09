@@ -5,7 +5,7 @@ class FindMaximum {
 	int[] test_arr;
 
 	public int find_maximum(int[] arr) {
-		int i;
+		boolean i;
 		int maximum;
 		int value;
 

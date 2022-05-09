@@ -1,13 +1,16 @@
 import ioPlus;
+import Ola;
 
-
-class FindMaximum {
+class FindMaximum extends Ola {
 	int[] test_arr;
 
-	public int find_maximum(int[] arr) {
+	public FindMaximum find_maximum(int[] arr) {
 		int i;
 		int maximum;
-		int value;
+		FindMaximum value;
+
+        // ERROR
+	    value = new UnknownClass();
 
 		i = 1;
 		maximum = arr[0];

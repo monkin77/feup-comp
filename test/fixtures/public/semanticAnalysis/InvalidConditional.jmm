@@ -9,6 +9,10 @@ class FindMaximum {
 		int maximum;
 		int value;
 
+		while (1) {
+
+		}
+
 		i = 1;
 		maximum = arr[0];
 		while (i < arr.length) {

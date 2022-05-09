@@ -9,6 +9,9 @@ class FindMaximum {
 		int maximum;
 		int value;
 
+		this.find_maximum().get_array();
+		this.get_array().find_maximum();
+
 		i = 1;
 		maximum = arr[0];
 		while (i < arr.length) {

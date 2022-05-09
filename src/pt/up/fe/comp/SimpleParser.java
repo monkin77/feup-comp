@@ -5,11 +5,13 @@ import java.util.List;
 import java.util.Map;
 
 import pt.up.fe.comp.jmm.ast.JmmNode;
+import pt.up.fe.comp.jmm.ast.JmmNodeImpl;
 import pt.up.fe.comp.jmm.parser.JmmParser;
 import pt.up.fe.comp.jmm.parser.JmmParserResult;
 import pt.up.fe.comp.jmm.report.Report;
 import pt.up.fe.comp.jmm.report.ReportType;
 import pt.up.fe.comp.jmm.report.Stage;
+import pt.up.fe.comp.visitors.LineColAnnotator;
 import pt.up.fe.specs.util.SpecsIo;
 import pt.up.fe.specs.util.SpecsSystem;
 
@@ -45,7 +47,11 @@ public class SimpleParser implements JmmParser {
                 throw new ParseException(parser, "Parsing problems, root is null");
             }
 
-            root.dump("");
+            // Visit the tree to register each node's line and column
+            new LineColAnnotator().visit((JmmNode) root);
+
+            JmmNode rootImpl = ((JmmNode) parser.rootNode()).sanitize();
+            System.out.println(rootImpl.toTree());
 
             if (!(root instanceof JmmNode)) {
                 return JmmParserResult.newError(new Report(ReportType.WARNING, Stage.SYNTATIC, -1,
@@ -53,7 +59,6 @@ public class SimpleParser implements JmmParser {
             }
 
             return new JmmParserResult((JmmNode) root, Collections.emptyList(), config);
-
         } catch (ParseException e) {
             return handleParseException(e, config);
         } catch (RuntimeException e) { // Thrown by SpecsSystem when it encounters ParseException
