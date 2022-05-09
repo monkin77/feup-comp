@@ -281,7 +281,7 @@ public class TypeCheckingVisitor extends AJmmVisitor<Object, Integer> {
 
            if (!this.isBoolType(leftTypeName)) {
                 this.reports.add(Report.newError(Stage.SEMANTIC, Integer.valueOf(conditionChild.get("line")), Integer.valueOf(conditionChild.get("col")),
-                        "Type error. Condition inside if else statement is not boolean. Type: '" + leftTypeName + "'.",
+                        "Type error. Condition is not boolean. Type: '" + leftTypeName + "'.",
                         null));
                 return -1;
             }

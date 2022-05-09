@@ -160,6 +160,25 @@ public class SemanticAnalysisTest {
         assertTrue(hasError(analysisResult.getReports(), error1));
     }
 
+    @Test
+    public void validConditional() {
+        String file = "fixtures/public/semanticAnalysis/ConditionalNoError.jmm";
+        String error1 = "Type error. Condition inside if else statement is not boolean. Type: 'int'.";
+        execute(file);
+
+        TestUtils.noErrors(analysisResult.getReports());
+    }
+
+    @Test
+    public void InvalidConditional() {
+        String file = "fixtures/public/semanticAnalysis/InvalidConditional.jmm";
+        String error1 = "Type error. Condition is not boolean. Type: 'int'.";
+        execute(file);
+
+        System.out.println(analysisResult.getReports());
+        TestUtils.mustFail(analysisResult.getReports());
+        assertTrue(hasError(analysisResult.getReports(), error1));
+    }
 }
 
 
