@@ -37,6 +37,7 @@ public class ExistenceVisitor extends AJmmVisitor<Object, Integer> {
         addVisit("_Identifier", this::identifierVisit);
         addVisit("VarDecl", this::varDeclVisit);
         addVisit("NewObjExpr", this::newObjExprVisit);
+        addVisit("ImportDecl", this::importVisit);
 
         setDefaultVisit(this::defaultVisit);
     }
@@ -235,6 +236,10 @@ public class ExistenceVisitor extends AJmmVisitor<Object, Integer> {
         }
 
         throw new RuntimeException("Illegal number of children in node " + node.getKind() + ".");
+    }
+
+    private Integer importVisit(JmmNode node, Object dummy) {
+        return 0;
     }
 
     public boolean validateLength(JmmNode left) {

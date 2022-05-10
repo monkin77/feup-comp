@@ -92,24 +92,31 @@ public class TypeCheckingVisitor extends AJmmVisitor<Object, Integer> {
             throw new RuntimeException("Illegal number of children in node " + node.getKind() + ".");
 
         // Get the return type of the method
-        Types varType = Types.getType(node.getJmmChild(0).getKind());
-        boolean isArray = varType.getIsArray();
+        Type methodType = Utils.getNodeType(node.getJmmChild(0));
 
-        MySymbol methodSymbol = new MySymbol(new Type(varType.toString(), isArray), node.get("name"), EntityTypes.METHOD);
+        MySymbol methodSymbol = new MySymbol(methodType, node.get("name"), EntityTypes.METHOD);
 
         // Add new scope
         this.createScope(methodSymbol);
 
-        Integer visitResult = 0;
         for (int i = 1; i < node.getNumChildren(); ++i) {
             JmmNode childNode = node.getJmmChild(i);
-            visitResult = visit(childNode);
+            visit(childNode);
+        }
+
+        JmmNode returnChild = node.getJmmChild(node.getNumChildren() - 1);
+        Type returnChildType = Utils.calculateNodeType(returnChild, this.scopeStack, this.symbolTable);
+        if (!returnChildType.equals(methodSymbol.getType()) && !returnChildType.getName().equals(Types.UNKNOWN.toString())) {
+            this.reports.add(Report.newError(Stage.SEMANTIC, Integer.parseInt(returnChild.get("line")), Integer.parseInt(returnChild.get("col")),
+                    "Type error. Expected return of type " + Utils.printTypeName(methodSymbol.getType()) + " but got " + Utils.printTypeName(returnChildType) + ".",
+                    null));
+            return -1;
         }
 
         // Pop current scope
         this.scopeStack.pop();
 
-        return visitResult;
+        return 0;
     }
 
 
@@ -352,7 +359,7 @@ public class TypeCheckingVisitor extends AJmmVisitor<Object, Integer> {
     }
 
     private boolean isSameType(Type type1, Type type2){
-        return type1.equals(type2) || type1.getName().equals(Types.UNKNOWN.toString()) || type2.getName().equals(Types.UNKNOWN.toString());
+        return type1.equals(type2) || Utils.hasImport(type1.getName(), this.symbolTable) || Utils.hasImport(type2.getName(), this.symbolTable);
     }
 
     private boolean isVariable(JmmNode node) {

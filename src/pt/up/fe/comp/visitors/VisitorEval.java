@@ -73,7 +73,7 @@ public class VisitorEval extends AJmmVisitor<Object, Integer> {
     }
 
     private Integer classDeclVisit(JmmNode node, Object dummy) {
-        MySymbol classSymbol = new MySymbol(new Type(Types.NONE.toString(), false), node.get("name"), EntityTypes.CLASS);
+        MySymbol classSymbol = new MySymbol(new Type(Types.UNKNOWN.toString(), false), node.get("name"), EntityTypes.CLASS);
 
         // Insert next scope pointer in previous scope
         if (!this.putSymbol(classSymbol, node)) return -1;
@@ -84,7 +84,7 @@ public class VisitorEval extends AJmmVisitor<Object, Integer> {
         try {
             Optional<String> extendedClass = node.getOptional("extends");
             if (extendedClass.isPresent()) {
-                MySymbol extendedSymbol = new MySymbol(new Type(Types.NONE.toString(), false), extendedClass.get(), EntityTypes.EXTENDS);
+                MySymbol extendedSymbol = new MySymbol(new Type(Types.UNKNOWN.toString(), false), extendedClass.get(), EntityTypes.EXTENDS);
                 if (!this.putSymbol(extendedSymbol, node)) return -1;
             }
         } catch(Error ignored){
