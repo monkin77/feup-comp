@@ -102,6 +102,6 @@ public class CallInstructionBuilder extends AbstractBuilder {
             builder.append(typeName);
         }
 
-        builder.append(")").append(JasminUtils.getTypeName(instruction.getReturnType(), classUnit));
+        builder.append(")").append(JasminUtils.getTypeName(instruction.getReturnType(), classUnit, true));
     }
 }

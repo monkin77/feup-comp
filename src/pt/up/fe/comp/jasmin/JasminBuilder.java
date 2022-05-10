@@ -30,7 +30,7 @@ public class JasminBuilder extends AbstractBuilder {
         if (classUnit.getSuperClass() == null)
             builder.append(DEFAULT_SUPERCLASS);
         else
-            builder.append(classUnit.getSuperClass());
+            builder.append(JasminUtils.getFullClassName(classUnit.getSuperClass(), classUnit));
 
         builder.append("\n");
     }

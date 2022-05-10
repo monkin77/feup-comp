@@ -40,10 +40,10 @@ public class JasminUtilsTest {
         final ClassType classType = Mockito.mock(ClassType.class);
         Mockito.when(classType.getName()).thenReturn("MyClass");
 
-        assertEquals("[[I", JasminUtils.getTypeName(arrayType, ElementType.ARRAYREF, classUnit));
-        assertEquals("MyClass", JasminUtils.getTypeName(classType, ElementType.CLASS, classUnit));
-        assertEquals("MyClassUnit", JasminUtils.getTypeName(classType, ElementType.THIS, classUnit));
-        assertEquals(JasminConstants.STRING_TYPE, JasminUtils.getTypeName(classType, ElementType.STRING, classUnit));
+        assertEquals("[[I", JasminUtils.getTypeName(arrayType, ElementType.ARRAYREF, classUnit, false));
+        assertEquals("MyClass", JasminUtils.getTypeName(classType, ElementType.CLASS, classUnit, false));
+        assertEquals("MyClassUnit", JasminUtils.getTypeName(classType, ElementType.THIS, classUnit, false));
+        assertEquals(JasminConstants.STRING_TYPE, JasminUtils.getTypeName(classType, ElementType.STRING, classUnit, false));
     }
 
     @Test

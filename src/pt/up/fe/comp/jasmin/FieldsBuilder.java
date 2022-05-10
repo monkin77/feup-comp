@@ -15,7 +15,7 @@ public class FieldsBuilder extends AbstractBuilder {
         final ArrayList<Field> fields = classUnit.getFields();
         for (final Field field : fields) {
             final String accessModifier = JasminUtils.getAccessModifier(field.getFieldAccessModifier());
-            final String fieldType = JasminUtils.getTypeName(field.getFieldType(), classUnit);
+            final String fieldType = JasminUtils.getTypeName(field.getFieldType(), classUnit, true);
 
             String fieldName = field.getFieldName();
             if (fieldName.equals("field")) fieldName = "'field'";
