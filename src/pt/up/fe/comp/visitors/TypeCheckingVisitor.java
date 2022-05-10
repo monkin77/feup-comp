@@ -360,7 +360,8 @@ public class TypeCheckingVisitor extends AJmmVisitor<Object, Integer> {
      * @return
      */
     private boolean isSameType(Type type1, Type type2){
-        if (type1.equals(type2)) return true;
+        if (type1.equals(type2) || type1.getName().equals(Types.UNKNOWN.toString()) || type2.getName().equals(Types.UNKNOWN.toString()))
+            return true;
 
         if ((Utils.hasImport(type1.getName(), this.symbolTable))) {
             if (Utils.hasImport(type2.getName(), this.symbolTable)) return true;
@@ -372,7 +373,7 @@ public class TypeCheckingVisitor extends AJmmVisitor<Object, Integer> {
             }
         }
 
-        return (Utils.hasImport(type2.getName(), this.symbolTable) && Utils.isCustomType(type1.getName()));
+        return false;
     }
 
     private boolean isVariable(JmmNode node) {

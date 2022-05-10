@@ -8,6 +8,7 @@ class FindMaximum {
 		int i;
 		int maximum;
 		int value;
+		FindMaximum a;
 
 		this.find_maximum(test_arr).get_array();
 
@@ -22,7 +23,7 @@ class FindMaximum {
 			i = i + 1;
 		}
 
-		return maximum;
+		return a;
 	}
 
     public int[] get_array() {
