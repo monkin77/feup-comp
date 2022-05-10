@@ -1,6 +1,10 @@
 package pt.up.fe.comp;
 
 import pt.up.fe.comp.jmm.analysis.JmmSemanticsResult;
+import pt.up.fe.comp.jmm.jasmin.JasminBackend;
+import pt.up.fe.comp.jmm.jasmin.JasminResult;
+import pt.up.fe.comp.jmm.ollir.JmmOptimization;
+import pt.up.fe.comp.jmm.ollir.OllirResult;
 import pt.up.fe.comp.jmm.parser.JmmParserResult;
 import pt.up.fe.specs.util.SpecsIo;
 import pt.up.fe.specs.util.SpecsLogs;
@@ -50,10 +54,26 @@ public class Launcher {
         // Semantic Analysis stage
         JmmSemanticsResult analysisResult = analyser.semanticAnalysis(parserResult);
 
-        // Check if there are parsing errors
+        // Check if there are analysis errors
         TestUtils.noErrors(analysisResult.getReports());
 
-        // ... add remaining stages
+        // Instantiate Optimization stage
+        JmmOptimization jmmOptimization = new JmmOptimizer();
+
+        // Optimization stage
+        OllirResult ollirResult = jmmOptimization.toOllir(analysisResult);
+
+        // Check if there are optimization errors
+        TestUtils.noErrors(ollirResult.getReports());
+
+        // Instantiate Compilation stage
+        JasminBackend jasminBackend = new JasminBackendJmm();
+
+        // Compilation stage
+        JasminResult jasminResult = jasminBackend.toJasmin(ollirResult);
+
+        // Check if there are compilation errors
+        TestUtils.noErrors(jasminResult.getReports());
     }
 
 }
