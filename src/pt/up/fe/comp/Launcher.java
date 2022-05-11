@@ -62,7 +62,8 @@ public class Launcher {
 
         // Optimization stage
         OllirResult ollirResult = jmmOptimization.toOllir(analysisResult);
-
+/*
+        TODO Uncomment these stages
         // Check if there are optimization errors
         TestUtils.noErrors(ollirResult.getReports());
 
@@ -73,7 +74,7 @@ public class Launcher {
         JasminResult jasminResult = jasminBackend.toJasmin(ollirResult);
 
         // Check if there are compilation errors
-        TestUtils.noErrors(jasminResult.getReports());
+        TestUtils.noErrors(jasminResult.getReports());*/
     }
 
 }
