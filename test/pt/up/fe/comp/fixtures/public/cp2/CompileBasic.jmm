@@ -12,7 +12,7 @@ class SymbolTable extends Quicksort {
 
 		return 0;
 	}
-	
+
 	public boolean method2(int intParam1, boolean boolParam1) {
 		return boolParam1;
 	}	
