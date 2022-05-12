@@ -1,30 +1,30 @@
 package pt.up.fe.comp.ollir;
 
-import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
+import pt.up.fe.comp.jmm.analysis.JmmSemanticsResult;
 
 public class OllirBuilder extends AbstractBuilder {
-    public OllirBuilder(SymbolTable symbolTable) {
-        super(symbolTable);
+    public OllirBuilder(JmmSemanticsResult semanticsResult) {
+        super(semanticsResult);
     }
 
     @Override
     public String compile() {
         compileImports();
-        builder.append(symbolTable.getClassName());
-        if (symbolTable.getSuper() != null)
-            builder.append("extends ").append(symbolTable.getSuper());
+        builder.append(semanticsResult.getSymbolTable().getClassName());
+        if (semanticsResult.getSymbolTable().getSuper() != null)
+            builder.append("extends ").append(semanticsResult.getSymbolTable().getSuper());
 
         builder.append("{\n");
-        builder.append(new FieldsBuilder(symbolTable).compile());
+        builder.append(new FieldsBuilder(semanticsResult).compile());
         builder.append("\n");
-        builder.append(new MethodsBuilder(symbolTable).compile());
+        builder.append(new MethodsBuilder(semanticsResult).compile());
         builder.append("\n}");
 
         return builder.toString();
     }
 
     private void compileImports() {
-        for (String importDecl : symbolTable.getImports()) {
+        for (String importDecl : semanticsResult.getSymbolTable().getImports()) {
             builder.append("import ").append(importDecl).append(";\n");
         }
     }

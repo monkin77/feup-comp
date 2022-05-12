@@ -1,10 +1,10 @@
 package pt.up.fe.comp.ollir;
 
-import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
+import pt.up.fe.comp.jmm.analysis.JmmSemanticsResult;
 
 public class MethodsBuilder extends AbstractBuilder {
-    public MethodsBuilder(SymbolTable symbolTable) {
-        super(symbolTable);
+    public MethodsBuilder(JmmSemanticsResult semanticsResult) {
+        super(semanticsResult);
     }
 
     @Override
