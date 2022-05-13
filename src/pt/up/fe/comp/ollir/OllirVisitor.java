@@ -26,8 +26,8 @@ public class OllirVisitor extends AJmmVisitor<Boolean, String> {
         addVisit("IntArray", this::intArrayVisit);*/
 
         addVisit("IntegerLiteral", this::integerLiteralVisit);
-        /*addVisit("BooleanLiteral", this::booleanLiteralVisit);
-        addVisit("_Identifier", this::identifierVisit);*/
+        addVisit("BooleanLiteral", this::booleanLiteralVisit);
+        addVisit("_Identifier", this::identifierVisit);
 
         addVisit("AddExpr", this::addExprVisit);
         addVisit("SubExpr", this::subExprVisit);
@@ -47,12 +47,20 @@ public class OllirVisitor extends AJmmVisitor<Boolean, String> {
     }
 
     private String assignExprVisit(JmmNode jmmNode, Object dummy) {
-
         return "";
     }
 
     private String integerLiteralVisit(JmmNode jmmNode, Object dummy) {
         return jmmNode.get("value") + ".i32";
+    }
+
+    private String booleanLiteralVisit(JmmNode jmmNode, Object dummy) {
+        return jmmNode.get("value") + ".bool";
+    }
+
+    private String identifierVisit(JmmNode jmmNode, Object dummy) {
+        // TODO: Type
+        return jmmNode.get("id");
     }
 
     private String addExprVisit(JmmNode jmmNode, Boolean isNotTerminal) {
