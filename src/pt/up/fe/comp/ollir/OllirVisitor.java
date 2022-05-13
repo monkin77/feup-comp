@@ -47,6 +47,12 @@ public class OllirVisitor extends AJmmVisitor<Boolean, String> {
     }
 
     private String assignExprVisit(JmmNode jmmNode, Object dummy) {
+        JmmNode lhs = jmmNode.getJmmChild(0);
+        JmmNode rhs = jmmNode.getJmmChild(1);
+        final String id = visit(lhs);
+        final String value = visit(rhs);
+        // TODO: Types
+        builder.append(id).append(" = ").append(value);
         return "";
     }
 
