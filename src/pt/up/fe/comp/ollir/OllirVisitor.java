@@ -98,7 +98,7 @@ public class OllirVisitor extends AJmmVisitor<Boolean, String> {
 
         String rhs = visit(node, !OllirUtils.isTerminalNode(node));
 
-        String calculation = '!' + "." + "bool" + " " + rhs + "\n";
+        String calculation = '!' + "." + "bool" + " " + rhs + ";" + "\n ";
 
         if (isNotTerminal != null && isNotTerminal) {
             String tempVariable = newTemp();
@@ -165,7 +165,7 @@ public class OllirVisitor extends AJmmVisitor<Boolean, String> {
         String lhs = visit(lhsNode, !OllirUtils.isTerminalNode(lhsNode));
         String rhs = visit(rhsNode, !OllirUtils.isTerminalNode(rhsNode));
 
-        String calculation = lhs + " " + operation + "." + argumentType + " " + rhs + "\n";
+        String calculation = lhs + " " + operation + "." + argumentType + " " + rhs + ";" + "\n";
 
         if (isNotTerminal != null && isNotTerminal) {
             String tempVariable = newTemp();
