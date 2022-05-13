@@ -36,7 +36,7 @@ public class OllirVisitor extends AJmmVisitor<Boolean, String> {
         addVisit("LessExpr", this::lessExprVisit);
 
         addVisit("AndExpr", this::andExprVisit);
-//        addVisit("NotExpr", this::notExprVisit);
+        addVisit("NotExpr", this::notExprVisit);
 
 //        addVisit("ArrayExpr", this::arrayExprVisit);
 
@@ -85,6 +85,22 @@ public class OllirVisitor extends AJmmVisitor<Boolean, String> {
 
     private String andExprVisit(JmmNode jmmNode, Boolean isNotTerminal) {
         return binOpVisit(jmmNode, isNotTerminal, "&&", "bool", "bool");
+    }
+
+    private String notExprVisit(JmmNode jmmNode, Boolean isNotTerminal) {
+        JmmNode node = jmmNode.getJmmChild(0);
+
+        String rhs = visit(node, !OllirUtils.isTerminalNode(node));
+
+        String calculation = '!' + "." + "bool" + " " + rhs + "\n";
+
+        if (isNotTerminal != null && isNotTerminal) {
+            String tempVariable = newTemp();
+            builder.append(tempVariable).append(".").append("bool").append(" :=.").append("bool").append(" ").append(calculation);
+            return tempVariable + '.' + "bool";
+        }
+
+        return calculation;
     }
 
     private String publicMethodVisit(JmmNode jmmNode, Object o) {
