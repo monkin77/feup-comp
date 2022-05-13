@@ -14,10 +14,14 @@ public class OllirBuilder extends AbstractBuilder {
         if (semanticsResult.getSymbolTable().getSuper() != null)
             builder.append("extends ").append(semanticsResult.getSymbolTable().getSuper());
 
-        builder.append("{\n");
+        builder.append(" {\n");
         builder.append(new FieldsBuilder(semanticsResult).compile());
         builder.append("\n");
+
+        compileConstructor();
+        builder.append("\n");
         builder.append(new MethodsBuilder(semanticsResult).compile());
+
         builder.append("\n}");
 
         return builder.toString();
@@ -27,5 +31,14 @@ public class OllirBuilder extends AbstractBuilder {
         for (String importDecl : semanticsResult.getSymbolTable().getImports()) {
             builder.append("import ").append(importDecl).append(";\n");
         }
+    }
+
+    private void compileConstructor() {
+        String className = semanticsResult.getSymbolTable().getClassName();
+        builder.append(OllirConstants.TAB);
+        builder.append(".construct ").append(className).append("().V {\n");
+        builder.append(OllirConstants.TAB).append(OllirConstants.TAB);
+        builder.append("invokespecial(this, \"<init>\").V;\n");
+        builder.append(OllirConstants.TAB).append("}\n");
     }
 }
