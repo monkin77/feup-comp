@@ -52,7 +52,7 @@ public class OllirVisitor extends AJmmVisitor<Boolean, String> {
         final String id = visit(lhs);
         final String value = visit(rhs);
         // TODO: Types
-        builder.append(id).append(" = ").append(value);
+        builder.append(id).append(" := ").append(value);
         return "";
     }
 
