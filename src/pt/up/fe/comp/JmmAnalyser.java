@@ -26,13 +26,20 @@ public class JmmAnalyser implements JmmAnalysis {
         reports.addAll(eval.getReports());
         // visitor code
 
-        ExistenceVisitor analyser = new ExistenceVisitor(symbolTable);
-        System.out.println("visitor analyser: " + analyser.visit(root, null));
-        reports.addAll(analyser.getReports());
+        System.out.println("Symbol table ->" + symbolTable.getImports());
 
-        TypeCheckingVisitor typeCheckVisitor = new TypeCheckingVisitor(symbolTable);
-        System.out.println("Type check Visitor: " + typeCheckVisitor.visit(root, null));
-        reports.addAll(typeCheckVisitor.getReports());
+        if (reports.isEmpty()) {
+            ExistenceVisitor analyser = new ExistenceVisitor(symbolTable);
+            System.out.println("Existence visitor analyser: " + analyser.visit(root, null));
+            reports.addAll(analyser.getReports());
+        }
+
+        if (reports.isEmpty()) {
+            TypeCheckingVisitor typeCheckVisitor = new TypeCheckingVisitor(symbolTable);
+            System.out.println("Type check Visitor: " + typeCheckVisitor.visit(root, null));
+            reports.addAll(typeCheckVisitor.getReports());
+        }
+
 
         return new JmmSemanticsResult(parserResult, symbolTable, reports);
     }

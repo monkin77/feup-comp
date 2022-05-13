@@ -178,6 +178,13 @@ public class SemanticAnalysisTest {
         TestUtils.mustFail(analysisResult.getReports());
         assertTrue(hasError(analysisResult.getReports(), error1));
     }
+
+    @Test
+    public void NestedImportNoErrors() {
+        String file = "pt/up/fe/comp/fixtures/public/semanticAnalysis/NestedImportNoError.jmm";
+        execute(file);
+        TestUtils.noErrors(analysisResult.getReports());
+    }
 }
 
 

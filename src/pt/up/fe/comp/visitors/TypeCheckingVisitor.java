@@ -92,24 +92,31 @@ public class TypeCheckingVisitor extends AJmmVisitor<Object, Integer> {
             throw new RuntimeException("Illegal number of children in node " + node.getKind() + ".");
 
         // Get the return type of the method
-        Types varType = Types.getType(node.getJmmChild(0).getKind());
-        boolean isArray = varType.getIsArray();
+        Type methodType = Utils.getNodeType(node.getJmmChild(0));
 
-        MySymbol methodSymbol = new MySymbol(new Type(varType.toString(), isArray), node.get("name"), EntityTypes.METHOD);
+        MySymbol methodSymbol = new MySymbol(methodType, node.get("name"), EntityTypes.METHOD);
 
         // Add new scope
         this.createScope(methodSymbol);
 
-        Integer visitResult = 0;
         for (int i = 1; i < node.getNumChildren(); ++i) {
             JmmNode childNode = node.getJmmChild(i);
-            visitResult = visit(childNode);
+            visit(childNode);
+        }
+
+        JmmNode returnChild = node.getJmmChild(node.getNumChildren() - 1);
+        Type returnChildType = Utils.calculateNodeType(returnChild, this.scopeStack, this.symbolTable);
+        if (!returnChildType.equals(methodSymbol.getType()) && !returnChildType.getName().equals(Types.UNKNOWN.toString())) {
+            this.reports.add(Report.newError(Stage.SEMANTIC, Integer.parseInt(returnChild.get("line")), Integer.parseInt(returnChild.get("col")),
+                    "Type error. Expected return of type " + Utils.printTypeName(methodSymbol.getType()) + " but got " + Utils.printTypeName(returnChildType) + ".",
+                    null));
+            return -1;
         }
 
         // Pop current scope
         this.scopeStack.pop();
 
-        return visitResult;
+        return 0;
     }
 
 
@@ -139,11 +146,8 @@ public class TypeCheckingVisitor extends AJmmVisitor<Object, Integer> {
                         null));
                 return -1;
             } else if (!(this.isSameType(idType, assignType))) {
-                String typeName = idType.getName();
-                String assignTypeName = assignType.getName();
-
                 this.reports.add(Report.newError(Stage.SEMANTIC, Integer.parseInt(firstChild.get("line")), Integer.parseInt(firstChild.get("col")),
-                        "Type error. Attempting to assign value of type " + assignTypeName + " to a variable of type " + typeName + ".",
+                        "Type error. Attempting to assign value of type " + Utils.printTypeName(assignType) + " to a variable of type " + Utils.printTypeName(idType)  + ".",
                         null));
                 return -1;
             }
@@ -351,8 +355,25 @@ public class TypeCheckingVisitor extends AJmmVisitor<Object, Integer> {
         return type.equals(Types.UNKNOWN.toString()) || type.equals(Types.BOOLEAN.toString());
     }
 
+    /**
+     * Verifies if the 2 given types are assignable
+     * @return
+     */
     private boolean isSameType(Type type1, Type type2){
-        return type1.equals(type2) || type1.getName().equals(Types.UNKNOWN.toString()) || type2.getName().equals(Types.UNKNOWN.toString());
+        if (type1.equals(type2) || type1.getName().equals(Types.UNKNOWN.toString()) || type2.getName().equals(Types.UNKNOWN.toString()))
+            return true;
+
+        if ((Utils.hasImport(type1.getName(), this.symbolTable))) {
+            if (Utils.hasImport(type2.getName(), this.symbolTable)) return true;
+
+            if (this.symbolTable.hasInheritance()) {
+                System.out.println(this.symbolTable.getSuper());
+                System.out.println(type1.getName());
+                if (this.symbolTable.getSuper().equals(type1.getName())) return true;
+            }
+        }
+
+        return false;
     }
 
     private boolean isVariable(JmmNode node) {

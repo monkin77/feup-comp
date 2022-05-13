@@ -17,10 +17,14 @@ public class Utils {
     public static MySymbol existsInScope(String name, List<EntityTypes> entityTypes, Stack<MySymbol> scopeStack, MySymbolTable symbolTable) {
         Iterator<MySymbol> scopeIter = scopeStack.iterator();
 
+        String fullName = name;
+        if (entityTypes.contains(EntityTypes.IMPORT)) fullName = Utils.getFullImportName(fullName, symbolTable);
+
+
         MySymbol symbol;
         while(scopeIter.hasNext()) {
             MySymbol nextScope = scopeIter.next();
-            symbol = symbolTable.get(nextScope, name, entityTypes);
+            symbol = symbolTable.get(nextScope, fullName, entityTypes);
             if (symbol != null) return symbol;
         }
 
@@ -62,6 +66,7 @@ public class Utils {
                 // Identifier
                 String nodeName = node.get("id");
                 MySymbol identifier = existsInScope(nodeName, identifierTypes, scopeStack, symbolTable);
+
                 if (identifier == null) {
                     throw new RuntimeException("Unknown reference to symbol " + nodeName + ".");
                 }
@@ -107,6 +112,18 @@ public class Utils {
             if (splitImport[splitImport.length - 1].equals(checkImport)) return true;
         }
         return false;
+    }
+
+    /**
+     * @return Full import name if found. Otherwise, return the provided name
+     */
+    public static String getFullImportName(String checkImport, MySymbolTable symbolTable){
+        for(String importName : symbolTable.getImports()) {
+            String[] splitImport = importName.split("\\.");
+            if (splitImport[splitImport.length - 1].equals(checkImport)) return importName;
+        }
+
+        return checkImport;
     }
 
     public static Boolean isCustomType(String typeName) {
