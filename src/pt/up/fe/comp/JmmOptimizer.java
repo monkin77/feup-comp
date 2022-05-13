@@ -8,7 +8,7 @@ import pt.up.fe.comp.ollir.OllirBuilder;
 public class JmmOptimizer implements JmmOptimization {
     @Override
     public JmmSemanticsResult optimize(JmmSemanticsResult semanticsResult) {
-        return null;
+        return semanticsResult;
     }
 
     @Override
@@ -21,6 +21,6 @@ public class JmmOptimizer implements JmmOptimization {
 
     @Override
     public OllirResult optimize(OllirResult ollirResult) {
-        return null;
+        return ollirResult;
     }
 }

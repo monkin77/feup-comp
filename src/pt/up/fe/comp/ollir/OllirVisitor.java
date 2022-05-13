@@ -8,10 +8,11 @@ import pt.up.fe.comp.jmm.ast.JmmNode;
 
 import java.util.List;
 
-public class OllirVisitor extends AJmmVisitor<Boolean, String> {
+public class OllirVisitor extends AJmmVisitor<Object, String> {
     private final StringBuilder builder;
     private final SymbolTable symbolTable;
     private int tempCounter;
+    private String currentMethod;
 
     public OllirVisitor(SymbolTable symbolTable) {
         this.symbolTable = symbolTable;
@@ -22,8 +23,8 @@ public class OllirVisitor extends AJmmVisitor<Boolean, String> {
         addVisit("MainDecl", this::mainDeclVisit);
         addVisit("PublicMethod", this::publicMethodVisit);
         addVisit("AssignmentExpr", this::assignExprVisit);
-        /*addVisit("DotMethod", this::dotMethodVisit);
-        addVisit("IntArray", this::intArrayVisit);*/
+        addVisit("DotExpression", this::dotExpressionVisit);
+        addVisit("DotMethod", this::dotMethodVisit);
 
         addVisit("IntegerLiteral", this::integerLiteralVisit);
         addVisit("BooleanLiteral", this::booleanLiteralVisit);
@@ -40,21 +41,60 @@ public class OllirVisitor extends AJmmVisitor<Boolean, String> {
         addVisit("ImportRegion", this::ignore);
 
 //        addVisit("ArrayExpr", this::arrayExprVisit);
-
 //        addVisit("IfElse", this::conditionalVisit);
 //        addVisit("WhileSt", this::whileVisit);
 
         setDefaultVisit(this::defaultVisit);
     }
 
+    private String dotExpressionVisit(JmmNode node, Object dummy) {
+        String type = dummy == null ? "V" : (String) dummy;
+        JmmNode lhs = node.getJmmChild(0);
+        JmmNode rhs = node.getJmmChild(1);
+
+        String lhsId = visit(lhs);
+        String rhsId = visit(rhs, lhsId);
+        builder.append(rhsId).append(".").append(type);
+        return null;
+    }
+
+    private String dotMethodVisit(JmmNode node, Object dummy) {
+        /*
+        invokestatic(io, "println", t2.String, t3.i32);
+		invokevirtual(c1.myClass, "put", 2.i32);
+		invokespecial(c1.myClass,"<init>");
+        */
+//        String lhsId = visit(lhs);
+
+
+        return null;
+    }
+
     private String assignExprVisit(JmmNode jmmNode, Object dummy) {
         JmmNode lhs = jmmNode.getJmmChild(0);
+        Symbol symbol = getSymbol(lhs);
+        String assignType = OllirUtils.convertType(symbol.getType());
+
         JmmNode rhs = jmmNode.getJmmChild(1);
         final String id = visit(lhs);
-        final String value = visit(rhs);
+        final String value = visit(rhs, assignType);
         // TODO: Types
-        builder.append(id).append(" := ").append(value);
+        builder.append(id).append(" :=.").append(assignType).append(" ").append(value).append(";\n");
         return "";
+    }
+
+    private Symbol getSymbol(JmmNode node) {
+        for (Symbol s : symbolTable.getLocalVariables(currentMethod)) {
+            if (s.getName().equals(node.get("id"))) {
+                return s;
+            }
+        }
+        for (Symbol s : symbolTable.getParameters(currentMethod)) {
+            if (s.getName().equals(node.get("id"))) {
+                return s;
+            }
+        }
+        return null;
     }
 
     private String integerLiteralVisit(JmmNode jmmNode, Object dummy) {
@@ -67,41 +107,41 @@ public class OllirVisitor extends AJmmVisitor<Boolean, String> {
 
     private String identifierVisit(JmmNode jmmNode, Object dummy) {
         // TODO: Type
-        return jmmNode.get("id");
+        return jmmNode.get("id") + "." + OllirUtils.convertType(getSymbol(jmmNode).getType());
     }
 
-    private String addExprVisit(JmmNode jmmNode, Boolean isNotTerminal) {
+    private String addExprVisit(JmmNode jmmNode, Object isNotTerminal) {
         return binOpVisit(jmmNode, isNotTerminal, "+", "i32", "i32");
     }
 
-    private String subExprVisit(JmmNode jmmNode, Boolean isNotTerminal) {
+    private String subExprVisit(JmmNode jmmNode, Object isNotTerminal) {
         return binOpVisit(jmmNode, isNotTerminal, "-", "i32", "i32");
     }
 
-    private String mulExprVisit(JmmNode jmmNode, Boolean isNotTerminal) {
+    private String mulExprVisit(JmmNode jmmNode, Object isNotTerminal) {
         return binOpVisit(jmmNode, isNotTerminal, "*", "i32", "i32");
     }
 
-    private String divExprVisit(JmmNode jmmNode, Boolean isNotTerminal) {
+    private String divExprVisit(JmmNode jmmNode, Object isNotTerminal) {
         return binOpVisit(jmmNode, isNotTerminal, "/", "i32", "i32");
     }
 
-    private String lessExprVisit(JmmNode jmmNode, Boolean isNotTerminal) {
+    private String lessExprVisit(JmmNode jmmNode, Object isNotTerminal) {
         return binOpVisit(jmmNode, isNotTerminal, "<", "bool", "i32");
     }
 
-    private String andExprVisit(JmmNode jmmNode, Boolean isNotTerminal) {
+    private String andExprVisit(JmmNode jmmNode, Object isNotTerminal) {
         return binOpVisit(jmmNode, isNotTerminal, "&&", "bool", "bool");
     }
 
-    private String notExprVisit(JmmNode jmmNode, Boolean isNotTerminal) {
+    private String notExprVisit(JmmNode jmmNode, Object isNotTerminal) {
         JmmNode node = jmmNode.getJmmChild(0);
 
         String rhs = visit(node, !OllirUtils.isTerminalNode(node));
 
-        String calculation = '!' + "." + "bool" + " " + rhs + ";" + "\n ";
+        String calculation = '!' + "." + "bool" + " " + rhs + ";" + "\n";
 
-        if (isNotTerminal != null && isNotTerminal) {
+        if (isNotTerminal != null && (Boolean) isNotTerminal) {
             String tempVariable = newTemp();
             builder.append(tempVariable).append(".").append("bool").append(" :=.").append("bool").append(" ").append(calculation);
             return tempVariable + '.' + "bool";
@@ -136,18 +176,21 @@ public class OllirVisitor extends AJmmVisitor<Boolean, String> {
         return "";
     }
 
-    private String methodDeclaration(JmmNode jmmNode, String methodName, boolean isStatic) {
+    private String methodDeclaration(JmmNode jmmNode, String methodName, Object isStatic) {
+        currentMethod = methodName;
         builder.append(OllirConstants.TAB);
         builder.append(".method public ");
-        if (isStatic) builder.append("static ");
+        if ((Boolean) isStatic) builder.append("static ");
         builder.append(methodName).append("(");
 
         List<Symbol> paremeters = symbolTable.getParameters(methodName);
         for (Symbol param : paremeters) {
             builder.append(param.getName());
             String type = OllirUtils.convertType(param.getType());
-            builder.append(".").append(type).append(")");
+            builder.append(".").append(type);
+            if (param != paremeters.get(paremeters.size() - 1)) builder.append(", ");
         }
+        builder.append(")");
 
         Type returnType = symbolTable.getReturnType(methodName);
         builder.append(".").append(OllirUtils.convertType(returnType))
@@ -155,22 +198,22 @@ public class OllirVisitor extends AJmmVisitor<Boolean, String> {
 
         defaultVisit(jmmNode, null);
 
-        builder.append("\n").append(OllirConstants.TAB).append("}");
+        builder.append("\n").append(OllirConstants.TAB).append("}").append("\n");
         return "";
     }
 
-    private String binOpVisit(JmmNode jmmNode, Boolean isNotTerminal, String operation, String returnType, String argumentType) {
+    private String binOpVisit(JmmNode jmmNode, Object isNotTerminal, String operation, String returnType, String argumentType) {
         JmmNode lhsNode = jmmNode.getJmmChild(0);
         JmmNode rhsNode = jmmNode.getJmmChild(1);
 
         String lhs = visit(lhsNode, !OllirUtils.isTerminalNode(lhsNode));
         String rhs = visit(rhsNode, !OllirUtils.isTerminalNode(rhsNode));
 
-        String calculation = lhs + " " + operation + "." + argumentType + " " + rhs + ";" + "\n";
+        String calculation = lhs + " " + operation + "." + argumentType + " " + rhs;
 
-        if (isNotTerminal != null && isNotTerminal) {
+        if (isNotTerminal != null && (Boolean) isNotTerminal) {
             String tempVariable = newTemp();
-            builder.append(tempVariable).append(".").append(returnType).append(" :=.").append(returnType).append(" ").append(calculation);
+            builder.append(tempVariable).append(".").append(returnType).append(" :=.").append(returnType).append(" ").append(calculation).append(";\n");
 
             return tempVariable + '.' + returnType;
         }

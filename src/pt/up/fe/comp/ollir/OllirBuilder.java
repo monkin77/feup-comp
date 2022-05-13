@@ -12,7 +12,7 @@ public class OllirBuilder extends AbstractBuilder {
         compileImports();
         builder.append(semanticsResult.getSymbolTable().getClassName());
         if (semanticsResult.getSymbolTable().getSuper() != null)
-            builder.append("extends ").append(semanticsResult.getSymbolTable().getSuper());
+            builder.append(" extends ").append(semanticsResult.getSymbolTable().getSuper());
 
         builder.append(" {\n");
         builder.append(new FieldsBuilder(semanticsResult).compile());
