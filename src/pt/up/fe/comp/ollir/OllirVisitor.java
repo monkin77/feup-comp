@@ -37,6 +37,7 @@ public class OllirVisitor extends AJmmVisitor<Boolean, String> {
 
         addVisit("AndExpr", this::andExprVisit);
         addVisit("NotExpr", this::notExprVisit);
+        addVisit("ImportRegion", this::ignore);
 
 //        addVisit("ArrayExpr", this::arrayExprVisit);
 
@@ -179,5 +180,9 @@ public class OllirVisitor extends AJmmVisitor<Boolean, String> {
 
     private String newTemp() {
         return "temp" + tempCounter++;
+    }
+
+    private String ignore(JmmNode jmmNode, Object dummy) {
+        return "";
     }
 }
