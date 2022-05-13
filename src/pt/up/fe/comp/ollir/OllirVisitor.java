@@ -31,17 +31,17 @@ public class OllirVisitor extends AJmmVisitor<Boolean, String> {
 
         addVisit("AddExpr", this::addExprVisit);
         addVisit("SubExpr", this::subExprVisit);
-        /*addVisit("MultExpr", this::mulExprVisit);
+        addVisit("MultExpr", this::mulExprVisit);
         addVisit("DivExpr", this::divExprVisit);
         addVisit("LessExpr", this::lessExprVisit);
 
         addVisit("AndExpr", this::andExprVisit);
-        addVisit("NotExpr", this::notExprVisit);
+//        addVisit("NotExpr", this::notExprVisit);
 
-        addVisit("ArrayExpr", this::arrayExprVisit);
+//        addVisit("ArrayExpr", this::arrayExprVisit);
 
-        addVisit("IfElse", this::conditionalVisit);
-        addVisit("WhileSt", this::whileVisit);*/
+//        addVisit("IfElse", this::conditionalVisit);
+//        addVisit("WhileSt", this::whileVisit);
 
         setDefaultVisit(this::defaultVisit);
     }
@@ -61,6 +61,22 @@ public class OllirVisitor extends AJmmVisitor<Boolean, String> {
 
     private String subExprVisit(JmmNode jmmNode, Boolean isNotTerminal) {
         return binOpVisit(jmmNode, isNotTerminal, "-");
+    }
+
+    private String mulExprVisit(JmmNode jmmNode, Boolean isNotTerminal) {
+        return binOpVisit(jmmNode, isNotTerminal, "*");
+    }
+
+    private String divExprVisit(JmmNode jmmNode, Boolean isNotTerminal) {
+        return binOpVisit(jmmNode, isNotTerminal, "/");
+    }
+
+    private String lessExprVisit(JmmNode jmmNode, Boolean isNotTerminal) {
+        return binOpVisit(jmmNode, isNotTerminal, "<");
+    }
+
+    private String andExprVisit(JmmNode jmmNode, Boolean isNotTerminal) {
+        return binOpVisit(jmmNode, isNotTerminal, "&&");
     }
 
     private String publicMethodVisit(JmmNode jmmNode, Object o) {
