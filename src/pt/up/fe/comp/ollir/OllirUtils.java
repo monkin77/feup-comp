@@ -1,5 +1,7 @@
 package pt.up.fe.comp.ollir;
 
+import pt.up.fe.comp.jmm.analysis.table.Symbol;
+import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
 import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.JmmNode;
 
@@ -36,5 +38,19 @@ public class OllirUtils {
         String kind = node.getKind();
         return kind.equals("IntegerLiteral") || kind.equals("ArrayExpr") || kind.equals("DotExpr")
                 || kind.equals("_Identifier") || kind.equals("BooleanLiteral") || kind.equals("_This");
+    }
+
+    public static Symbol getSymbol(String symbol, String currentMethod, SymbolTable symbolTable) {
+        for (Symbol s : symbolTable.getLocalVariables(currentMethod)) {
+            if (s.getName().equals(symbol)) {
+                return s;
+            }
+        }
+        for (Symbol s : symbolTable.getParameters(currentMethod)) {
+            if (s.getName().equals(symbol)) {
+                return s;
+            }
+        }
+        return null;
     }
 }

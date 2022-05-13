@@ -1,6 +1,7 @@
 package pt.up.fe.comp.visitors;
 
 import pt.up.fe.comp.*;
+import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
 import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.JmmNode;
 
@@ -106,7 +107,7 @@ public class Utils {
         return kind.equals("MultExpr") || kind.equals("AddExpr") || kind.equals("SubExpr") || kind.equals("DivExpr");
     }
 
-    public static boolean hasImport(String checkImport, MySymbolTable symbolTable){
+    public static boolean hasImport(String checkImport, SymbolTable symbolTable){
         for(String importName : symbolTable.getImports()) {
             String[] splitImport = importName.split("\\.");
             if (splitImport[splitImport.length - 1].equals(checkImport)) return true;

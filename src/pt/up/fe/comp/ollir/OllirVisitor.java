@@ -5,8 +5,11 @@ import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
 import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.AJmmVisitor;
 import pt.up.fe.comp.jmm.ast.JmmNode;
+import pt.up.fe.comp.visitors.Utils;
 
 import java.util.List;
+
+import static pt.up.fe.comp.ollir.OllirUtils.getSymbol;
 
 public class OllirVisitor extends AJmmVisitor<Object, String> {
     private final StringBuilder builder;
@@ -54,25 +57,49 @@ public class OllirVisitor extends AJmmVisitor<Object, String> {
 
         String lhsId = visit(lhs);
         String rhsId = visit(rhs, lhsId);
-        builder.append(rhsId).append(".").append(type);
+        // TODO check the ; (e.g assign)
+        // TODO dot methods returning void except assignment
+        // TODO dot length
+        // TODO invokespecial
+        // TODO ifelse, arrayexpr, whileSt
+        // TODO remover esparguete
+        // TODO remover os builders
+        builder.append(rhsId).append(")").append(".").append(type).append(";");
+
         return null;
     }
 
     private String dotMethodVisit(JmmNode node, Object dummy) {
-        /*
-        invokestatic(io, "println", t2.String, t3.i32);
-		invokevirtual(c1.myClass, "put", 2.i32);
-		invokespecial(c1.myClass,"<init>");
-        */
-//        String lhsId = visit(lhs);
 
+        String id = (String) dummy;
+        Symbol symbol = getSymbol(id, currentMethod, symbolTable);
 
-        return null;
+        StringBuilder sb = new StringBuilder();
+        String method = "\"" + node.get("method") + "\"";
+        if (symbol == null) {
+            if (Utils.hasImport(id, symbolTable)) {
+                sb.append("invokestatic(").append(id);
+            } else {
+                throw new RuntimeException("Invalid symbol method invocation");
+            }
+        } else {
+            sb.append("invokevirtual(").append(symbol.getName()).append(".").append(OllirUtils.convertType(symbol.getType()));
+        }
+
+        sb.append(", ").append(method);
+        for (int i = 0; i < node.getNumChildren(); ++i) {
+            JmmNode childNode = node.getJmmChild(i);
+            sb.append(", ");
+            sb.append(visit(childNode));
+        }
+        // return will be appended in DotExpression
+
+        return sb.toString();
     }
 
     private String assignExprVisit(JmmNode jmmNode, Object dummy) {
         JmmNode lhs = jmmNode.getJmmChild(0);
-        Symbol symbol = getSymbol(lhs);
+        Symbol symbol = getSymbol(lhs.get("id"), currentMethod, symbolTable);
         String assignType = OllirUtils.convertType(symbol.getType());
 
         JmmNode rhs = jmmNode.getJmmChild(1);
@@ -81,20 +108,6 @@ public class OllirVisitor extends AJmmVisitor<Object, String> {
         // TODO: Types
         builder.append(id).append(" :=.").append(assignType).append(" ").append(value).append(";\n");
         return "";
-    }
-
-    private Symbol getSymbol(JmmNode node) {
-        for (Symbol s : symbolTable.getLocalVariables(currentMethod)) {
-            if (s.getName().equals(node.get("id"))) {
-                return s;
-            }
-        }
-        for (Symbol s : symbolTable.getParameters(currentMethod)) {
-            if (s.getName().equals(node.get("id"))) {
-                return s;
-            }
-        }
-        return null;
     }
 
     private String integerLiteralVisit(JmmNode jmmNode, Object dummy) {
@@ -107,7 +120,8 @@ public class OllirVisitor extends AJmmVisitor<Object, String> {
 
     private String identifierVisit(JmmNode jmmNode, Object dummy) {
         // TODO: Type
-        return jmmNode.get("id") + "." + OllirUtils.convertType(getSymbol(jmmNode).getType());
+        Symbol nodeSymbol = getSymbol(jmmNode.get("id"), currentMethod, symbolTable);
+        return jmmNode.get("id") + (nodeSymbol != null ? "." + OllirUtils.convertType(nodeSymbol.getType()) : "");
     }
 
     private String addExprVisit(JmmNode jmmNode, Object isNotTerminal) {
@@ -183,12 +197,12 @@ public class OllirVisitor extends AJmmVisitor<Object, String> {
         if ((Boolean) isStatic) builder.append("static ");
         builder.append(methodName).append("(");
 
-        List<Symbol> paremeters = symbolTable.getParameters(methodName);
-        for (Symbol param : paremeters) {
+        List<Symbol> parameters = symbolTable.getParameters(methodName);
+        for (Symbol param : parameters) {
             builder.append(param.getName());
             String type = OllirUtils.convertType(param.getType());
             builder.append(".").append(type);
-            if (param != paremeters.get(paremeters.size() - 1)) builder.append(", ");
+            if (param != parameters.get(parameters.size() - 1)) builder.append(", ");
         }
         builder.append(")");
 
