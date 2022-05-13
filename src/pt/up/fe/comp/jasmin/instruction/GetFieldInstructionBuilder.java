@@ -27,7 +27,7 @@ public class GetFieldInstructionBuilder extends AbstractBuilder {
 
         builder.append(JasminUtils.buildLoadInstruction(firstArg, method));
 
-        final String typeName = JasminUtils.getTypeName(instruction.getFieldType(), classUnit);
+        final String typeName = JasminUtils.getTypeName(instruction.getFieldType(), classUnit, true);
 
         builder.append("getfield ").append(className).append("/").append(fieldName);
         builder.append(" ").append(typeName);

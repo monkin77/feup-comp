@@ -28,10 +28,10 @@ public class MethodsBuilder extends AbstractBuilder {
 
             builder.append("(");
             for (final Element element : method.getParams())
-                builder.append(JasminUtils.getTypeName(element.getType(), classUnit));
+                builder.append(JasminUtils.getTypeName(element.getType(), classUnit, true));
 
             builder.append(")");
-            builder.append(JasminUtils.getTypeName(method.getReturnType(), classUnit)).append("\n");
+            builder.append(JasminUtils.getTypeName(method.getReturnType(), classUnit, true)).append("\n");
 
             compileMethodBody(method);
             builder.append(".end method\n\n");

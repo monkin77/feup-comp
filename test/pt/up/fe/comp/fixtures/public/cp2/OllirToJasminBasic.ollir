@@ -19,7 +19,7 @@ SymbolTable extends Quicksort {
 	
 	.method public method2(intParam1.i32, boolParam1.bool).bool {
 		ret.bool boolParam1.bool;
-	}	
+	}
 
 
 	.method public static main(args.array.String).V {

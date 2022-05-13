@@ -15,10 +15,14 @@ public class JasminUtils {
     }
 
     public static String getTypeName(Type type, ClassUnit classUnit) {
-        return getTypeName(type, type.getTypeOfElement(), classUnit);
+        return getTypeName(type, type.getTypeOfElement(), classUnit, false);
     }
 
-    public static String getTypeName(Type type, ElementType elementType, ClassUnit classUnit) {
+    public static String getTypeName(Type type, ClassUnit classUnit, boolean isArgType) {
+        return getTypeName(type, type.getTypeOfElement(), classUnit, isArgType);
+    }
+
+    public static String getTypeName(Type type, ElementType elementType, ClassUnit classUnit, boolean isArgType) {
         switch (elementType) {
             case INT32:
                 return "I";
@@ -27,10 +31,13 @@ public class JasminUtils {
             case ARRAYREF:
                 final ArrayType arrayType = (ArrayType) type;
                 final String arrayFlag = "[".repeat(arrayType.getNumDimensions());
-                return arrayFlag + getTypeName(type, arrayType.getTypeOfElements(), classUnit);
+                // TODO Can't pass type here if array of objects is possible
+                return arrayFlag + getTypeName(type, arrayType.getArrayType(), classUnit, isArgType);
             case OBJECTREF:
             case CLASS:
-                return ((ClassType) type).getName();
+                final String className = ((ClassType) type).getName();
+                final String fullClassName = getFullClassName(className, classUnit);
+                return isArgType ? "L" + fullClassName + ";" : fullClassName;
             case THIS:
                 return classUnit.getClassName();
             case STRING:
@@ -75,5 +82,17 @@ public class JasminUtils {
 
         builder.append("\n");
         return builder.toString();
+    }
+
+    public static String getFullClassName(String className, ClassUnit classUnit) {
+        for (String importString : classUnit.getImports()) {
+            String[] importArray = importString.split("\\.");
+            String lastName = importArray.length == 0 ? importString : importArray[importArray.length - 1];
+            if (lastName.equals(className)) {
+                return importString.replace(".", "/");
+            }
+        }
+
+        return className;
     }
 }
