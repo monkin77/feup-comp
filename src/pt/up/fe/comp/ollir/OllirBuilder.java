@@ -20,7 +20,7 @@ public class OllirBuilder extends AbstractBuilder {
 
         compileConstructor();
         builder.append("\n");
-        builder.append(new MethodsBuilder(semanticsResult).compile());
+        builder.append(new OllirVisitor(semanticsResult.getSymbolTable()).visit(semanticsResult.getRootNode()));
 
         builder.append("\n}");
 
