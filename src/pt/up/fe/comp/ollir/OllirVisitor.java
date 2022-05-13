@@ -116,7 +116,6 @@ public class OllirVisitor extends AJmmVisitor<Boolean, String> {
         JmmNode lhsNode = jmmNode.getJmmChild(0);
         JmmNode rhsNode = jmmNode.getJmmChild(1);
 
-        // TODO Utils for not terminal
         String lhs = visit(lhsNode, !OllirUtils.isTerminalNode(lhsNode));
         String rhs = visit(rhsNode, !OllirUtils.isTerminalNode(rhsNode));
 
