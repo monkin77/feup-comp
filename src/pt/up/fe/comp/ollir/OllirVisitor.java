@@ -167,9 +167,8 @@ public class OllirVisitor extends AJmmVisitor<Boolean, String> {
 
             return tempVariable + '.' + returnType;
         }
-        builder.append(calculation);
 
-        return "";
+        return calculation;
     }
 
     private String newTemp() {
