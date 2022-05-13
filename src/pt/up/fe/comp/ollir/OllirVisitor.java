@@ -8,13 +8,15 @@ import pt.up.fe.comp.jmm.ast.JmmNode;
 
 import java.util.List;
 
-public class OllirVisitor extends AJmmVisitor<Object, String> {
+public class OllirVisitor extends AJmmVisitor<Boolean, String> {
     private final StringBuilder builder;
     private final SymbolTable symbolTable;
+    private int tempCounter;
 
     public OllirVisitor(SymbolTable symbolTable) {
         this.symbolTable = symbolTable;
         builder = new StringBuilder();
+        tempCounter = 0;
 
         addVisit("Start", this::startVisit);
         addVisit("MainDecl", this::mainDeclVisit);
@@ -28,8 +30,8 @@ public class OllirVisitor extends AJmmVisitor<Object, String> {
         addVisit("_Identifier", this::identifierVisit);*/
 
         addVisit("AddExpr", this::addExprVisit);
-        /*addVisit("SubExpr", this::subExprVisit);
-        addVisit("MultExpr", this::mulExprVisit);
+        addVisit("SubExpr", this::subExprVisit);
+        /*addVisit("MultExpr", this::mulExprVisit);
         addVisit("DivExpr", this::divExprVisit);
         addVisit("LessExpr", this::lessExprVisit);
 
@@ -53,12 +55,12 @@ public class OllirVisitor extends AJmmVisitor<Object, String> {
         return jmmNode.get("value") + ".i32";
     }
 
-    private String addExprVisit(JmmNode jmmNode, Object dummy) {
-        String lhs = visit(jmmNode.getJmmChild(0));
-        String rhs = visit(jmmNode.getJmmChild(1));
-        builder.append(lhs).append(" + ").append(rhs);
+    private String addExprVisit(JmmNode jmmNode, Boolean isNotTerminal) {
+        return binOpVisit(jmmNode, isNotTerminal, "+");
+    }
 
-        return "";
+    private String subExprVisit(JmmNode jmmNode, Boolean isNotTerminal) {
+        return binOpVisit(jmmNode, isNotTerminal, "-");
     }
 
     private String publicMethodVisit(JmmNode jmmNode, Object o) {
@@ -108,5 +110,30 @@ public class OllirVisitor extends AJmmVisitor<Object, String> {
 
         builder.append("\n").append(OllirConstants.TAB).append("}");
         return "";
+    }
+
+    private String binOpVisit(JmmNode jmmNode, Boolean isNotTerminal, String operation) {
+        JmmNode lhsNode = jmmNode.getJmmChild(0);
+        JmmNode rhsNode = jmmNode.getJmmChild(1);
+
+        // TODO Utils for not terminal
+        String lhs = visit(lhsNode, !OllirUtils.isTerminalNode(lhsNode));
+        String rhs = visit(rhsNode, !OllirUtils.isTerminalNode(rhsNode));
+
+        String calculation = lhs + " " + operation + " " + rhs + "\n";
+
+        if (isNotTerminal != null && isNotTerminal) {
+            String tempVariable = newTemp();
+            builder.append(tempVariable).append(".i32 :=.i32 ").append(calculation);
+
+            return tempVariable + ".i32";
+        }
+        builder.append(calculation);
+
+        return "";
+    }
+
+    private String newTemp() {
+        return "temp" + tempCounter++;
     }
 }

@@ -1,6 +1,7 @@
 package pt.up.fe.comp.ollir;
 
 import pt.up.fe.comp.jmm.analysis.table.Type;
+import pt.up.fe.comp.jmm.ast.JmmNode;
 
 public class OllirUtils {
     public static String convertType(Type symbolType) {
@@ -29,5 +30,11 @@ public class OllirUtils {
         }
 
         return stringBuilder.toString();
+    }
+
+    public static boolean isTerminalNode(JmmNode node) {
+        String kind = node.getKind();
+        return kind.equals("IntegerLiteral") || kind.equals("ArrayExpr") || kind.equals("DotExpr")
+                || kind.equals("_Identifier") || kind.equals("BooleanLiteral") || kind.equals("_This");
     }
 }
