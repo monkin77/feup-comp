@@ -64,27 +64,27 @@ public class OllirVisitor extends AJmmVisitor<Boolean, String> {
     }
 
     private String addExprVisit(JmmNode jmmNode, Boolean isNotTerminal) {
-        return binOpVisit(jmmNode, isNotTerminal, "+");
+        return binOpVisit(jmmNode, isNotTerminal, "+", "i32", "i32");
     }
 
     private String subExprVisit(JmmNode jmmNode, Boolean isNotTerminal) {
-        return binOpVisit(jmmNode, isNotTerminal, "-");
+        return binOpVisit(jmmNode, isNotTerminal, "-", "i32", "i32");
     }
 
     private String mulExprVisit(JmmNode jmmNode, Boolean isNotTerminal) {
-        return binOpVisit(jmmNode, isNotTerminal, "*");
+        return binOpVisit(jmmNode, isNotTerminal, "*", "i32", "i32");
     }
 
     private String divExprVisit(JmmNode jmmNode, Boolean isNotTerminal) {
-        return binOpVisit(jmmNode, isNotTerminal, "/");
+        return binOpVisit(jmmNode, isNotTerminal, "/", "i32", "i32");
     }
 
     private String lessExprVisit(JmmNode jmmNode, Boolean isNotTerminal) {
-        return binOpVisit(jmmNode, isNotTerminal, "<");
+        return binOpVisit(jmmNode, isNotTerminal, "<", "bool", "i32");
     }
 
     private String andExprVisit(JmmNode jmmNode, Boolean isNotTerminal) {
-        return binOpVisit(jmmNode, isNotTerminal, "&&");
+        return binOpVisit(jmmNode, isNotTerminal, "&&", "bool", "bool");
     }
 
     private String publicMethodVisit(JmmNode jmmNode, Object o) {
@@ -136,20 +136,20 @@ public class OllirVisitor extends AJmmVisitor<Boolean, String> {
         return "";
     }
 
-    private String binOpVisit(JmmNode jmmNode, Boolean isNotTerminal, String operation) {
+    private String binOpVisit(JmmNode jmmNode, Boolean isNotTerminal, String operation, String returnType, String argumentType) {
         JmmNode lhsNode = jmmNode.getJmmChild(0);
         JmmNode rhsNode = jmmNode.getJmmChild(1);
 
         String lhs = visit(lhsNode, !OllirUtils.isTerminalNode(lhsNode));
         String rhs = visit(rhsNode, !OllirUtils.isTerminalNode(rhsNode));
 
-        String calculation = lhs + " " + operation + " " + rhs + "\n";
+        String calculation = lhs + " " + operation + "." + argumentType + " " + rhs + "\n";
 
         if (isNotTerminal != null && isNotTerminal) {
             String tempVariable = newTemp();
-            builder.append(tempVariable).append(".i32 :=.i32 ").append(calculation);
+            builder.append(tempVariable).append(".").append(returnType).append(" :=.").append(returnType).append(" ").append(calculation);
 
-            return tempVariable + ".i32";
+            return tempVariable + '.' + returnType;
         }
         builder.append(calculation);
 
