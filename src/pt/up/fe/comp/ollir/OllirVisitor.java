@@ -11,7 +11,7 @@ import java.util.List;
 
 import static pt.up.fe.comp.ollir.OllirUtils.getSymbol;
 
-public class OllirVisitor extends AJmmVisitor<Object, String> {
+public class OllirVisitor extends AJmmVisitor<ArgumentPool, String> {
     private final StringBuilder builder;
     private final SymbolTable symbolTable;
     private int tempCounter;
@@ -25,6 +25,7 @@ public class OllirVisitor extends AJmmVisitor<Object, String> {
         addVisit("Start", this::startVisit);
         addVisit("MainDecl", this::mainDeclVisit);
         addVisit("PublicMethod", this::publicMethodVisit);
+        addVisit("ClosedStatement", this::closedStVisit);
         addVisit("AssignmentExpr", this::assignExprVisit);
         addVisit("DotExpression", this::dotExpressionVisit);
         addVisit("DotMethod", this::dotMethodVisit);
@@ -42,7 +43,7 @@ public class OllirVisitor extends AJmmVisitor<Object, String> {
         addVisit("AndExpr", this::andExprVisit);
         addVisit("NotExpr", this::notExprVisit);
         addVisit("ImportRegion", this::ignore);
-
+        addVisit("_This", this::thisVisit);
 //        addVisit("ArrayExpr", this::arrayExprVisit);
 //        addVisit("IfElse", this::conditionalVisit);
 //        addVisit("WhileSt", this::whileVisit);
@@ -50,28 +51,45 @@ public class OllirVisitor extends AJmmVisitor<Object, String> {
         setDefaultVisit(this::defaultVisit);
     }
 
-    private String dotExpressionVisit(JmmNode node, Object dummy) {
-        String type = dummy == null ? "V" : (String) dummy;
+    private String closedStVisit(JmmNode node, ArgumentPool argumentPool) {
+
+        JmmNode childNode = node.getJmmChild(0);
+        builder.append(visit(childNode));
+        builder.append(";\n");
+
+        return "";
+    }
+
+    private String dotExpressionVisit(JmmNode node, ArgumentPool argumentPool) {
+        String type = argumentPool.getType() == null ? "V" : argumentPool.getType();
         JmmNode lhs = node.getJmmChild(0);
         JmmNode rhs = node.getJmmChild(1);
 
         String lhsId = visit(lhs);
-        String rhsId = visit(rhs, lhsId);
-        // TODO check the ; (e.g assign)
+        String rhsId = visit(rhs, new ArgumentPool(lhsId));
         // TODO dot methods returning void except assignment
         // TODO dot length
         // TODO invokespecial
         // TODO ifelse, arrayexpr, whileSt
         // TODO remover esparguete
         // TODO remover os builders
-        builder.append(rhsId).append(")").append(".").append(type).append(";");
 
-        return null;
+        String invokeExpr = rhsId + ")" + "." + type;
+
+        if (argumentPool.getIsNotTerminal()) {
+            String tempVariable = newTemp();
+            builder.append(tempVariable).append(".").append(type)
+                    .append(" :=.").append(type).append(" ").append(invokeExpr)
+                    .append(";\n");
+            return tempVariable + '.' + type;
+        }
+
+        return invokeExpr;
     }
 
-    private String dotMethodVisit(JmmNode node, Object dummy) {
+    private String dotMethodVisit(JmmNode node, ArgumentPool argumentPool) {
 
-        String id = (String) dummy;
+        String id = argumentPool.getId();
         Symbol symbol = getSymbol(id, currentMethod, symbolTable);
 
         StringBuilder sb = new StringBuilder();
@@ -79,6 +97,8 @@ public class OllirVisitor extends AJmmVisitor<Object, String> {
         if (symbol == null) {
             if (Utils.hasImport(id, symbolTable)) {
                 sb.append("invokestatic(").append(id);
+            } else if (id.equals("this")) {
+                sb.append("invokevirtual(this");
             } else {
                 throw new RuntimeException("Invalid symbol method invocation");
             }
@@ -97,65 +117,67 @@ public class OllirVisitor extends AJmmVisitor<Object, String> {
         return sb.toString();
     }
 
-    private String assignExprVisit(JmmNode jmmNode, Object dummy) {
+    private String assignExprVisit(JmmNode jmmNode, ArgumentPool argumentPool) {
         JmmNode lhs = jmmNode.getJmmChild(0);
         Symbol symbol = getSymbol(lhs.get("id"), currentMethod, symbolTable);
         String assignType = OllirUtils.convertType(symbol.getType());
 
         JmmNode rhs = jmmNode.getJmmChild(1);
         final String id = visit(lhs);
-        final String value = visit(rhs, assignType);
+
+        final String value = visit(rhs, new ArgumentPool(assignType, OllirUtils.isNotTerminalNode(lhs)));
         // TODO: Types
-        builder.append(id).append(" :=.").append(assignType).append(" ").append(value).append(";\n");
-        return "";
+        return id + " :=." + assignType + " " + value;
     }
 
-    private String integerLiteralVisit(JmmNode jmmNode, Object dummy) {
+    private String integerLiteralVisit(JmmNode jmmNode, ArgumentPool argumentPool) {
         return jmmNode.get("value") + ".i32";
     }
 
-    private String booleanLiteralVisit(JmmNode jmmNode, Object dummy) {
+    private String booleanLiteralVisit(JmmNode jmmNode, ArgumentPool argumentPool) {
         return jmmNode.get("value") + ".bool";
     }
 
-    private String identifierVisit(JmmNode jmmNode, Object dummy) {
+    private String identifierVisit(JmmNode jmmNode, ArgumentPool argumentPool) {
         // TODO: Type
         Symbol nodeSymbol = getSymbol(jmmNode.get("id"), currentMethod, symbolTable);
         return jmmNode.get("id") + (nodeSymbol != null ? "." + OllirUtils.convertType(nodeSymbol.getType()) : "");
     }
 
-    private String addExprVisit(JmmNode jmmNode, Object isNotTerminal) {
-        return binOpVisit(jmmNode, isNotTerminal, "+", "i32", "i32");
+    private String addExprVisit(JmmNode jmmNode, ArgumentPool argumentPool) {
+        return binOpVisit(jmmNode, argumentPool.getIsNotTerminal(), "+", "i32", "i32");
     }
 
-    private String subExprVisit(JmmNode jmmNode, Object isNotTerminal) {
-        return binOpVisit(jmmNode, isNotTerminal, "-", "i32", "i32");
+    private String subExprVisit(JmmNode jmmNode, ArgumentPool argumentPool) {
+        return binOpVisit(jmmNode, argumentPool.getIsNotTerminal(), "-", "i32", "i32");
     }
 
-    private String mulExprVisit(JmmNode jmmNode, Object isNotTerminal) {
-        return binOpVisit(jmmNode, isNotTerminal, "*", "i32", "i32");
+    private String mulExprVisit(JmmNode jmmNode, ArgumentPool argumentPool) {
+        return binOpVisit(jmmNode, argumentPool.getIsNotTerminal(), "*", "i32", "i32");
     }
 
-    private String divExprVisit(JmmNode jmmNode, Object isNotTerminal) {
-        return binOpVisit(jmmNode, isNotTerminal, "/", "i32", "i32");
+    private String divExprVisit(JmmNode jmmNode, ArgumentPool argumentPool) {
+        return binOpVisit(jmmNode, argumentPool.getIsNotTerminal(), "/", "i32", "i32");
     }
 
-    private String lessExprVisit(JmmNode jmmNode, Object isNotTerminal) {
-        return binOpVisit(jmmNode, isNotTerminal, "<", "bool", "i32");
+    private String lessExprVisit(JmmNode jmmNode, ArgumentPool argumentPool) {
+        return binOpVisit(jmmNode, argumentPool.getIsNotTerminal(), "<", "bool", "i32");
     }
 
-    private String andExprVisit(JmmNode jmmNode, Object isNotTerminal) {
-        return binOpVisit(jmmNode, isNotTerminal, "&&", "bool", "bool");
+    private String andExprVisit(JmmNode jmmNode, ArgumentPool argumentPool) {
+        return binOpVisit(jmmNode, argumentPool.getIsNotTerminal(), "&&", "bool", "bool");
     }
 
-    private String notExprVisit(JmmNode jmmNode, Object isNotTerminal) {
+    private String notExprVisit(JmmNode jmmNode, ArgumentPool argumentPool) {
         JmmNode node = jmmNode.getJmmChild(0);
+        Symbol symbol = getSymbol(node.get("id"), currentMethod, symbolTable);
+        String assignType = OllirUtils.convertType(symbol.getType());
 
-        String rhs = visit(node, !OllirUtils.isTerminalNode(node));
+        String rhs = visit(node, new ArgumentPool(assignType, OllirUtils.isNotTerminalNode(node)));
 
         String calculation = '!' + "." + "bool" + " " + rhs + ";" + "\n";
 
-        if (isNotTerminal != null && (Boolean) isNotTerminal) {
+        if (argumentPool.getIsNotTerminal() != null && argumentPool.getIsNotTerminal()) {
             String tempVariable = newTemp();
             builder.append(tempVariable).append(".").append("bool").append(" :=.").append("bool").append(" ").append(calculation);
             return tempVariable + '.' + "bool";
@@ -164,20 +186,28 @@ public class OllirVisitor extends AJmmVisitor<Object, String> {
         return calculation;
     }
 
-    private String publicMethodVisit(JmmNode jmmNode, Object o) {
+    private String publicMethodVisit(JmmNode jmmNode, ArgumentPool o) {
         return methodDeclaration(jmmNode, jmmNode.get("name"), false);
     }
 
-    private String mainDeclVisit(JmmNode jmmNode, Object dummy) {
+    private String mainDeclVisit(JmmNode jmmNode, ArgumentPool argumentPool) {
         return methodDeclaration(jmmNode, "main", true);
     }
 
-    private String startVisit(JmmNode jmmNode, Object dummy) {
-        defaultVisit(jmmNode, dummy);
+    private String startVisit(JmmNode jmmNode, ArgumentPool argumentPool) {
+        defaultVisit(jmmNode, argumentPool);
         return builder.toString();
     }
 
-    private String defaultVisit(JmmNode node, Object dummy) {
+    private String thisVisit(JmmNode jmmNode, ArgumentPool argumentPool) {
+        if (jmmNode.getNumChildren() > 0) {
+            throw new RuntimeException("Illegal number of children in node " + jmmNode.getKind() + ".");
+        }
+
+        return "this";
+    }
+
+    private String defaultVisit(JmmNode node, ArgumentPool argumentPool) {
         if (node.getNumChildren() < 0) {
             throw new RuntimeException("Illegal number of children in node " + node.getKind() + ".");
         }
@@ -190,11 +220,11 @@ public class OllirVisitor extends AJmmVisitor<Object, String> {
         return "";
     }
 
-    private String methodDeclaration(JmmNode jmmNode, String methodName, Object isStatic) {
+    private String methodDeclaration(JmmNode jmmNode, String methodName, Boolean isStatic) {
         currentMethod = methodName;
         builder.append(OllirConstants.TAB);
         builder.append(".method public ");
-        if ((Boolean) isStatic) builder.append("static ");
+        if (isStatic) builder.append("static ");
         builder.append(methodName).append("(");
 
         List<Symbol> parameters = symbolTable.getParameters(methodName);
@@ -216,16 +246,16 @@ public class OllirVisitor extends AJmmVisitor<Object, String> {
         return "";
     }
 
-    private String binOpVisit(JmmNode jmmNode, Object isNotTerminal, String operation, String returnType, String argumentType) {
+    private String binOpVisit(JmmNode jmmNode, Boolean isNotTerminal, String operation, String returnType, String argumentType) {
         JmmNode lhsNode = jmmNode.getJmmChild(0);
         JmmNode rhsNode = jmmNode.getJmmChild(1);
 
-        String lhs = visit(lhsNode, !OllirUtils.isTerminalNode(lhsNode));
-        String rhs = visit(rhsNode, !OllirUtils.isTerminalNode(rhsNode));
+        String lhs = visit(lhsNode, new ArgumentPool(returnType, OllirUtils.isNotTerminalNode(lhsNode)));
+        String rhs = visit(rhsNode, new ArgumentPool(returnType, OllirUtils.isNotTerminalNode(rhsNode)));
 
         String calculation = lhs + " " + operation + "." + argumentType + " " + rhs;
 
-        if (isNotTerminal != null && (Boolean) isNotTerminal) {
+        if (isNotTerminal != null && isNotTerminal) {
             String tempVariable = newTemp();
             builder.append(tempVariable).append(".").append(returnType).append(" :=.").append(returnType).append(" ").append(calculation).append(";\n");
 
@@ -239,7 +269,7 @@ public class OllirVisitor extends AJmmVisitor<Object, String> {
         return "temp" + tempCounter++;
     }
 
-    private String ignore(JmmNode jmmNode, Object dummy) {
+    private String ignore(JmmNode jmmNode, ArgumentPool argumentPool) {
         return "";
     }
 }

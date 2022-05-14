@@ -34,10 +34,10 @@ public class OllirUtils {
         return stringBuilder.toString();
     }
 
-    public static boolean isTerminalNode(JmmNode node) {
+    public static boolean isNotTerminalNode(JmmNode node) {
         String kind = node.getKind();
-        return kind.equals("IntegerLiteral") || kind.equals("ArrayExpr") || kind.equals("DotExpr")
-                || kind.equals("_Identifier") || kind.equals("BooleanLiteral") || kind.equals("_This");
+        return !(kind.equals("IntegerLiteral") || kind.equals("ArrayExpr")
+                || kind.equals("_Identifier") || kind.equals("BooleanLiteral") || kind.equals("_This"));
     }
 
     public static Symbol getSymbol(String symbol, String currentMethod, SymbolTable symbolTable) {
@@ -51,6 +51,8 @@ public class OllirUtils {
                 return s;
             }
         }
+
+        // TODO missing class fields
         return null;
     }
 }
