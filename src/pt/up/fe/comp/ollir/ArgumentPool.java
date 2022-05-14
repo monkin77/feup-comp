@@ -4,8 +4,8 @@ public class ArgumentPool {
     private final String type;
     private final boolean isNotTerminal;
     private final String id;
-
     private String returnType;
+    private String assignmentType;
 
     public ArgumentPool(String type, boolean isNotTerminal) {
         this(type, isNotTerminal, null, null);
@@ -41,5 +41,13 @@ public class ArgumentPool {
 
     public void setReturnType(String returnType) {
         this.returnType = returnType;
+    }
+
+    public void setAssignmentType(String assignmentType) {
+        this.assignmentType = assignmentType;
+    }
+
+    public String getAssignmentType() {
+        return assignmentType;
     }
 }

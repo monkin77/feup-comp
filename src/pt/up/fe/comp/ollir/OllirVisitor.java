@@ -68,6 +68,7 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, String> {
         String lhsId = visit(lhs, leftArg);
 
         ArgumentPool rightArg = new ArgumentPool(lhsId);
+        rightArg.setAssignmentType(argumentPool.getType());
         String rhsId = visit(rhs, rightArg);
         // TODO dot methods returning void except assignment
         // TODO dot length
@@ -77,12 +78,9 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, String> {
         // TODO remover os builders
 
         String type = argumentPool.getType() == null ? rightArg.getReturnType() : argumentPool.getType();
+        if (argumentPool.getIsNotTerminal()) return createTempVariable(type, rhsId);
 
-        String invokeExpr = rhsId + ")" + "." + type;
-
-        if (argumentPool.getIsNotTerminal()) return createTempVariable(type, invokeExpr);
-
-        return invokeExpr;
+        return rhsId;
     }
 
     private String dotMethodVisit(JmmNode node, ArgumentPool argumentPool) {
@@ -120,6 +118,8 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, String> {
         }
         // return will be appended in DotExpression
 
+        String type = argumentPool.getAssignmentType() == null ? argumentPool.getReturnType() : argumentPool.getAssignmentType();
+        sb.append(").").append(type);
         return sb.toString();
     }
 
