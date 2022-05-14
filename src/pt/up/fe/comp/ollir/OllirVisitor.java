@@ -61,18 +61,22 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, String> {
     }
 
     private String dotExpressionVisit(JmmNode node, ArgumentPool argumentPool) {
-        String type = argumentPool.getType() == null ? "V" : argumentPool.getType();
         JmmNode lhs = node.getJmmChild(0);
         JmmNode rhs = node.getJmmChild(1);
 
-        String lhsId = visit(lhs);
-        String rhsId = visit(rhs, new ArgumentPool(lhsId));
+        ArgumentPool leftArg = new ArgumentPool(null, OllirUtils.isNotTerminalNode(lhs));
+        String lhsId = visit(lhs, leftArg);
+
+        ArgumentPool rightArg = new ArgumentPool(lhsId);
+        String rhsId = visit(rhs, rightArg);
         // TODO dot methods returning void except assignment
         // TODO dot length
         // TODO invokespecial
         // TODO ifelse, arrayexpr, whileSt
         // TODO remover esparguete
         // TODO remover os builders
+
+        String type = argumentPool.getType() == null ? rightArg.getReturnType() : argumentPool.getType();
 
         String invokeExpr = rhsId + ")" + "." + type;
 
@@ -87,16 +91,25 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, String> {
 
         StringBuilder sb = new StringBuilder();
         String method = "\"" + node.get("method") + "\"";
+
         if (symbol == null) {
             if (Utils.hasImport(id, symbolTable)) {
                 sb.append("invokestatic(").append(id);
-            } else if (id.equals("this")) {
-                sb.append("invokevirtual(this");
+                argumentPool.setReturnType("V");
             } else {
-                throw new RuntimeException("Invalid symbol method invocation");
+                // Assume it's a symbol from our class
+                sb.append("invokevirtual(").append(id);
+                argumentPool.setReturnType(this.symbolTable.getReturnType(node.get("method")).getName());
             }
         } else {
             sb.append("invokevirtual(").append(symbol.getName()).append(".").append(OllirUtils.convertType(symbol.getType()));
+
+            if (symbol.getType().getName().equals(this.symbolTable.getClassName())) {
+                // variable of class type
+                argumentPool.setReturnType(this.symbolTable.getReturnType(node.get("method")).getName());
+            } else {
+                argumentPool.setReturnType("V");
+            }
         }
 
         sb.append(", ").append(method);

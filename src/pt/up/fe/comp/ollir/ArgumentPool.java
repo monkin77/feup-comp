@@ -5,20 +5,21 @@ public class ArgumentPool {
     private final boolean isNotTerminal;
     private final String id;
 
+    private String returnType;
+
     public ArgumentPool(String type, boolean isNotTerminal) {
-        this(type, isNotTerminal, null);
+        this(type, isNotTerminal, null, null);
     }
 
-    public ArgumentPool(String id) {
-        this(null, false, id);
-    }
+    public ArgumentPool(String id) { this(null, false, id, null); }
 
-    public ArgumentPool() { this(null, false, null); }
+    public ArgumentPool() { this(null, false, null, null); }
 
-    private ArgumentPool(String type, boolean isNotTerminal, String id) {
+    private ArgumentPool(String type, boolean isNotTerminal, String id, String returnType) {
         this.type = type;
         this.isNotTerminal = isNotTerminal;
         this.id = id;
+        this.returnType = returnType;
     }
 
 
@@ -32,5 +33,13 @@ public class ArgumentPool {
 
     public String getId() {
         return id;
+    }
+
+    public String getReturnType() {
+        return returnType;
+    }
+
+    public void setReturnType(String returnType) {
+        this.returnType = returnType;
     }
 }
