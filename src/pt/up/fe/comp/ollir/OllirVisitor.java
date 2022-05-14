@@ -61,7 +61,7 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, String> {
     }
 
     private String dotExpressionVisit(JmmNode node, ArgumentPool argumentPool) {
-        String type = argumentPool.getType() == null ? "V" : argumentPool.getType();
+        String type = argumentPool == null ? "V" : argumentPool.getType();
         JmmNode lhs = node.getJmmChild(0);
         JmmNode rhs = node.getJmmChild(1);
 
@@ -76,7 +76,7 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, String> {
 
         String invokeExpr = rhsId + ")" + "." + type;
 
-        if (argumentPool.getIsNotTerminal()) {
+        if (argumentPool != null && argumentPool.getIsNotTerminal()) {
             String tempVariable = newTemp();
             builder.append(tempVariable).append(".").append(type)
                     .append(" :=.").append(type).append(" ").append(invokeExpr)
@@ -145,27 +145,27 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, String> {
     }
 
     private String addExprVisit(JmmNode jmmNode, ArgumentPool argumentPool) {
-        return binOpVisit(jmmNode, argumentPool.getIsNotTerminal(), "+", "i32", "i32");
+        return binOpVisit(jmmNode, argumentPool != null && argumentPool.getIsNotTerminal(), "+", "i32", "i32");
     }
 
     private String subExprVisit(JmmNode jmmNode, ArgumentPool argumentPool) {
-        return binOpVisit(jmmNode, argumentPool.getIsNotTerminal(), "-", "i32", "i32");
+        return binOpVisit(jmmNode, argumentPool != null && argumentPool.getIsNotTerminal(), "-", "i32", "i32");
     }
 
     private String mulExprVisit(JmmNode jmmNode, ArgumentPool argumentPool) {
-        return binOpVisit(jmmNode, argumentPool.getIsNotTerminal(), "*", "i32", "i32");
+        return binOpVisit(jmmNode, argumentPool != null && argumentPool.getIsNotTerminal(), "*", "i32", "i32");
     }
 
     private String divExprVisit(JmmNode jmmNode, ArgumentPool argumentPool) {
-        return binOpVisit(jmmNode, argumentPool.getIsNotTerminal(), "/", "i32", "i32");
+        return binOpVisit(jmmNode, argumentPool != null && argumentPool.getIsNotTerminal(), "/", "i32", "i32");
     }
 
     private String lessExprVisit(JmmNode jmmNode, ArgumentPool argumentPool) {
-        return binOpVisit(jmmNode, argumentPool.getIsNotTerminal(), "<", "bool", "i32");
+        return binOpVisit(jmmNode, argumentPool != null && argumentPool.getIsNotTerminal(), "<", "bool", "i32");
     }
 
     private String andExprVisit(JmmNode jmmNode, ArgumentPool argumentPool) {
-        return binOpVisit(jmmNode, argumentPool.getIsNotTerminal(), "&&", "bool", "bool");
+        return binOpVisit(jmmNode, argumentPool != null && argumentPool.getIsNotTerminal(), "&&", "bool", "bool");
     }
 
     private String notExprVisit(JmmNode jmmNode, ArgumentPool argumentPool) {
@@ -177,7 +177,7 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, String> {
 
         String calculation = '!' + "." + "bool" + " " + rhs + ";" + "\n";
 
-        if (argumentPool.getIsNotTerminal() != null && argumentPool.getIsNotTerminal()) {
+        if (argumentPool != null && argumentPool.getIsNotTerminal()) {
             String tempVariable = newTemp();
             builder.append(tempVariable).append(".").append("bool").append(" :=.").append("bool").append(" ").append(calculation);
             return tempVariable + '.' + "bool";
