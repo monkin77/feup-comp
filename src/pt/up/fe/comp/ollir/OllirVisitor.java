@@ -76,19 +76,12 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, String> {
 
         String invokeExpr = rhsId + ")" + "." + type;
 
-        if (argumentPool != null && argumentPool.getIsNotTerminal()) {
-            String tempVariable = newTemp();
-            builder.append(tempVariable).append(".").append(type)
-                    .append(" :=.").append(type).append(" ").append(invokeExpr)
-                    .append(";\n");
-            return tempVariable + '.' + type;
-        }
+        if (argumentPool != null && argumentPool.getIsNotTerminal()) return createTempVariable(type, invokeExpr);
 
         return invokeExpr;
     }
 
     private String dotMethodVisit(JmmNode node, ArgumentPool argumentPool) {
-
         String id = argumentPool.getId();
         Symbol symbol = getSymbol(id, currentMethod, symbolTable);
 
@@ -177,11 +170,7 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, String> {
 
         String calculation = '!' + "." + "bool" + " " + rhs + ";" + "\n";
 
-        if (argumentPool != null && argumentPool.getIsNotTerminal()) {
-            String tempVariable = newTemp();
-            builder.append(tempVariable).append(".").append("bool").append(" :=.").append("bool").append(" ").append(calculation);
-            return tempVariable + '.' + "bool";
-        }
+        if (argumentPool != null && argumentPool.getIsNotTerminal()) return createTempVariable("bool", calculation);
 
         return calculation;
     }
@@ -255,18 +244,15 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, String> {
 
         String calculation = lhs + " " + operation + "." + argumentType + " " + rhs;
 
-        if (isNotTerminal != null && isNotTerminal) {
-            String tempVariable = newTemp();
-            builder.append(tempVariable).append(".").append(returnType).append(" :=.").append(returnType).append(" ").append(calculation).append(";\n");
-
-            return tempVariable + '.' + returnType;
-        }
+        if (isNotTerminal) return createTempVariable(returnType, calculation);
 
         return calculation;
     }
 
-    private String newTemp() {
-        return "temp" + tempCounter++;
+    private String createTempVariable(String type, String invokeExpr) {
+        String tempVariableName = "temp" + tempCounter++;
+        builder.append(tempVariableName).append(".").append(type).append(" :=.").append(type).append(" ").append(invokeExpr).append(";\n");
+        return tempVariableName + '.' + type;
     }
 
     private String ignore(JmmNode jmmNode, ArgumentPool argumentPool) {
