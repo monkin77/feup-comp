@@ -29,6 +29,7 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, String> {
         addVisit("AssignmentExpr", this::assignExprVisit);
         addVisit("DotExpression", this::dotExpressionVisit);
         addVisit("DotMethod", this::dotMethodVisit);
+        addVisit("DotLength", this::dotLengthVisit);
 
         addVisit("IntegerLiteral", this::integerLiteralVisit);
         addVisit("BooleanLiteral", this::booleanLiteralVisit);
@@ -76,6 +77,7 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, String> {
         // TODO ifelse, arrayexpr, whileSt
         // TODO remover esparguete
         // TODO remover os builders
+        // TODO putfield, getfield
 
         String type = argumentPool.getType() == null ? rightArg.getReturnType() : argumentPool.getType();
         if (argumentPool.getIsNotTerminal()) return createTempVariable(type, rhsId);
@@ -120,6 +122,14 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, String> {
 
         String type = argumentPool.getAssignmentType() == null ? argumentPool.getReturnType() : argumentPool.getAssignmentType();
         sb.append(").").append(type);
+        return sb.toString();
+    }
+
+    private String dotLengthVisit(JmmNode node, ArgumentPool argumentPool) {
+        String id = argumentPool.getId();
+        StringBuilder sb = new StringBuilder();
+
+        sb.append("arraylength(").append(id).append(").i32");
         return sb.toString();
     }
 
