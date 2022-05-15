@@ -286,7 +286,7 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, String> {
         String lhs = visit(lhsNode, new ArgumentPool(returnType, OllirUtils.isNotTerminalNode(lhsNode)));
         String rhs = visit(rhsNode, new ArgumentPool(returnType, OllirUtils.isNotTerminalNode(rhsNode)));
 
-        String calculation = lhs + " " + operation + "." + argumentType + " " + rhs;
+        String calculation = lhs + " " + operation + "." + returnType + " " + rhs;
 
         if (isNotTerminal) return createTempVariable(returnType, calculation);
 
