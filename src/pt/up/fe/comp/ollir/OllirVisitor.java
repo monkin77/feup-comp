@@ -47,9 +47,27 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, String> {
         addVisit("_This", this::thisVisit);
         addVisit("ArrayExpr", this::arrayExprVisit);
         addVisit("IfElse", this::conditionalVisit);
-//        addVisit("WhileSt", this::whileVisit);
+        addVisit("WhileSt", this::whileVisit);
 
         setDefaultVisit(this::defaultVisit);
+    }
+
+    private String whileVisit(JmmNode node, ArgumentPool argumentPool) {
+        JmmNode condition = node.getJmmChild(0);
+        JmmNode loopBody = node.getJmmChild(1);
+
+        String conditionCode = visit(condition);
+
+        // TODO: Labels should be unique
+        // TODO: Condition should probably be negated beforehand to avoid jumps
+        // Note: visit(loopBody) must not be turned into a variable with the current global builder approach.
+        builder.append("if (").append(conditionCode).append(") goto whilebody;").append("\n")
+                .append("goto endwhile;").append("\n").
+                append("whilebody:").append("\n")
+                .append(visit(loopBody))
+                .append("if (").append(conditionCode).append(") goto whilebody;").append("\n")
+                .append("endwhile:").append("\n");
+        return "";
     }
 
     private String conditionalVisit(JmmNode node, ArgumentPool argumentPool) {
