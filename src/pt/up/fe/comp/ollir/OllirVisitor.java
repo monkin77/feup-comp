@@ -45,11 +45,24 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, String> {
         addVisit("NotExpr", this::notExprVisit);
         addVisit("ImportRegion", this::ignore);
         addVisit("_This", this::thisVisit);
-//        addVisit("ArrayExpr", this::arrayExprVisit);
+        addVisit("ArrayExpr", this::arrayExprVisit);
 //        addVisit("IfElse", this::conditionalVisit);
 //        addVisit("WhileSt", this::whileVisit);
 
         setDefaultVisit(this::defaultVisit);
+    }
+
+    private String arrayExprVisit(JmmNode node, ArgumentPool argumentPool) {
+        JmmNode lhs = node.getJmmChild(0);
+        JmmNode rhs = node.getJmmChild(1);
+        ArgumentPool leftArgumentPool = new ArgumentPool(null, OllirUtils.isNotTerminalNode(lhs));
+        ArgumentPool rightArgumentPool = new ArgumentPool(null, true);
+        // TODO: Identifier should probably not return the type or have a flag.
+        final String lhsId = visit(lhs, leftArgumentPool).split("\\.")[0];
+        final String rhsId = visit(rhs, rightArgumentPool);
+        // TODO: Even though we only have int[], this feels weird.
+        final String arrayType = "i32";
+        return "%s[%s].%s".formatted(lhsId, rhsId, arrayType);
     }
 
     private String closedStVisit(JmmNode node, ArgumentPool argumentPool) {
