@@ -147,7 +147,9 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, String> {
     }
 
     private String integerLiteralVisit(JmmNode jmmNode, ArgumentPool argumentPool) {
-        return jmmNode.get("value") + ".i32";
+        final String calculation = jmmNode.get("value") + ".i32";
+        if (argumentPool != null && argumentPool.getIsNotTerminal()) return createTempVariable("i32", calculation);
+        return calculation;
     }
 
     private String booleanLiteralVisit(JmmNode jmmNode, ArgumentPool argumentPool) {
