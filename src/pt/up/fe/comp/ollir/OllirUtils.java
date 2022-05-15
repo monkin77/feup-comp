@@ -52,6 +52,12 @@ public class OllirUtils {
             }
         }
 
+        for (Symbol s : symbolTable.getFields()) {
+            if (s.getName().equals(symbol)) {
+                return s;
+            }
+        }
+
         // TODO missing class fields
         return null;
     }
