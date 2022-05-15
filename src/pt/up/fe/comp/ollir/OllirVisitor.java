@@ -66,12 +66,7 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, String> {
     }
 
     private String closedStVisit(JmmNode node, ArgumentPool argumentPool) {
-
-        JmmNode childNode = node.getJmmChild(0);
-        builder.append(visit(childNode));
-        builder.append(";\n");
-
-        return "";
+        return defaultVisit(node, null) + ";\n";
     }
 
     private String dotExpressionVisit(JmmNode node, ArgumentPool argumentPool) {
@@ -248,12 +243,12 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, String> {
             throw new RuntimeException("Illegal number of children in node " + node.getKind() + ".");
         }
 
-        for (int i = 0; i < node.getNumChildren(); ++i) {
-            JmmNode childNode = node.getJmmChild(i);
-            visit(childNode, new ArgumentPool());
+        StringBuilder builder = new StringBuilder();
+        for (JmmNode childNode : node.getChildren()) {
+            builder.append(visit(childNode, new ArgumentPool()));
         }
 
-        return "";
+        return builder.toString();
     }
 
     private String methodDeclaration(JmmNode jmmNode, String methodName, Boolean isStatic) {
@@ -275,7 +270,7 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, String> {
         Type returnType = symbolTable.getReturnType(methodName);
         builder.append(".").append(OllirUtils.convertType(returnType)).append(" {\n");
 
-        defaultVisit(jmmNode, null);
+        builder.append(defaultVisit(jmmNode, null));
 
         builder.append("\n");
         // TODO: Should probably check if the return is already there: AST?
