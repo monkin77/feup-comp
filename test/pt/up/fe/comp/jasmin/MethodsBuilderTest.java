@@ -26,6 +26,7 @@ public class MethodsBuilderTest {
         mockedUtils = Mockito.mockStatic(JasminUtils.class);
         mockedUtils.when(() -> JasminUtils.getAccessModifier(Mockito.any())).thenReturn("public");
         mockedUtils.when(() -> JasminUtils.getTypeName(Mockito.any(), Mockito.any())).thenReturn("T");
+        mockedUtils.when(() -> JasminUtils.getTypeName(Mockito.any(), Mockito.any(), Mockito.anyBoolean())).thenReturn("T");
     }
 
     @AfterClass

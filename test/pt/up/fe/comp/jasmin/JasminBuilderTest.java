@@ -22,6 +22,7 @@ public class JasminBuilderTest {
     public static void setupStatic() {
         mockedUtils = Mockito.mockStatic(JasminUtils.class);
         mockedUtils.when(() -> JasminUtils.getAccessModifier(Mockito.any())).thenReturn("public");
+        mockedUtils.when(() -> JasminUtils.getFullClassName(Mockito.any(), Mockito.any())).thenReturn("ParentClass");
     }
 
     @AfterClass

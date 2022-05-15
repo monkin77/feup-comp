@@ -23,6 +23,7 @@ public class GetFieldInstructionBuilderTest {
         mockedUtils = Mockito.mockStatic(JasminUtils.class);
         mockedUtils.when(() -> JasminUtils.getElementName(Mockito.any())).thenReturn("fieldName");
         mockedUtils.when(() -> JasminUtils.getTypeName(Mockito.any(), Mockito.any())).thenReturn("className");
+        mockedUtils.when(() -> JasminUtils.getTypeName(Mockito.any(), Mockito.any(), Mockito.anyBoolean())).thenReturn("className");
         mockedUtils.when(() -> JasminUtils.buildLoadInstruction(Mockito.any(), Mockito.any())).thenReturn("aload 7\n");
     }
 

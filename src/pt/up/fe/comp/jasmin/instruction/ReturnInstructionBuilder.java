@@ -19,7 +19,7 @@ public class ReturnInstructionBuilder extends AbstractBuilder {
 
     @Override
     public String compile() {
-        instruction.setElementType(instruction.hasReturnValue() ?
+        instruction.getReturnType().setTypeOfElement(instruction.hasReturnValue() ?
                 instruction.getOperand().getType().getTypeOfElement() :
                 ElementType.VOID
         );

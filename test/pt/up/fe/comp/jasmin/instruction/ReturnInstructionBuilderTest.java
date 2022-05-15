@@ -31,15 +31,16 @@ public class ReturnInstructionBuilderTest {
         final Method method = Mockito.mock(Method.class);
         final ClassUnit classUnit = Mockito.mock(ClassUnit.class);
 
+        Type type = Mockito.mock(Type.class);
+
         returnInstruction = Mockito.mock(ReturnInstruction.class);
         Mockito.when(returnInstruction.hasReturnValue()).thenReturn(false);
-        Mockito.when(returnInstruction.getElementType()).thenReturn(ElementType.VOID);
+        Mockito.when(returnInstruction.getReturnType()).thenReturn(type);
 
         final Element operand = Mockito.mock(Element.class);
         Mockito.when(returnInstruction.getOperand()).thenReturn(operand);
 
-        Type type = Mockito.mock(Type.class);
-        Mockito.when(type.getTypeOfElement()).thenReturn(ElementType.VOID);
+        Mockito.when(returnInstruction.getElementType()).thenReturn(ElementType.VOID);
         Mockito.when(operand.getType()).thenReturn(type);
 
         returnInstructionBuilder = new ReturnInstructionBuilder(classUnit, method, returnInstruction);
