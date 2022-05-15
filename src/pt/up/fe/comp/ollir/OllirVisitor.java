@@ -277,7 +277,10 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, String> {
 
         defaultVisit(jmmNode, null);
 
-        builder.append("\n").append(OllirConstants.TAB).append("}").append("\n");
+        builder.append("\n");
+        // TODO: Should probably check if the return is already there: AST?
+        if (returnType.getName().equals("void")) builder.append("ret.V").append(";\n");
+        builder.append(OllirConstants.TAB).append("}").append("\n");
         return "";
     }
 
