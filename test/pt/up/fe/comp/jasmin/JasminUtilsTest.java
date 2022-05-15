@@ -35,7 +35,7 @@ public class JasminUtilsTest {
     public void getTypeName() {
         final ArrayType arrayType = Mockito.mock(ArrayType.class);
         Mockito.when(arrayType.getNumDimensions()).thenReturn(2);
-        Mockito.when(arrayType.getTypeOfElements()).thenReturn(ElementType.INT32);
+        Mockito.when(arrayType.getArrayType()).thenReturn(ElementType.INT32);
 
         final ClassType classType = Mockito.mock(ClassType.class);
         Mockito.when(classType.getName()).thenReturn("MyClass");

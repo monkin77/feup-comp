@@ -6,7 +6,7 @@ Fac {
 	}
 
 	.method public compFac(num.i32).i32 {
-		if ($1.num.i32 >=.bool 1.i32) goto else;
+		if (1.i32 <.bool $1.num.i32) goto else;
 			num_aux.i32 :=.i32 1.i32;
 			goto endif;
 		else:
@@ -17,7 +17,7 @@ Fac {
 			ret.i32 num_aux.i32;
 	}
 
-	.method public static main(args.array.Fac, c1.Fac).V {
+	.method public static main(args.array.String).V {
 		aux1.Fac :=.Fac new(Fac).Fac;
 		invokespecial(aux1.Fac,"<init>").V;
 		aux2.i32 :=.i32 invokevirtual(aux1.Fac,"compFac",10.i32).i32;
