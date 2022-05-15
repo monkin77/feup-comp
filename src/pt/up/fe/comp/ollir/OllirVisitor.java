@@ -170,9 +170,18 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, String> {
     }
 
     private String identifierVisit(JmmNode jmmNode, ArgumentPool argumentPool) {
+        final Symbol nodeSymbol = getSymbol(jmmNode.get("id"), currentMethod, symbolTable);
+        final String type = nodeSymbol != null ? OllirUtils.convertType(nodeSymbol.getType()) : "";
+        final String annotatedId = jmmNode.get("id") + (type.isEmpty() ? "" : "." + type);
+        // TODO: Really weird way to see if this is a class field. Maybe getSymbol should help here?
+        if (symbolTable.getFields().stream().anyMatch(x -> x.getName().equals(jmmNode.get("id")))) {
+            // TODO: Getfield should also work for object fields (not just this)
+            final String objId = "this";
+            final String calculation = ("getfield(%s, %s).%s").formatted(objId, annotatedId, type);
+            return createTempVariable(type, calculation);
+        }
         // TODO: Type
-        Symbol nodeSymbol = getSymbol(jmmNode.get("id"), currentMethod, symbolTable);
-        return jmmNode.get("id") + (nodeSymbol != null ? "." + OllirUtils.convertType(nodeSymbol.getType()) : "");
+        return annotatedId;
     }
 
     private String addExprVisit(JmmNode jmmNode, ArgumentPool argumentPool) {
