@@ -48,8 +48,16 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, String> {
         addVisit("ArrayExpr", this::arrayExprVisit);
         addVisit("IfElse", this::conditionalVisit);
         addVisit("WhileSt", this::whileVisit);
-
+        addVisit("NewArrayExpr", this::newArrayExprVisit);
         setDefaultVisit(this::defaultVisit);
+    }
+
+    private String newArrayExprVisit(JmmNode node, ArgumentPool argumentPool) {
+        JmmNode size = node.getJmmChild(0);
+        String sizeVariable = visit(size, new ArgumentPool(null, true));
+        // TODO: Even though we only have int[], this feels weird.
+        String arrayType = "i32";
+        return "new(array, %s).array.%s".formatted(sizeVariable, arrayType);
     }
 
     private String whileVisit(JmmNode node, ArgumentPool argumentPool) {
