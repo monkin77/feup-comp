@@ -148,15 +148,15 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, String> {
 
     private String assignExprVisit(JmmNode jmmNode, ArgumentPool argumentPool) {
         JmmNode lhs = jmmNode.getJmmChild(0);
-        Symbol symbol = getSymbol(lhs.get("id"), currentMethod, symbolTable);
-        String assignType = OllirUtils.convertType(symbol.getType());
-
         JmmNode rhs = jmmNode.getJmmChild(1);
-        final String id = visit(lhs);
 
-        final String value = visit(rhs, new ArgumentPool(assignType, OllirUtils.isNotTerminalNode(lhs)));
+        String lhsId = visit(lhs, new ArgumentPool(null, OllirUtils.isNotTerminalNode(lhs)));
+        // TODO: This should probably not be necessary, because visit should not return type information.
+        String assignType = lhsId.split("\\.", 2)[1];
+
+        final String value = visit(rhs, new ArgumentPool(assignType, OllirUtils.isNotTerminalNode(rhs)));
         // TODO: Types
-        return id + " :=." + assignType + " " + value;
+        return lhsId + " :=." + assignType + " " + value;
     }
 
     private String integerLiteralVisit(JmmNode jmmNode, ArgumentPool argumentPool) {
@@ -264,8 +264,7 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, String> {
         builder.append(")");
 
         Type returnType = symbolTable.getReturnType(methodName);
-        builder.append(".").append(OllirUtils.convertType(returnType))
-                .append(" {\n");
+        builder.append(".").append(OllirUtils.convertType(returnType)).append(" {\n");
 
         defaultVisit(jmmNode, null);
 
