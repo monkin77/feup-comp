@@ -76,6 +76,8 @@ public class Launcher {
         TestUtils.noErrors(jasminResult.getReports());
 
         System.out.println("JASMIN:\n" + jasminResult.getJasminCode());
+
+        System.out.println("JASMIN RUN:\n" + jasminResult.run());
     }
 
 }
