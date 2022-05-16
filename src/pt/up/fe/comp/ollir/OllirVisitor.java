@@ -49,6 +49,7 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, VisitResult> {
         addVisit("IfElse", this::conditionalVisit);
         addVisit("WhileSt", this::whileVisit);
         addVisit("NewArrayExpr", this::newArrayExprVisit);
+        addVisit("ReturnExpr", this::returnExprVisit);
         setDefaultVisit(this::defaultVisit);
     }
 
@@ -57,7 +58,7 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, VisitResult> {
         final VisitResult exprResult = visit(expr, new ArgumentPool(null, true));
         final String exprId = exprResult.code;
         final String returnType = OllirUtils.convertType(symbolTable.getReturnType(currentMethod));
-        final String code = "ret.%s %s"
+        final String code = "ret.%s %s;"
                 .formatted(returnType, exprId);
         return new VisitResult(exprResult.preparationCode, code, returnType);
     }
