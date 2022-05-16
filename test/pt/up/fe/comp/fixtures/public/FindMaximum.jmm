@@ -1,49 +1,49 @@
-import ioPlus;
+import io;
 
 class FindMaximum {
-	int[] test_arr;
+    int _x;
 
-	public int find_maximum(int[] arr) {
-		int i;
-		int maximum;
-		int value;
+    public int f() {
+        int x;
+        _x = 3;
+        x = _x;
+        return x;
+    }
 
-		i = 1;
-		maximum = arr[0];
-		while (i < arr.length) {
-			value = arr[i];
-			if (maximum < value) {
-				maximum = value;
-			} else {
-			}
-			i = i + 1;
-		}
+    // TODO: Implement ollir constructor calls
+    //public FindMaximum fm() {
+    //    FindMaximum fm;
+    //    return fm;
+    //}
 
-		return maximum;
-	}
-
-	public int build_test_arr() {
-		test_arr = new int[5];
-		test_arr[0] = 14;
-		test_arr[1] = 28;
-		test_arr[2] = 0;
-		test_arr[3] = 0-5;
-		test_arr[4] = 12;
-
-		return 0;
-	}
-
-	public int[] get_array() {
-		return test_arr;
-	}
-
-	public static void main(String[] args) {
-		FindMaximum fm;
-		int max;
-		fm = new FindMaximum();
-		fm.build_test_arr();
-
-		max = fm.find_maximum(fm.get_array());
-		ioPlus.printResult(max);
-	}
+    public static void main(String[] args) {
+        int x;
+        int y;
+        int[] a;
+        boolean b;
+        FindMaximum fm1;
+        x = 0;
+        x = 1 + 2;
+        io.println(x);
+        x = args.length;
+        b = false;
+        x = 1 + 2 - 3 * 4 / 5;
+        b = x < 1;
+        b = b && b;
+        b = !b;
+        a[0] = 1;
+        if (x < 3) {
+            x = 3;
+        } else {
+            x = x;
+        }
+        io.println(x);
+        while (x < 10) {
+           x = x + 1;
+           io.println(x);
+        }
+        // a = new int[15]; // TODO: needs to be reviewed in Jasmin, but wtf?
+        fm1._x = 10; // TODO: What?
+        // fm1.fm().fm().fm().fm();
+    }
 }

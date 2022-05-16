@@ -37,7 +37,7 @@ public class OllirUtils {
     public static boolean isNotTerminalNode(JmmNode node) {
         String kind = node.getKind();
         return !(kind.equals("IntegerLiteral") || kind.equals("ArrayExpr")
-                || kind.equals("_Identifier") || kind.equals("BooleanLiteral") || kind.equals("_This"));
+                 || kind.equals("_Identifier") || kind.equals("BooleanLiteral") || kind.equals("_This"));
     }
 
     public static Symbol getSymbol(String symbol, String currentMethod, SymbolTable symbolTable) {
@@ -60,5 +60,11 @@ public class OllirUtils {
 
         // TODO missing class fields
         return null;
+    }
+
+    public static boolean isClassField(String name, String currentMethod, SymbolTable symbolTable) {
+        return symbolTable.getFields().stream().anyMatch(x -> x.getName().equals(name)) &&
+               symbolTable.getLocalVariables(currentMethod).stream().noneMatch(x -> x.getName().equals(name)) &&
+               symbolTable.getParameters(currentMethod).stream().noneMatch(x -> x.getName().equals(name));
     }
 }

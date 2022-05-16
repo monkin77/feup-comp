@@ -58,17 +58,16 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, VisitResult> {
         final VisitResult exprResult = visit(expr, new ArgumentPool(null, true));
         final String exprId = exprResult.code;
         final String returnType = OllirUtils.convertType(symbolTable.getReturnType(currentMethod));
-        final String code = "ret.%s %s;"
-                .formatted(returnType, exprId);
+        final String code = "ret.%s %s;".formatted(returnType, exprId);
         return new VisitResult(exprResult.preparationCode, code, returnType);
     }
 
     private VisitResult newArrayExprVisit(JmmNode node, ArgumentPool argumentPool) {
         final JmmNode size = node.getJmmChild(0);
         final VisitResult sizeResult = visit(size, new ArgumentPool(null, true));
-        final String arrayElementType = "i32"; // TODO: Even though we only have int[], this feels weird.
-        final String code = "new(array, %s).array.%s"
-                .formatted(sizeResult.code, arrayElementType);
+        // COMBACK: Even though we only have int[], this feels weird.
+        final String arrayElementType = "i32";
+        final String code = "new(array, %s)".formatted(sizeResult.code);
         final String returnType = "array" + "." + arrayElementType;
         return new VisitResult(sizeResult.preparationCode, code, returnType);
     }
@@ -77,16 +76,16 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, VisitResult> {
         final VisitResult conditionResult = visit(node.getJmmChild(0));
         final VisitResult loopResult = visit(node.getJmmChild(1));
 
-        // TODO: Labels should be unique
-        // TODO: Condition should probably be negated beforehand to avoid jumps
+        // COMBACK: Optimization: condition should probably be negated beforehand to avoid jumps
         final String bodyCode = loopResult.preparationCode + loopResult.code + conditionResult.preparationCode;
+        int tempCounter1 = tempCounter++;
         final String code = ("""
-                %sif (%s) goto whilebody;
-                goto endwhile;
-                whilebody:
-                %sif (%s) goto whilebody;
-                endwhile:
-                """).formatted(conditionResult.preparationCode, conditionResult.code, bodyCode, conditionResult.code);
+                %sif (%s) goto whilebody_%d;
+                goto endwhile_%d;
+                whilebody_%d:
+                %sif (%s) goto whilebody_%d;
+                endwhile_%d:
+                """).formatted(conditionResult.preparationCode, conditionResult.code, tempCounter1, tempCounter1, tempCounter1, bodyCode, conditionResult.code, tempCounter1, tempCounter1);
         return new VisitResult("", code);
     }
 
@@ -94,18 +93,17 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, VisitResult> {
         final VisitResult conditionResult = visit(node.getJmmChild(0));
         final VisitResult ifBodyResult = visit(node.getJmmChild(1));
         final VisitResult elseBodyResult = visit(node.getJmmChild(2));
-        // TODO: Labels should be unique
-        // TODO: Condition should probably be negated beforehand
-        final String preparationCode = conditionResult.preparationCode;
+        // COMBACK: Optimization: ondition should probably be negated beforehand
         final String elseCode = elseBodyResult.preparationCode + elseBodyResult.code;
         final String ifCode = ifBodyResult.preparationCode + ifBodyResult.code;
+        int tempCounter1 = tempCounter++;
         final String code = """
                 %s
-                if (%s) goto ifbody;
-                    %sgoto endif;
-                ifbody:
-                    %sendif:
-                    """.formatted(conditionResult.preparationCode, conditionResult.code, elseCode, ifCode);
+                if (%s) goto ifbody_%d;
+                    %sgoto endif_%d;
+                ifbody_%d:
+                    %sendif_%d:
+                    """.formatted(conditionResult.preparationCode, conditionResult.code, tempCounter1, elseCode, tempCounter1, tempCounter1, ifCode, tempCounter1);
         return new VisitResult("", code);
     }
 
@@ -132,13 +130,10 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, VisitResult> {
         final ArgumentPool rightArg = new ArgumentPool(lhsResult.code);
         rightArg.setExpectedReturnType(argumentPool.getType());
         final VisitResult rhsResult = visit(node.getJmmChild(1), rightArg);
-        // TODO dot methods returning void except assignment
-        // TODO dot length
         // TODO invokespecial
-        // TODO ifelse, arrayexpr, whileSt
         // TODO remover esparguete
         // TODO remover os builders
-        // TODO putfield, getfield
+        // TODO: ollir constructors
 
         final String type = argumentPool.getType() == null ? rhsResult.returnType : argumentPool.getType();
         final String preparationCode = rhsResult.preparationCode + lhsResult.preparationCode;
@@ -203,22 +198,17 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, VisitResult> {
         final ArgumentPool lhsArgs = new ArgumentPool(null, OllirUtils.isNotTerminalNode(lhs));
         lhsArgs.setTarget(true);
         final VisitResult lhsResult = visit(lhs, lhsArgs);
-        final String[] split = lhsResult.code.split("\\.", 2); // TODO: This should probably not be necessary, because visit should not return type information.
+        final String[] split = lhsResult.code.split("\\.", 2);
         final String assignTarget = split[0];
         final String assignType = lhsResult.returnType;
 
         VisitResult rhsResult = visit(rhs, new ArgumentPool(assignType, OllirUtils.isNotTerminalNode(rhs)));
-        // TODO: This is not a very good way to test if we need putfield, but it can also be something else.
-        final boolean isClassField = isClassField(assignTarget);
+        final boolean isClassField = OllirUtils.isClassField(assignTarget, currentMethod, symbolTable);
         if (isClassField) {
-            // TODO: Putfield should also work for object fields (not just this)
-            final String objId = "this";
             final String preparationCode = rhsResult.preparationCode + lhsResult.preparationCode;
-            final String code = "putfield(%s, %s.%s, %s.%s).V"
-                    .formatted(objId, lhsResult.code, lhsResult.returnType, rhsResult.code, lhsResult.returnType);
+            final String code = "putfield(this, %s.%s, %s.%s).V".formatted(lhsResult.code, lhsResult.returnType, rhsResult.code, lhsResult.returnType);
             return new VisitResult(preparationCode, code);
         }
-        // TODO: Types
         final String preparationCode = rhsResult.preparationCode + lhsResult.preparationCode;
         final String code = "%s.%s :=.%s %s.%s".formatted(lhsResult.code, lhsResult.returnType, assignType, rhsResult.code, lhsResult.returnType);
         return new VisitResult(preparationCode, code);
@@ -235,13 +225,10 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, VisitResult> {
     private VisitResult identifierVisit(JmmNode jmmNode, ArgumentPool argumentPool) {
         final Symbol nodeSymbol = getSymbol(jmmNode.get("id"), currentMethod, symbolTable);
         final String type = nodeSymbol != null ? OllirUtils.convertType(nodeSymbol.getType()) : "";
-        // TODO: Really weird way to see if this is a class field. Maybe getSymbol should help here?
-        final boolean isClassField = isClassField(jmmNode.get("id"));
+        final boolean isClassField = OllirUtils.isClassField(jmmNode.get("id"), currentMethod, symbolTable);
         if (isClassField && (argumentPool == null || !argumentPool.isTarget())) {
-            // TODO: Getfield should also work for object fields (not just this)
-            final String objId = "this";
             final String annotatedId = jmmNode.get("id") + (type.isEmpty() ? "" : "." + type);
-            final String calculation = ("getfield(%s, %s).%s").formatted(objId, annotatedId, type);
+            final String calculation = ("getfield(this, %s).%s").formatted(annotatedId, type);
             return new VisitResult("", calculation, type);
         }
         return new VisitResult("", jmmNode.get("id"), type);
@@ -346,7 +333,6 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, VisitResult> {
         codeBuilder.append(result.code);
 
         codeBuilder.append("\n");
-        // TODO: Should probably check if the return is already there: AST?
         if (returnType.getName().equals("void")) codeBuilder.append("ret.V;\n");
         codeBuilder.append(OllirConstants.TAB).append("}").append("\n");
         return new VisitResult("", codeBuilder.toString());
@@ -358,26 +344,19 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, VisitResult> {
         final VisitResult lhsResult = visit(lhsNode, new ArgumentPool(returnType, OllirUtils.isNotTerminalNode(lhsNode)));
         final VisitResult rhsResult = visit(rhsNode, new ArgumentPool(returnType, OllirUtils.isNotTerminalNode(rhsNode)));
         final String preparationCode = rhsResult.preparationCode + lhsResult.preparationCode;
-        final String code = "%s.%s %s.%s %s.%s"
-                .formatted(lhsResult.code, lhsResult.returnType, operation, returnType, rhsResult.code, rhsResult.returnType);
+        final String code = "%s.%s %s.%s %s.%s".formatted(lhsResult.code, lhsResult.returnType, operation, returnType, rhsResult.code, rhsResult.returnType);
         return new VisitResult(preparationCode, code, returnType);
     }
 
     private VisitResult createTempVariable(String type, String rhsPreparationCode, String rhsCode) {
         final String tempVariableName = "temp%d".formatted(tempCounter++);
-        final String preparationCode = "%s.%s :=.%s %s.%s;\n"
-                .formatted(tempVariableName, type, type, rhsCode, type);
+        final String preparationCode = "%s.%s :=.%s %s.%s;\n".formatted(tempVariableName, type, type, rhsCode, type);
         final String code = "%s.%s".formatted(tempVariableName, type);
         return new VisitResult(rhsPreparationCode + preparationCode, code, type);
     }
 
     private VisitResult ignore(JmmNode jmmNode, ArgumentPool argumentPool) {
         return new VisitResult("", "");
-    }
-
-    private boolean isClassField(String assignTarget) {
-        // TODO: Is this necessary?
-        return symbolTable.getFields().stream().anyMatch(x -> x.getName().equals(assignTarget)) && symbolTable.getLocalVariables(currentMethod).stream().noneMatch(x -> x.getName().equals(assignTarget)) && symbolTable.getParameters(currentMethod).stream().noneMatch(x -> x.getName().equals(assignTarget));
     }
 
     @Override
