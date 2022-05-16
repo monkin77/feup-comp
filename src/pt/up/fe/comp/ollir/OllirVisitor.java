@@ -49,8 +49,16 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, VisitResult> {
         addVisit("IfElse", this::conditionalVisit);
         addVisit("WhileSt", this::whileVisit);
         addVisit("NewArrayExpr", this::newArrayExprVisit);
+        addVisit("NewObjExpr", this::newObjExprVisit);
         addVisit("ReturnExpr", this::returnExprVisit);
         setDefaultVisit(this::defaultVisit);
+    }
+
+    private VisitResult newObjExprVisit(JmmNode node, ArgumentPool argumentPool) {
+        final String className = node.get("object");
+        String code = "new(%s)".formatted(className);
+        String finalCode = ";\ninvokespecial(%s.%s,\"<init>\").V".formatted(argumentPool.getId(), className);
+        return new VisitResult("", code, finalCode, className);
     }
 
     private VisitResult returnExprVisit(JmmNode node, ArgumentPool argumentPool) {
@@ -59,7 +67,7 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, VisitResult> {
         final String exprId = exprResult.code;
         final String returnType = OllirUtils.convertType(symbolTable.getReturnType(currentMethod));
         final String code = "ret.%s %s;".formatted(returnType, exprId);
-        return new VisitResult(exprResult.preparationCode, code, returnType);
+        return new VisitResult(exprResult.preparationCode, code, "", returnType);
     }
 
     private VisitResult newArrayExprVisit(JmmNode node, ArgumentPool argumentPool) {
@@ -69,7 +77,7 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, VisitResult> {
         final String arrayElementType = "i32";
         final String code = "new(array, %s)".formatted(sizeResult.code);
         final String returnType = "array" + "." + arrayElementType;
-        return new VisitResult(sizeResult.preparationCode, code, returnType);
+        return new VisitResult(sizeResult.preparationCode, code, "", returnType);
     }
 
     private VisitResult whileVisit(JmmNode node, ArgumentPool argumentPool) {
@@ -86,7 +94,7 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, VisitResult> {
                 %sif (%s) goto whilebody_%d;
                 endwhile_%d:
                 """).formatted(conditionResult.preparationCode, conditionResult.code, tempCounter1, tempCounter1, tempCounter1, bodyCode, conditionResult.code, tempCounter1, tempCounter1);
-        return new VisitResult("", code);
+        return new VisitResult("", code, "");
     }
 
     private VisitResult conditionalVisit(JmmNode node, ArgumentPool argumentPool) {
@@ -104,7 +112,7 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, VisitResult> {
                 ifbody_%d:
                     %sendif_%d:
                     """.formatted(conditionResult.preparationCode, conditionResult.code, tempCounter1, elseCode, tempCounter1, tempCounter1, ifCode, tempCounter1);
-        return new VisitResult("", code);
+        return new VisitResult("", code, "");
     }
 
     private VisitResult arrayExprVisit(JmmNode node, ArgumentPool argumentPool) {
@@ -115,12 +123,12 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, VisitResult> {
         final String arrayElementType = lhsResult.returnType.split("\\.", 2)[1];
         final String preparationCode = rhsResult.preparationCode + lhsResult.preparationCode;
         final String code = "%s[%s]".formatted(lhsResult.code, rhsResult.code);
-        return new VisitResult(preparationCode, code, arrayElementType);
+        return new VisitResult(preparationCode, code, "", arrayElementType);
     }
 
     private VisitResult closedStVisit(JmmNode node, ArgumentPool argumentPool) {
         final VisitResult visitResult = defaultVisit(node, null);
-        return new VisitResult(visitResult.preparationCode, visitResult.code + ";\n");
+        return new VisitResult(visitResult.preparationCode, visitResult.code + ";\n", "");
     }
 
     private VisitResult dotExpressionVisit(JmmNode node, ArgumentPool argumentPool) {
@@ -133,12 +141,11 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, VisitResult> {
         // TODO invokespecial
         // TODO remover esparguete
         // TODO remover os builders
-        // TODO: ollir constructors
 
         final String type = argumentPool.getType() == null ? rhsResult.returnType : argumentPool.getType();
         final String preparationCode = rhsResult.preparationCode + lhsResult.preparationCode;
         final String code = rhsResult.code;
-        return new VisitResult(preparationCode, code, type);
+        return new VisitResult(preparationCode, code, "", type);
     }
 
     private VisitResult dotMethodVisit(JmmNode node, ArgumentPool argumentPool) {
@@ -183,12 +190,12 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, VisitResult> {
         if (argumentPool.getExpectedReturnType() == null) codeBuilder.append(".%s".formatted(returnType));
         final String code = codeBuilder.toString();
         final String preparationCode = preparationBuilder.toString();
-        return new VisitResult(preparationCode, code, returnType);
+        return new VisitResult(preparationCode, code, "", returnType);
     }
 
     private VisitResult dotLengthVisit(JmmNode node, ArgumentPool argumentPool) {
         final String code = "arraylength(%s.array.i32).i32".formatted(argumentPool.getId());
-        return new VisitResult("", code, "i32");
+        return new VisitResult("", code, "", "i32");
     }
 
     private VisitResult assignExprVisit(JmmNode jmmNode, ArgumentPool argumentPool) {
@@ -202,24 +209,26 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, VisitResult> {
         final String assignTarget = split[0];
         final String assignType = lhsResult.returnType;
 
-        VisitResult rhsResult = visit(rhs, new ArgumentPool(assignType, OllirUtils.isNotTerminalNode(rhs)));
+        ArgumentPool rightArgs = new ArgumentPool(assignType, OllirUtils.isNotTerminalNode(rhs));
+        rightArgs.setId(assignTarget);
+        VisitResult rhsResult = visit(rhs, rightArgs);
         final boolean isClassField = OllirUtils.isClassField(assignTarget, currentMethod, symbolTable);
         if (isClassField) {
             final String preparationCode = rhsResult.preparationCode + lhsResult.preparationCode;
             final String code = "putfield(this, %s.%s, %s.%s).V".formatted(lhsResult.code, lhsResult.returnType, rhsResult.code, lhsResult.returnType);
-            return new VisitResult(preparationCode, code);
+            return new VisitResult(preparationCode, code, "");
         }
         final String preparationCode = rhsResult.preparationCode + lhsResult.preparationCode;
         final String code = "%s.%s :=.%s %s.%s".formatted(lhsResult.code, lhsResult.returnType, assignType, rhsResult.code, lhsResult.returnType);
-        return new VisitResult(preparationCode, code);
+        return new VisitResult(preparationCode, code, rhsResult.finalCode);
     }
 
     private VisitResult integerLiteralVisit(JmmNode jmmNode, ArgumentPool argumentPool) {
-        return new VisitResult("", jmmNode.get("value"), "i32");
+        return new VisitResult("", jmmNode.get("value"), "", "i32");
     }
 
     private VisitResult booleanLiteralVisit(JmmNode jmmNode, ArgumentPool argumentPool) {
-        return new VisitResult("", jmmNode.get("value"), "bool");
+        return new VisitResult("", jmmNode.get("value"), "", "bool");
     }
 
     private VisitResult identifierVisit(JmmNode jmmNode, ArgumentPool argumentPool) {
@@ -229,9 +238,9 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, VisitResult> {
         if (isClassField && (argumentPool == null || !argumentPool.isTarget())) {
             final String annotatedId = jmmNode.get("id") + (type.isEmpty() ? "" : "." + type);
             final String calculation = ("getfield(this, %s).%s").formatted(annotatedId, type);
-            return new VisitResult("", calculation, type);
+            return new VisitResult("", calculation, "", type);
         }
-        return new VisitResult("", jmmNode.get("id"), type);
+        return new VisitResult("", jmmNode.get("id"), "", type);
     }
 
     private VisitResult addExprVisit(JmmNode jmmNode, ArgumentPool argumentPool) {
@@ -268,7 +277,7 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, VisitResult> {
         final String preparationCode = rhsResult.preparationCode;
         final String code = "!.bool %s.%s".formatted(rhsResult.code, rhsResult.returnType);
 
-        return new VisitResult(preparationCode, code, "bool");
+        return new VisitResult(preparationCode, code, "", "bool");
     }
 
     private VisitResult publicMethodVisit(JmmNode jmmNode, ArgumentPool o) {
@@ -281,7 +290,7 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, VisitResult> {
 
     private VisitResult startVisit(JmmNode jmmNode, ArgumentPool argumentPool) {
         VisitResult result = defaultVisit(jmmNode, argumentPool);
-        return new VisitResult(result.preparationCode, result.code);
+        return new VisitResult(result.preparationCode, result.code, "");
     }
 
     private VisitResult thisVisit(JmmNode jmmNode, ArgumentPool argumentPool) {
@@ -289,7 +298,7 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, VisitResult> {
             throw new RuntimeException("Illegal number of children in node " + jmmNode.getKind() + ".");
         }
 
-        return new VisitResult("", "this", symbolTable.getClassName());
+        return new VisitResult("", "this", "", symbolTable.getClassName());
     }
 
     private VisitResult defaultVisit(JmmNode node, ArgumentPool argumentPool) {
@@ -303,9 +312,10 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, VisitResult> {
             final VisitResult result = visit(childNode, new ArgumentPool());
             codeBuilder.append(result.preparationCode);
             codeBuilder.append(result.code);
+            codeBuilder.append(result.finalCode);
         }
 
-        return new VisitResult("", codeBuilder.toString());
+        return new VisitResult("", codeBuilder.toString(), "");
     }
 
     private VisitResult methodDeclaration(JmmNode jmmNode, String methodName, Boolean isStatic) {
@@ -335,7 +345,7 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, VisitResult> {
         codeBuilder.append("\n");
         if (returnType.getName().equals("void")) codeBuilder.append("ret.V;\n");
         codeBuilder.append(OllirConstants.TAB).append("}").append("\n");
-        return new VisitResult("", codeBuilder.toString());
+        return new VisitResult("", codeBuilder.toString(), "");
     }
 
     private VisitResult binOpVisit(JmmNode jmmNode, boolean isNotTerminal, String operation, String returnType) {
@@ -345,18 +355,19 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, VisitResult> {
         final VisitResult rhsResult = visit(rhsNode, new ArgumentPool(returnType, OllirUtils.isNotTerminalNode(rhsNode)));
         final String preparationCode = rhsResult.preparationCode + lhsResult.preparationCode;
         final String code = "%s.%s %s.%s %s.%s".formatted(lhsResult.code, lhsResult.returnType, operation, returnType, rhsResult.code, rhsResult.returnType);
-        return new VisitResult(preparationCode, code, returnType);
+        String finalCode = rhsResult.finalCode + lhsResult.finalCode;
+        return new VisitResult(preparationCode, code, finalCode, returnType);
     }
 
-    private VisitResult createTempVariable(String type, String rhsPreparationCode, String rhsCode) {
+    private VisitResult createTempVariable(String type, String rhsPreparationCode, String rhsCode, String finalCode) {
         final String tempVariableName = "temp%d".formatted(tempCounter++);
         final String preparationCode = "%s.%s :=.%s %s.%s;\n".formatted(tempVariableName, type, type, rhsCode, type);
         final String code = "%s.%s".formatted(tempVariableName, type);
-        return new VisitResult(rhsPreparationCode + preparationCode, code, type);
+        return new VisitResult(rhsPreparationCode + preparationCode, code, finalCode, type);
     }
 
     private VisitResult ignore(JmmNode jmmNode, ArgumentPool argumentPool) {
-        return new VisitResult("", "");
+        return new VisitResult("", "", "");
     }
 
     @Override
@@ -368,8 +379,8 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, VisitResult> {
     public VisitResult visit(JmmNode jmmNode, ArgumentPool argumentPool) {
         final VisitResult visitResult = super.visit(jmmNode, argumentPool);
         if (argumentPool.getIsNotTerminal()) {
-            return createTempVariable(visitResult.returnType, visitResult.preparationCode, visitResult.code);
+            return createTempVariable(visitResult.returnType, visitResult.preparationCode, visitResult.code, visitResult.finalCode);
         }
-        return new VisitResult(visitResult.preparationCode, visitResult.code, visitResult.returnType);
+        return new VisitResult(visitResult.preparationCode, visitResult.code, visitResult.finalCode, visitResult.returnType);
     }
 }
