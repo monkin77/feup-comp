@@ -69,12 +69,7 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, String> {
         // TODO: Labels should be unique
         // TODO: Condition should probably be negated beforehand to avoid jumps
         // Note: visit(loopBody) must not be turned into a variable with the current global builder approach.
-        builder.append("if (").append(conditionCode).append(") goto whilebody;").append("\n")
-                .append("goto endwhile;").append("\n").
-                append("whilebody:").append("\n")
-                .append(visit(loopBody))
-                .append("if (").append(conditionCode).append(") goto whilebody;").append("\n")
-                .append("endwhile:").append("\n");
+        builder.append("if (").append(conditionCode).append(") goto whilebody;").append("\n").append("goto endwhile;").append("\n").append("whilebody:").append("\n").append(visit(loopBody)).append("if (").append(conditionCode).append(") goto whilebody;").append("\n").append("endwhile:").append("\n");
         return "";
     }
 
@@ -88,12 +83,11 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, String> {
         String elseBodyCode = visit(elseBody);
         // TODO: Labels should be unique
         // TODO: Condition should probably be negated beforehand
-        builder.append(
-                """
-                        if (%s) goto ifbody;
-                            %s    goto endif;
-                        ifbody:
-                            %sendif:""".formatted(conditionCode, elseBodyCode, ifBodyCode));
+        builder.append("""
+                if (%s) goto ifbody;
+                    %s    goto endif;
+                ifbody:
+                    %sendif:""".formatted(conditionCode, elseBodyCode, ifBodyCode));
         return "";
     }
 
@@ -187,16 +181,29 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, String> {
     }
 
     private String assignExprVisit(JmmNode jmmNode, ArgumentPool argumentPool) {
+        // Putfield -> lhs identifier is class field or object field
         JmmNode lhs = jmmNode.getJmmChild(0);
         JmmNode rhs = jmmNode.getJmmChild(1);
 
-        String lhsId = visit(lhs, new ArgumentPool(null, OllirUtils.isNotTerminalNode(lhs)));
+        ArgumentPool lhsArgs = new ArgumentPool(null, OllirUtils.isNotTerminalNode(lhs));
+        lhsArgs.setTarget(true);
+        String lhsId = visit(lhs, lhsArgs);
         // TODO: This should probably not be necessary, because visit should not return type information.
-        String assignType = lhsId.split("\\.", 2)[1];
+        String[] split = lhsId.split("\\.", 2);
+        String assignTarget = split[0];
+        String assignType = split[1];
 
         final String value = visit(rhs, new ArgumentPool(assignType, OllirUtils.isNotTerminalNode(rhs)));
+        // TODO: This is not a very good way to test if we need putfield, but it can also be something else.
+        final boolean isClassField = symbolTable.getFields().stream().anyMatch(x -> x.getName().equals(assignTarget)) && symbolTable.getLocalVariables(currentMethod).stream().noneMatch(x -> x.getName().equals(assignTarget)) && symbolTable.getParameters(currentMethod).stream().noneMatch(x -> x.getName().equals(assignTarget));
+        if (isClassField) {
+            // TODO: Putfield should also work for object fields (not just this)
+            final String objId = "this";
+            builder.append("putfield(%s, %s, %s).V\n".formatted(objId, lhsId, value));
+            return "";
+        }
         // TODO: Types
-        return lhsId + " :=." + assignType + " " + value;
+        return "%s :=.%s %s".formatted(lhsId, assignType, value);
     }
 
     private String integerLiteralVisit(JmmNode jmmNode, ArgumentPool argumentPool) {
@@ -214,7 +221,8 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, String> {
         final String type = nodeSymbol != null ? OllirUtils.convertType(nodeSymbol.getType()) : "";
         final String annotatedId = jmmNode.get("id") + (type.isEmpty() ? "" : "." + type);
         // TODO: Really weird way to see if this is a class field. Maybe getSymbol should help here?
-        if (symbolTable.getFields().stream().anyMatch(x -> x.getName().equals(jmmNode.get("id")))) {
+        final boolean isClassField = symbolTable.getFields().stream().anyMatch(x -> x.getName().equals(jmmNode.get("id"))) && symbolTable.getLocalVariables(currentMethod).stream().noneMatch(x -> x.getName().equals(jmmNode.get("id"))) && symbolTable.getParameters(currentMethod).stream().noneMatch(x -> x.getName().equals(jmmNode.get("id")));
+        if (isClassField && (argumentPool == null || !argumentPool.isTarget())) {
             // TODO: Getfield should also work for object fields (not just this)
             final String objId = "this";
             final String calculation = ("getfield(%s, %s).%s").formatted(objId, annotatedId, type);
@@ -290,6 +298,8 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, String> {
 
         StringBuilder builder = new StringBuilder();
         for (JmmNode childNode : node.getChildren()) {
+            if (childNode.getKind().equals("IntegerLiteral") || childNode.getKind().equals("BooleanLiteral") || childNode.getKind().equals("_Identifier"))
+                continue;
             builder.append(visit(childNode, new ArgumentPool()));
         }
 
