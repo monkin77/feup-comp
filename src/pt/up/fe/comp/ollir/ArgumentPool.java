@@ -3,28 +3,26 @@ package pt.up.fe.comp.ollir;
 public class ArgumentPool {
     private final String type;
     private final boolean isNotTerminal;
-    private final String id;
-    private String returnType;
-    private String assignmentType;
+    private String id;
+    private String expectedReturnType;
     private boolean isTarget;
 
     public ArgumentPool(String type, boolean isNotTerminal) {
-        this(type, isNotTerminal, null, null);
+        this(type, isNotTerminal, null);
     }
 
     public ArgumentPool(String id) {
-        this(null, false, id, null);
+        this(null, false, id);
     }
 
     public ArgumentPool() {
-        this(null, false, null, null);
+        this(null, false, null);
     }
 
-    private ArgumentPool(String type, boolean isNotTerminal, String id, String returnType) {
+    private ArgumentPool(String type, boolean isNotTerminal, String id) {
         this.type = type;
         this.isNotTerminal = isNotTerminal;
         this.id = id;
-        this.returnType = returnType;
     }
 
 
@@ -40,20 +38,12 @@ public class ArgumentPool {
         return id;
     }
 
-    public String getReturnType() {
-        return returnType;
+    public void setExpectedReturnType(String expectedReturnType) {
+        this.expectedReturnType = expectedReturnType;
     }
 
-    public void setReturnType(String returnType) {
-        this.returnType = returnType;
-    }
-
-    public void setAssignmentType(String assignmentType) {
-        this.assignmentType = assignmentType;
-    }
-
-    public String getAssignmentType() {
-        return assignmentType;
+    public String getExpectedReturnType() {
+        return expectedReturnType;
     }
 
     public boolean isTarget() {
@@ -62,5 +52,9 @@ public class ArgumentPool {
 
     public void setTarget(boolean target) {
         isTarget = target;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 }

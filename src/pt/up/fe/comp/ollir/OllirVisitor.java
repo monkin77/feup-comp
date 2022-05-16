@@ -11,15 +11,13 @@ import java.util.List;
 
 import static pt.up.fe.comp.ollir.OllirUtils.getSymbol;
 
-public class OllirVisitor extends AJmmVisitor<ArgumentPool, String> {
-    private final StringBuilder builder;
+public class OllirVisitor extends AJmmVisitor<ArgumentPool, VisitResult> {
     private final SymbolTable symbolTable;
     private int tempCounter;
     private String currentMethod;
 
     public OllirVisitor(SymbolTable symbolTable) {
         this.symbolTable = symbolTable;
-        builder = new StringBuilder();
         tempCounter = 0;
 
         addVisit("Start", this::startVisit);
@@ -44,322 +42,345 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, String> {
         addVisit("AndExpr", this::andExprVisit);
         addVisit("NotExpr", this::notExprVisit);
         addVisit("ImportRegion", this::ignore);
+        addVisit("VarDecl", this::ignore);
+        addVisit("ReturnExpr", this::ignore);
         addVisit("_This", this::thisVisit);
         addVisit("ArrayExpr", this::arrayExprVisit);
         addVisit("IfElse", this::conditionalVisit);
         addVisit("WhileSt", this::whileVisit);
         addVisit("NewArrayExpr", this::newArrayExprVisit);
+        addVisit("NewObjExpr", this::newObjExprVisit);
+        addVisit("ReturnExpr", this::returnExprVisit);
         setDefaultVisit(this::defaultVisit);
     }
 
-    private String newArrayExprVisit(JmmNode node, ArgumentPool argumentPool) {
-        JmmNode size = node.getJmmChild(0);
-        String sizeVariable = visit(size, new ArgumentPool(null, true));
-        // TODO: Even though we only have int[], this feels weird.
-        String arrayType = "i32";
-        return "new(array, %s).array.%s".formatted(sizeVariable, arrayType);
+    private VisitResult newObjExprVisit(JmmNode node, ArgumentPool argumentPool) {
+        final String className = node.get("object");
+        String code = "new(%s)".formatted(className);
+        String finalCode = ";\ninvokespecial(%s.%s,\"<init>\").V".formatted(argumentPool.getId(), className);
+        return new VisitResult("", code, finalCode, className);
     }
 
-    private String whileVisit(JmmNode node, ArgumentPool argumentPool) {
-        JmmNode condition = node.getJmmChild(0);
-        JmmNode loopBody = node.getJmmChild(1);
-
-        String conditionCode = visit(condition);
-
-        // TODO: Labels should be unique
-        // TODO: Condition should probably be negated beforehand to avoid jumps
-        // Note: visit(loopBody) must not be turned into a variable with the current global builder approach.
-        builder.append("if (").append(conditionCode).append(") goto whilebody;").append("\n").append("goto endwhile;").append("\n").append("whilebody:").append("\n").append(visit(loopBody)).append("if (").append(conditionCode).append(") goto whilebody;").append("\n").append("endwhile:").append("\n");
-        return "";
+    private VisitResult returnExprVisit(JmmNode node, ArgumentPool argumentPool) {
+        final JmmNode expr = node.getJmmChild(0);
+        final VisitResult exprResult = visit(expr, new ArgumentPool(null, true));
+        final String exprId = exprResult.code;
+        final String returnType = OllirUtils.convertType(symbolTable.getReturnType(currentMethod));
+        final String code = "ret.%s %s;".formatted(returnType, exprId);
+        return new VisitResult(exprResult.preparationCode, code, "", returnType);
     }
 
-    private String conditionalVisit(JmmNode node, ArgumentPool argumentPool) {
-        JmmNode condition = node.getJmmChild(0);
-        JmmNode ifBody = node.getJmmChild(1);
-        JmmNode elseBody = node.getJmmChild(2);
-
-        String conditionCode = visit(condition);
-        String ifBodyCode = visit(ifBody);
-        String elseBodyCode = visit(elseBody);
-        // TODO: Labels should be unique
-        // TODO: Condition should probably be negated beforehand
-        builder.append("""
-                if (%s) goto ifbody;
-                    %s    goto endif;
-                ifbody:
-                    %sendif:""".formatted(conditionCode, elseBodyCode, ifBodyCode));
-        return "";
+    private VisitResult newArrayExprVisit(JmmNode node, ArgumentPool argumentPool) {
+        final JmmNode size = node.getJmmChild(0);
+        final VisitResult sizeResult = visit(size, new ArgumentPool(null, true));
+        // COMBACK: Even though we only have int[], this feels weird.
+        final String arrayElementType = "i32";
+        final String code = "new(array, %s)".formatted(sizeResult.code);
+        final String returnType = "array" + "." + arrayElementType;
+        return new VisitResult(sizeResult.preparationCode, code, "", returnType);
     }
 
-    private String arrayExprVisit(JmmNode node, ArgumentPool argumentPool) {
-        JmmNode lhs = node.getJmmChild(0);
-        JmmNode rhs = node.getJmmChild(1);
-        ArgumentPool leftArgumentPool = new ArgumentPool(null, OllirUtils.isNotTerminalNode(lhs));
-        ArgumentPool rightArgumentPool = new ArgumentPool(null, true);
-        // TODO: Identifier should probably not return the type or have a flag.
-        final String lhsId = visit(lhs, leftArgumentPool).split("\\.")[0];
-        final String rhsId = visit(rhs, rightArgumentPool);
-        // TODO: Even though we only have int[], this feels weird.
-        final String arrayType = "i32";
-        return "%s[%s].%s".formatted(lhsId, rhsId, arrayType);
+    private VisitResult whileVisit(JmmNode node, ArgumentPool argumentPool) {
+        final VisitResult conditionResult = visit(node.getJmmChild(0));
+        final VisitResult loopResult = visit(node.getJmmChild(1));
+
+        // COMBACK: Optimization: condition should probably be negated beforehand to avoid jumps
+        final String bodyCode = loopResult.preparationCode + loopResult.code + conditionResult.preparationCode;
+        int tempCounter1 = tempCounter++;
+        final String code = ("""
+                %sif (%s) goto whilebody_%d;
+                goto endwhile_%d;
+                whilebody_%d:
+                %sif (%s) goto whilebody_%d;
+                endwhile_%d:
+                """).formatted(conditionResult.preparationCode, conditionResult.code, tempCounter1, tempCounter1, tempCounter1, bodyCode, conditionResult.code, tempCounter1, tempCounter1);
+        return new VisitResult("", code, "");
     }
 
-    private String closedStVisit(JmmNode node, ArgumentPool argumentPool) {
-        return defaultVisit(node, null) + ";\n";
+    private VisitResult conditionalVisit(JmmNode node, ArgumentPool argumentPool) {
+        final VisitResult conditionResult = visit(node.getJmmChild(0));
+        final VisitResult ifBodyResult = visit(node.getJmmChild(1));
+        final VisitResult elseBodyResult = visit(node.getJmmChild(2));
+        // COMBACK: Optimization: ondition should probably be negated beforehand
+        final String elseCode = elseBodyResult.preparationCode + elseBodyResult.code;
+        final String ifCode = ifBodyResult.preparationCode + ifBodyResult.code;
+        int tempCounter1 = tempCounter++;
+        final String code = """
+                %s
+                if (%s) goto ifbody_%d;
+                    %sgoto endif_%d;
+                ifbody_%d:
+                    %sendif_%d:
+                    """.formatted(conditionResult.preparationCode, conditionResult.code, tempCounter1, elseCode, tempCounter1, tempCounter1, ifCode, tempCounter1);
+        return new VisitResult("", code, "");
     }
 
-    private String dotExpressionVisit(JmmNode node, ArgumentPool argumentPool) {
-        JmmNode lhs = node.getJmmChild(0);
-        JmmNode rhs = node.getJmmChild(1);
+    private VisitResult arrayExprVisit(JmmNode node, ArgumentPool argumentPool) {
+        final ArgumentPool leftArgumentPool = new ArgumentPool(null, OllirUtils.isNotTerminalNode(node.getJmmChild(0)));
+        final ArgumentPool rightArgumentPool = new ArgumentPool(null, true);
+        final VisitResult lhsResult = visit(node.getJmmChild(0), leftArgumentPool);
+        final VisitResult rhsResult = visit(node.getJmmChild(1), rightArgumentPool);
+        final String arrayElementType = lhsResult.returnType.split("\\.", 2)[1];
+        final String preparationCode = rhsResult.preparationCode + lhsResult.preparationCode;
+        final String code = "%s[%s]".formatted(lhsResult.code, rhsResult.code);
+        return new VisitResult(preparationCode, code, "", arrayElementType);
+    }
 
-        ArgumentPool leftArg = new ArgumentPool(null, OllirUtils.isNotTerminalNode(lhs));
-        String lhsId = visit(lhs, leftArg);
+    private VisitResult closedStVisit(JmmNode node, ArgumentPool argumentPool) {
+        final VisitResult visitResult = defaultVisit(node, null);
+        return new VisitResult(visitResult.preparationCode, visitResult.code + ";\n", "");
+    }
 
-        ArgumentPool rightArg = new ArgumentPool(lhsId);
-        rightArg.setAssignmentType(argumentPool.getType());
-        String rhsId = visit(rhs, rightArg);
-        // TODO dot methods returning void except assignment
-        // TODO dot length
+    private VisitResult dotExpressionVisit(JmmNode node, ArgumentPool argumentPool) {
+        final ArgumentPool leftArg = new ArgumentPool(null, OllirUtils.isNotTerminalNode(node.getJmmChild(0)));
+        final VisitResult lhsResult = visit(node.getJmmChild(0), leftArg);
+
+        final ArgumentPool rightArg = new ArgumentPool(lhsResult.code);
+        rightArg.setExpectedReturnType(argumentPool.getType());
+        final VisitResult rhsResult = visit(node.getJmmChild(1), rightArg);
         // TODO invokespecial
-        // TODO ifelse, arrayexpr, whileSt
         // TODO remover esparguete
         // TODO remover os builders
-        // TODO putfield, getfield
 
-        String type = argumentPool.getType() == null ? rightArg.getReturnType() : argumentPool.getType();
-        if (argumentPool.getIsNotTerminal()) return createTempVariable(type, rhsId);
-
-        return rhsId;
+        final String type = argumentPool.getType() == null ? rhsResult.returnType : argumentPool.getType();
+        final String preparationCode = rhsResult.preparationCode + lhsResult.preparationCode;
+        final String code = rhsResult.code;
+        return new VisitResult(preparationCode, code, "", type);
     }
 
-    private String dotMethodVisit(JmmNode node, ArgumentPool argumentPool) {
-        String id = argumentPool.getId();
-        Symbol symbol = getSymbol(id, currentMethod, symbolTable);
+    private VisitResult dotMethodVisit(JmmNode node, ArgumentPool argumentPool) {
+        final String id = argumentPool.getId();
+        final Symbol symbol = getSymbol(id, currentMethod, symbolTable);
 
-        StringBuilder sb = new StringBuilder();
-        String method = "\"" + node.get("method") + "\"";
-
+        final StringBuilder preparationBuilder = new StringBuilder();
+        final StringBuilder codeBuilder = new StringBuilder();
+        final String method = "\"" + node.get("method") + "\"";
+        final String returnType;
         if (symbol == null) {
             if (Utils.hasImport(id, symbolTable)) {
-                sb.append("invokestatic(").append(id);
-                argumentPool.setReturnType("V");
+                codeBuilder.append("invokestatic(").append(id);
+                returnType = "V";
             } else {
                 // Assume it's a symbol from our class
-                sb.append("invokevirtual(").append(id);
-                argumentPool.setReturnType(this.symbolTable.getReturnType(node.get("method")).getName());
+                codeBuilder.append("invokevirtual(").append(id);
+                returnType = this.symbolTable.getReturnType(node.get("method")).getName();
             }
         } else {
-            sb.append("invokevirtual(").append(symbol.getName()).append(".").append(OllirUtils.convertType(symbol.getType()));
+            codeBuilder.append("invokevirtual(").append(symbol.getName()).append(".").append(OllirUtils.convertType(symbol.getType()));
 
             if (symbol.getType().getName().equals(this.symbolTable.getClassName())) {
                 // variable of class type
-                argumentPool.setReturnType(this.symbolTable.getReturnType(node.get("method")).getName());
+                returnType = this.symbolTable.getReturnType(node.get("method")).getName();
             } else {
-                argumentPool.setReturnType("V");
+                returnType = "V";
             }
         }
 
-        sb.append(", ").append(method);
+        codeBuilder.append(", ").append(method);
         for (int i = 0; i < node.getNumChildren(); ++i) {
             JmmNode childNode = node.getJmmChild(i);
-            sb.append(", ");
-            sb.append(visit(childNode));
+            codeBuilder.append(", ");
+            final VisitResult result = visit(childNode);
+            preparationBuilder.append(result.preparationCode);
+            codeBuilder.append("%s.%s".formatted(result.code, result.returnType));
         }
         // return will be appended in DotExpression
 
-        String type = argumentPool.getAssignmentType() == null ? argumentPool.getReturnType() : argumentPool.getAssignmentType();
-        sb.append(").").append(type);
-        return sb.toString();
+        codeBuilder.append(")");
+        if (argumentPool.getExpectedReturnType() == null) codeBuilder.append(".%s".formatted(returnType));
+        final String code = codeBuilder.toString();
+        final String preparationCode = preparationBuilder.toString();
+        return new VisitResult(preparationCode, code, "", returnType);
     }
 
-    private String dotLengthVisit(JmmNode node, ArgumentPool argumentPool) {
-        String id = argumentPool.getId();
-        StringBuilder sb = new StringBuilder();
-
-        sb.append("arraylength(").append(id).append(").i32");
-        return sb.toString();
+    private VisitResult dotLengthVisit(JmmNode node, ArgumentPool argumentPool) {
+        final String code = "arraylength(%s.array.i32).i32".formatted(argumentPool.getId());
+        return new VisitResult("", code, "", "i32");
     }
 
-    private String assignExprVisit(JmmNode jmmNode, ArgumentPool argumentPool) {
-        // Putfield -> lhs identifier is class field or object field
-        JmmNode lhs = jmmNode.getJmmChild(0);
-        JmmNode rhs = jmmNode.getJmmChild(1);
+    private VisitResult assignExprVisit(JmmNode jmmNode, ArgumentPool argumentPool) {
+        final JmmNode lhs = jmmNode.getJmmChild(0);
+        final JmmNode rhs = jmmNode.getJmmChild(1);
 
-        ArgumentPool lhsArgs = new ArgumentPool(null, OllirUtils.isNotTerminalNode(lhs));
+        final ArgumentPool lhsArgs = new ArgumentPool(null, OllirUtils.isNotTerminalNode(lhs));
         lhsArgs.setTarget(true);
-        String lhsId = visit(lhs, lhsArgs);
-        // TODO: This should probably not be necessary, because visit should not return type information.
-        String[] split = lhsId.split("\\.", 2);
-        String assignTarget = split[0];
-        String assignType = split[1];
+        final VisitResult lhsResult = visit(lhs, lhsArgs);
+        final String[] split = lhsResult.code.split("\\.", 2);
+        final String assignTarget = split[0];
+        final String assignType = lhsResult.returnType;
 
-        final String value = visit(rhs, new ArgumentPool(assignType, OllirUtils.isNotTerminalNode(rhs)));
-        // TODO: This is not a very good way to test if we need putfield, but it can also be something else.
-        final boolean isClassField = symbolTable.getFields().stream().anyMatch(x -> x.getName().equals(assignTarget)) && symbolTable.getLocalVariables(currentMethod).stream().noneMatch(x -> x.getName().equals(assignTarget)) && symbolTable.getParameters(currentMethod).stream().noneMatch(x -> x.getName().equals(assignTarget));
+        ArgumentPool rightArgs = new ArgumentPool(assignType, OllirUtils.isNotTerminalNode(rhs));
+        rightArgs.setId(assignTarget);
+        VisitResult rhsResult = visit(rhs, rightArgs);
+        final boolean isClassField = OllirUtils.isClassField(assignTarget, currentMethod, symbolTable);
         if (isClassField) {
-            // TODO: Putfield should also work for object fields (not just this)
-            final String objId = "this";
-            builder.append("putfield(%s, %s, %s).V\n".formatted(objId, lhsId, value));
-            return "";
+            final String preparationCode = rhsResult.preparationCode + lhsResult.preparationCode;
+            final String code = "putfield(this, %s.%s, %s.%s).V".formatted(lhsResult.code, lhsResult.returnType, rhsResult.code, lhsResult.returnType);
+            return new VisitResult(preparationCode, code, "");
         }
-        // TODO: Types
-        return "%s :=.%s %s".formatted(lhsId, assignType, value);
+        final String preparationCode = rhsResult.preparationCode + lhsResult.preparationCode;
+        final String code = "%s.%s :=.%s %s.%s".formatted(lhsResult.code, lhsResult.returnType, assignType, rhsResult.code, lhsResult.returnType);
+        return new VisitResult(preparationCode, code, rhsResult.finalCode);
     }
 
-    private String integerLiteralVisit(JmmNode jmmNode, ArgumentPool argumentPool) {
-        final String calculation = jmmNode.get("value") + ".i32";
-        if (argumentPool != null && argumentPool.getIsNotTerminal()) return createTempVariable("i32", calculation);
-        return calculation;
+    private VisitResult integerLiteralVisit(JmmNode jmmNode, ArgumentPool argumentPool) {
+        return new VisitResult("", jmmNode.get("value"), "", "i32");
     }
 
-    private String booleanLiteralVisit(JmmNode jmmNode, ArgumentPool argumentPool) {
-        return jmmNode.get("value") + ".bool";
+    private VisitResult booleanLiteralVisit(JmmNode jmmNode, ArgumentPool argumentPool) {
+        return new VisitResult("", jmmNode.get("value"), "", "bool");
     }
 
-    private String identifierVisit(JmmNode jmmNode, ArgumentPool argumentPool) {
+    private VisitResult identifierVisit(JmmNode jmmNode, ArgumentPool argumentPool) {
         final Symbol nodeSymbol = getSymbol(jmmNode.get("id"), currentMethod, symbolTable);
         final String type = nodeSymbol != null ? OllirUtils.convertType(nodeSymbol.getType()) : "";
-        final String annotatedId = jmmNode.get("id") + (type.isEmpty() ? "" : "." + type);
-        // TODO: Really weird way to see if this is a class field. Maybe getSymbol should help here?
-        final boolean isClassField = symbolTable.getFields().stream().anyMatch(x -> x.getName().equals(jmmNode.get("id"))) && symbolTable.getLocalVariables(currentMethod).stream().noneMatch(x -> x.getName().equals(jmmNode.get("id"))) && symbolTable.getParameters(currentMethod).stream().noneMatch(x -> x.getName().equals(jmmNode.get("id")));
+        final boolean isClassField = OllirUtils.isClassField(jmmNode.get("id"), currentMethod, symbolTable);
         if (isClassField && (argumentPool == null || !argumentPool.isTarget())) {
-            // TODO: Getfield should also work for object fields (not just this)
-            final String objId = "this";
-            final String calculation = ("getfield(%s, %s).%s").formatted(objId, annotatedId, type);
-            return createTempVariable(type, calculation);
+            final String annotatedId = jmmNode.get("id") + (type.isEmpty() ? "" : "." + type);
+            final String calculation = ("getfield(this, %s).%s").formatted(annotatedId, type);
+            return new VisitResult("", calculation, "", type);
         }
-        // TODO: Type
-        return annotatedId;
+        return new VisitResult("", jmmNode.get("id"), "", type);
     }
 
-    private String addExprVisit(JmmNode jmmNode, ArgumentPool argumentPool) {
-        return binOpVisit(jmmNode, argumentPool.getIsNotTerminal(), "+", "i32", "i32");
+    private VisitResult addExprVisit(JmmNode jmmNode, ArgumentPool argumentPool) {
+        return binOpVisit(jmmNode, argumentPool.getIsNotTerminal(), "+", "i32");
     }
 
-    private String subExprVisit(JmmNode jmmNode, ArgumentPool argumentPool) {
-        return binOpVisit(jmmNode, argumentPool.getIsNotTerminal(), "-", "i32", "i32");
+    private VisitResult subExprVisit(JmmNode jmmNode, ArgumentPool argumentPool) {
+        return binOpVisit(jmmNode, argumentPool.getIsNotTerminal(), "-", "i32");
     }
 
-    private String mulExprVisit(JmmNode jmmNode, ArgumentPool argumentPool) {
-        return binOpVisit(jmmNode, argumentPool.getIsNotTerminal(), "*", "i32", "i32");
+    private VisitResult mulExprVisit(JmmNode jmmNode, ArgumentPool argumentPool) {
+        return binOpVisit(jmmNode, argumentPool.getIsNotTerminal(), "*", "i32");
     }
 
-    private String divExprVisit(JmmNode jmmNode, ArgumentPool argumentPool) {
-        return binOpVisit(jmmNode, argumentPool.getIsNotTerminal(), "/", "i32", "i32");
+    private VisitResult divExprVisit(JmmNode jmmNode, ArgumentPool argumentPool) {
+        return binOpVisit(jmmNode, argumentPool.getIsNotTerminal(), "/", "i32");
     }
 
-    private String lessExprVisit(JmmNode jmmNode, ArgumentPool argumentPool) {
-        return binOpVisit(jmmNode, argumentPool.getIsNotTerminal(), "<", "bool", "i32");
+    private VisitResult lessExprVisit(JmmNode jmmNode, ArgumentPool argumentPool) {
+        return binOpVisit(jmmNode, argumentPool.getIsNotTerminal(), "<", "bool");
     }
 
-    private String andExprVisit(JmmNode jmmNode, ArgumentPool argumentPool) {
-        return binOpVisit(jmmNode, argumentPool.getIsNotTerminal(), "&&", "bool", "bool");
+    private VisitResult andExprVisit(JmmNode jmmNode, ArgumentPool argumentPool) {
+        return binOpVisit(jmmNode, argumentPool.getIsNotTerminal(), "&&", "bool");
     }
 
-    private String notExprVisit(JmmNode jmmNode, ArgumentPool argumentPool) {
-        JmmNode node = jmmNode.getJmmChild(0);
-        Symbol symbol = getSymbol(node.get("id"), currentMethod, symbolTable);
-        String assignType = OllirUtils.convertType(symbol.getType());
+    private VisitResult notExprVisit(JmmNode jmmNode, ArgumentPool argumentPool) {
+        final JmmNode node = jmmNode.getJmmChild(0);
+        final Symbol symbol = getSymbol(node.get("id"), currentMethod, symbolTable);
+        final String assignType = OllirUtils.convertType(symbol.getType());
 
-        String rhs = visit(node, new ArgumentPool(assignType, OllirUtils.isNotTerminalNode(node)));
+        final VisitResult rhsResult = visit(node, new ArgumentPool(assignType, OllirUtils.isNotTerminalNode(node)));
 
-        String calculation = '!' + "." + "bool" + " " + rhs + ";" + "\n";
+        final String preparationCode = rhsResult.preparationCode;
+        final String code = "!.bool %s.%s".formatted(rhsResult.code, rhsResult.returnType);
 
-        if (argumentPool.getIsNotTerminal()) return createTempVariable("bool", calculation);
-
-        return calculation;
+        return new VisitResult(preparationCode, code, "", "bool");
     }
 
-    private String publicMethodVisit(JmmNode jmmNode, ArgumentPool o) {
+    private VisitResult publicMethodVisit(JmmNode jmmNode, ArgumentPool o) {
         return methodDeclaration(jmmNode, jmmNode.get("name"), false);
     }
 
-    private String mainDeclVisit(JmmNode jmmNode, ArgumentPool argumentPool) {
+    private VisitResult mainDeclVisit(JmmNode jmmNode, ArgumentPool argumentPool) {
         return methodDeclaration(jmmNode, "main", true);
     }
 
-    private String startVisit(JmmNode jmmNode, ArgumentPool argumentPool) {
-        defaultVisit(jmmNode, argumentPool);
-        return builder.toString();
+    private VisitResult startVisit(JmmNode jmmNode, ArgumentPool argumentPool) {
+        VisitResult result = defaultVisit(jmmNode, argumentPool);
+        return new VisitResult(result.preparationCode, result.code, "");
     }
 
-    private String thisVisit(JmmNode jmmNode, ArgumentPool argumentPool) {
+    private VisitResult thisVisit(JmmNode jmmNode, ArgumentPool argumentPool) {
         if (jmmNode.getNumChildren() > 0) {
             throw new RuntimeException("Illegal number of children in node " + jmmNode.getKind() + ".");
         }
 
-        return "this";
+        return new VisitResult("", "this", "", symbolTable.getClassName());
     }
 
-    private String defaultVisit(JmmNode node, ArgumentPool argumentPool) {
+    private VisitResult defaultVisit(JmmNode node, ArgumentPool argumentPool) {
         if (node.getNumChildren() < 0) {
             throw new RuntimeException("Illegal number of children in node " + node.getKind() + ".");
         }
 
-        StringBuilder builder = new StringBuilder();
+        final StringBuilder codeBuilder = new StringBuilder();
         for (JmmNode childNode : node.getChildren()) {
-            if (childNode.getKind().equals("IntegerLiteral") || childNode.getKind().equals("BooleanLiteral") || childNode.getKind().equals("_Identifier"))
-                continue;
-            builder.append(visit(childNode, new ArgumentPool()));
+            if (!OllirUtils.isNotTerminalNode(childNode)) continue;
+            final VisitResult result = visit(childNode, new ArgumentPool());
+            codeBuilder.append(result.preparationCode);
+            codeBuilder.append(result.code);
+            codeBuilder.append(result.finalCode);
         }
 
-        return builder.toString();
+        return new VisitResult("", codeBuilder.toString(), "");
     }
 
-    private String methodDeclaration(JmmNode jmmNode, String methodName, Boolean isStatic) {
+    private VisitResult methodDeclaration(JmmNode jmmNode, String methodName, Boolean isStatic) {
+        final StringBuilder codeBuilder = new StringBuilder();
         currentMethod = methodName;
-        builder.append(OllirConstants.TAB);
-        builder.append(".method public ");
-        if (isStatic) builder.append("static ");
-        builder.append(methodName).append("(");
+        codeBuilder.append(OllirConstants.TAB);
+        codeBuilder.append(".method public ");
+        if (isStatic) codeBuilder.append("static ");
+        codeBuilder.append(methodName).append("(");
 
-        List<Symbol> parameters = symbolTable.getParameters(methodName);
+        final List<Symbol> parameters = symbolTable.getParameters(methodName);
         for (Symbol param : parameters) {
-            builder.append(param.getName());
-            String type = OllirUtils.convertType(param.getType());
-            builder.append(".").append(type);
-            if (param != parameters.get(parameters.size() - 1)) builder.append(", ");
+            codeBuilder.append(param.getName());
+            final String type = OllirUtils.convertType(param.getType());
+            codeBuilder.append(".").append(type);
+            if (param != parameters.get(parameters.size() - 1)) codeBuilder.append(", ");
         }
-        builder.append(")");
+        codeBuilder.append(")");
 
-        Type returnType = symbolTable.getReturnType(methodName);
-        builder.append(".").append(OllirUtils.convertType(returnType)).append(" {\n");
+        final Type returnType = symbolTable.getReturnType(methodName);
+        codeBuilder.append(".").append(OllirUtils.convertType(returnType)).append(" {\n");
 
-        builder.append(defaultVisit(jmmNode, null));
+        final VisitResult result = defaultVisit(jmmNode, null);
+        codeBuilder.append(result.preparationCode);
+        codeBuilder.append(result.code);
 
-        builder.append("\n");
-        // TODO: Should probably check if the return is already there: AST?
-        if (returnType.getName().equals("void")) builder.append("ret.V").append(";\n");
-        builder.append(OllirConstants.TAB).append("}").append("\n");
-        return "";
+        codeBuilder.append("\n");
+        if (returnType.getName().equals("void")) codeBuilder.append("ret.V;\n");
+        codeBuilder.append(OllirConstants.TAB).append("}").append("\n");
+        return new VisitResult("", codeBuilder.toString(), "");
     }
 
-    private String binOpVisit(JmmNode jmmNode, boolean isNotTerminal, String operation, String returnType, String argumentType) {
-        JmmNode lhsNode = jmmNode.getJmmChild(0);
-        JmmNode rhsNode = jmmNode.getJmmChild(1);
-
-        String lhs = visit(lhsNode, new ArgumentPool(returnType, OllirUtils.isNotTerminalNode(lhsNode)));
-        String rhs = visit(rhsNode, new ArgumentPool(returnType, OllirUtils.isNotTerminalNode(rhsNode)));
-
-        String calculation = lhs + " " + operation + "." + returnType + " " + rhs;
-
-        if (isNotTerminal) return createTempVariable(returnType, calculation);
-
-        return calculation;
+    private VisitResult binOpVisit(JmmNode jmmNode, boolean isNotTerminal, String operation, String returnType) {
+        final JmmNode lhsNode = jmmNode.getJmmChild(0);
+        final JmmNode rhsNode = jmmNode.getJmmChild(1);
+        final VisitResult lhsResult = visit(lhsNode, new ArgumentPool(returnType, OllirUtils.isNotTerminalNode(lhsNode)));
+        final VisitResult rhsResult = visit(rhsNode, new ArgumentPool(returnType, OllirUtils.isNotTerminalNode(rhsNode)));
+        final String preparationCode = rhsResult.preparationCode + lhsResult.preparationCode;
+        final String code = "%s.%s %s.%s %s.%s".formatted(lhsResult.code, lhsResult.returnType, operation, returnType, rhsResult.code, rhsResult.returnType);
+        String finalCode = rhsResult.finalCode + lhsResult.finalCode;
+        return new VisitResult(preparationCode, code, finalCode, returnType);
     }
 
-    private String createTempVariable(String type, String calculation) {
-        String tempVariableName = "temp" + tempCounter++;
-        builder.append(tempVariableName).append(".").append(type).append(" :=.").append(type).append(" ").append(calculation).append(";\n");
-        return tempVariableName + '.' + type;
+    private VisitResult createTempVariable(String type, String rhsPreparationCode, String rhsCode, String finalCode) {
+        final String tempVariableName = "temp%d".formatted(tempCounter++);
+        final String preparationCode = "%s.%s :=.%s %s.%s;\n".formatted(tempVariableName, type, type, rhsCode, type);
+        final String code = "%s.%s".formatted(tempVariableName, type);
+        return new VisitResult(rhsPreparationCode + preparationCode, code, finalCode, type);
     }
 
-    private String ignore(JmmNode jmmNode, ArgumentPool argumentPool) {
-        return "";
+    private VisitResult ignore(JmmNode jmmNode, ArgumentPool argumentPool) {
+        return new VisitResult("", "", "");
     }
 
     @Override
-    public String visit(JmmNode jmmNode) {
+    public VisitResult visit(JmmNode jmmNode) {
         return super.visit(jmmNode, new ArgumentPool());
+    }
+
+    @Override
+    public VisitResult visit(JmmNode jmmNode, ArgumentPool argumentPool) {
+        final VisitResult visitResult = super.visit(jmmNode, argumentPool);
+        if (argumentPool.getIsNotTerminal()) {
+            return createTempVariable(visitResult.returnType, visitResult.preparationCode, visitResult.code, visitResult.finalCode);
+        }
+        return new VisitResult(visitResult.preparationCode, visitResult.code, visitResult.finalCode, visitResult.returnType);
     }
 }

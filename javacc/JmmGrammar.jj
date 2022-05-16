@@ -128,7 +128,7 @@ PublicMethodDeclaration #PublicMethod :
     <CLOSE_PAREN> <OPEN_CURLY>
         VarDeclarations
         ( Statement )*
-        <RETURN> Expression <SEMICOLON>
+        <RETURN> Expression #ReturnExpr <SEMICOLON>
     <CLOSE_CURLY>
 ;
 
