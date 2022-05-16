@@ -72,6 +72,7 @@ public class OperationInstructionBuilder extends AbstractBuilder {
         final OperationType type = unaryOpInstruction.getOperation().getOpType();
 
         if (type != OperationType.NOT && type != OperationType.NOTB) return; // Not supported
+        builder.append(JasminUtils.buildLoadInstruction(unaryOpInstruction.getOperand(), method));
         builder.append("ineg");
     }
 }
