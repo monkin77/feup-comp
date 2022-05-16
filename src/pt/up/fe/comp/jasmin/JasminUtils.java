@@ -80,7 +80,7 @@ public class JasminUtils {
                 builder.append("iload ").append(descriptor.getVirtualReg());
                 break;
             case ARRAYREF:
-                builder.append("iaload ").append(descriptor.getVirtualReg());
+                builder.append("aload ").append(descriptor.getVirtualReg());
                 break;
         }
 
