@@ -1,9 +1,9 @@
 package pt.up.fe.comp.visitors;
 
-import pt.up.fe.comp.*;
 import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
 import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.JmmNode;
+import pt.up.fe.comp.symbolTable.*;
 
 import java.util.*;
 

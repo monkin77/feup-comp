@@ -1,11 +1,11 @@
 package pt.up.fe.comp.visitors;
 
-import pt.up.fe.comp.*;
 import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.AJmmVisitor;
 import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp.jmm.report.Report;
 import pt.up.fe.comp.jmm.report.Stage;
+import pt.up.fe.comp.symbolTable.*;
 
 import java.util.ArrayList;
 import java.util.List;

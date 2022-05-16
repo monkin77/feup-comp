@@ -5,6 +5,7 @@ import pt.up.fe.comp.jmm.analysis.JmmSemanticsResult;
 import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp.jmm.parser.JmmParserResult;
 import pt.up.fe.comp.jmm.report.Report;
+import pt.up.fe.comp.symbolTable.MySymbolTable;
 import pt.up.fe.comp.visitors.ExistenceVisitor;
 import pt.up.fe.comp.visitors.TypeCheckingVisitor;
 import pt.up.fe.comp.visitors.VisitorEval;
