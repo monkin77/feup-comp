@@ -33,7 +33,7 @@ public class CallInstructionBuilder extends AbstractBuilder {
                 buildNew();
                 break;
             case arraylength:
-                // TODO
+                buildArrayLength();
                 break;
             case ldc:
                 LiteralElement literal = (LiteralElement) (instruction.getFirstArg());
@@ -42,6 +42,11 @@ public class CallInstructionBuilder extends AbstractBuilder {
         }
 
         return builder.toString();
+    }
+
+    private void buildArrayLength() {
+        builder.append(JasminUtils.buildLoadInstruction(instruction.getFirstArg(), method));
+        builder.append("arraylength");
     }
 
     private void buildInvokeVirtual() {
