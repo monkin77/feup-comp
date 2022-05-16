@@ -1,13 +1,17 @@
 package pt.up.fe.comp.ollir;
 
 import pt.up.fe.comp.jmm.analysis.JmmSemanticsResult;
+import pt.up.fe.comp.jmm.analysis.table.Symbol;
 
-public class OllirBuilder extends AbstractBuilder {
+public class OllirBuilder {
+    protected final JmmSemanticsResult semanticsResult;
+    protected final StringBuilder builder;
+
     public OllirBuilder(JmmSemanticsResult semanticsResult) {
-        super(semanticsResult);
+        this.semanticsResult = semanticsResult;
+        this.builder = new StringBuilder();
     }
 
-    @Override
     public String compile() {
         compileImports();
         builder.append(semanticsResult.getSymbolTable().getClassName());
@@ -15,7 +19,7 @@ public class OllirBuilder extends AbstractBuilder {
             builder.append(" extends ").append(semanticsResult.getSymbolTable().getSuper());
 
         builder.append(" {\n");
-        builder.append(new FieldsBuilder(semanticsResult).compile());
+        compileFields();
         builder.append("\n");
 
         compileConstructor();
@@ -42,5 +46,14 @@ public class OllirBuilder extends AbstractBuilder {
         builder.append(OllirConstants.TAB).append(OllirConstants.TAB);
         builder.append("invokespecial(this, \"<init>\").V;\n");
         builder.append(OllirConstants.TAB).append("}\n");
+    }
+
+    public void compileFields() {
+        for (Symbol field : semanticsResult.getSymbolTable().getFields()) {
+            builder.append(OllirConstants.TAB);
+            builder.append(".field private ").append(field.getName());
+            builder.append(".").append(OllirUtils.convertType(field.getType()));
+            builder.append(";\n");
+        }
     }
 }
