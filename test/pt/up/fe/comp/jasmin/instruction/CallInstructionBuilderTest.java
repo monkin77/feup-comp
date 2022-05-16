@@ -143,6 +143,6 @@ public class CallInstructionBuilderTest {
         Mockito.when(callInstruction.getInvocationType()).thenReturn(CallType.arraylength);
 
         // TODO
-        assertEquals("", callInstructionBuilder.compile());
+        assertEquals("aload 7\narraylength", callInstructionBuilder.compile());
     }
 }

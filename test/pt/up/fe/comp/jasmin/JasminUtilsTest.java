@@ -92,6 +92,6 @@ public class JasminUtilsTest {
         assertEquals("ldc LiteralElement\n", JasminUtils.buildLoadInstruction(literalElement, method));
         assertEquals("aload 7\n", JasminUtils.buildLoadInstruction(objectElement, method));
         assertEquals("iload 7\n", JasminUtils.buildLoadInstruction(intElement, method));
-        assertEquals("iaload 7\n", JasminUtils.buildLoadInstruction(arrayElement, method));
+        assertEquals("aload 7\n", JasminUtils.buildLoadInstruction(arrayElement, method));
     }
 }

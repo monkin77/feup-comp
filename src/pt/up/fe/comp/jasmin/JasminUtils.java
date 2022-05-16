@@ -72,15 +72,14 @@ public class JasminUtils {
         final ElementType type = element.getType().getTypeOfElement();
 
         // TODO Difference between iload 0 and iload_0
+        // TODO a[x] cases
         switch (type) {
-            case THIS: case OBJECTREF: case CLASS: case STRING:
+            case THIS: case OBJECTREF: case CLASS:
+            case STRING: case ARRAYREF:
                 builder.append("aload ").append(descriptor.getVirtualReg());
                 break;
             case INT32: case BOOLEAN:
                 builder.append("iload ").append(descriptor.getVirtualReg());
-                break;
-            case ARRAYREF:
-                builder.append("aload ").append(descriptor.getVirtualReg());
                 break;
         }
 

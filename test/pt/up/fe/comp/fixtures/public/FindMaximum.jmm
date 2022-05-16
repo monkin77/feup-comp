@@ -10,11 +10,10 @@ class FindMaximum {
         return x;
     }
 
-    // TODO: Implement ollir constructor calls
-    //public FindMaximum fm() {
-    //    FindMaximum fm;
-    //    return fm;
-    //}
+    public FindMaximum fm() {
+        FindMaximum fm;
+        return fm;
+    }
 
     public static void main(String[] args) {
         int x;
@@ -42,8 +41,7 @@ class FindMaximum {
            x = x + 1;
            io.println(x);
         }
-        // a = new int[15]; // TODO: needs to be reviewed in Jasmin, but wtf?
-        fm1._x = 10; // TODO: What?
-        // fm1.fm().fm().fm().fm();
+        // a = new int[15]; // TODO: needs to be reviewed in Jasmin, no array type
+        fm1.fm().fm().fm().fm();
     }
 }

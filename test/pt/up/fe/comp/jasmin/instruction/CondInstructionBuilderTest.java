@@ -58,7 +58,9 @@ public class CondInstructionBuilderTest {
 
     @Test
     public void opCond() {
-        assertEquals("ineg\n" +
-                "ifne OP_LABEL", opCondInstructionBuilder.compile());
+        assertEquals("""
+                iload 7
+                ineg
+                ifne OP_LABEL""", opCondInstructionBuilder.compile());
     }
 }
