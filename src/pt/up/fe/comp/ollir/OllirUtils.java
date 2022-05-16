@@ -15,20 +15,11 @@ public class OllirUtils {
 
         String javaType = symbolType.getName();
         switch (javaType) {
-            case "int":
-                stringBuilder.append("i32");
-                break;
-            case "boolean":
-                stringBuilder.append("bool");
-                break;
-            case "string":
-                stringBuilder.append("String");
-                break;
-            case "void":
-                stringBuilder.append("V");
-                break;
-            default:
-                stringBuilder.append(javaType); // Custom class
+            case "int" -> stringBuilder.append("i32");
+            case "boolean" -> stringBuilder.append("bool");
+            case "string" -> stringBuilder.append("String");
+            case "void" -> stringBuilder.append("V");
+            default -> stringBuilder.append(javaType); // Custom class
         }
 
         return stringBuilder.toString();

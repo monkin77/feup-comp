@@ -22,46 +22,43 @@ public class InstructionBuilder extends AbstractBuilder {
     public String compile() {
         compileInstructionLabels(method, instruction);
         switch (instruction.getInstType()) {
-            case ASSIGN:
+            case ASSIGN -> {
                 AssignInstruction assignInstruction = (AssignInstruction) instruction;
                 builder.append((new AssignInstructionBuilder(classUnit, method, assignInstruction)).compile());
-                break;
-            case CALL:
+            }
+            case CALL -> {
                 CallInstruction callInstruction = (CallInstruction) instruction;
                 builder.append((new CallInstructionBuilder(classUnit, method, callInstruction)).compile());
-                break;
-            case GOTO:
+            }
+            case GOTO -> {
                 GotoInstruction gotoInstruction = (GotoInstruction) instruction;
                 builder.append("goto ").append(gotoInstruction.getLabel());
-                break;
-            case BRANCH:
+            }
+            case BRANCH -> {
                 CondBranchInstruction condBranchInstruction = (CondBranchInstruction) instruction;
                 builder.append((new CondInstructionBuilder(classUnit, method, condBranchInstruction)).compile());
-                break;
-            case RETURN:
+            }
+            case RETURN -> {
                 ReturnInstruction returnInstruction = (ReturnInstruction) instruction;
                 builder.append((new ReturnInstructionBuilder(classUnit, method, returnInstruction)).compile());
-                break;
-            case PUTFIELD:
+            }
+            case PUTFIELD -> {
                 PutFieldInstruction putFieldInstruction = (PutFieldInstruction) instruction;
                 builder.append((new PutFieldInstructionBuilder(classUnit, method, putFieldInstruction)).compile());
-                break;
-            case GETFIELD:
+            }
+            case GETFIELD -> {
                 GetFieldInstruction getFieldInstruction = (GetFieldInstruction) instruction;
                 builder.append((new GetFieldInstructionBuilder(classUnit, method, getFieldInstruction)).compile());
-                break;
-            case UNARYOPER:
-            case BINARYOPER:
+            }
+            case UNARYOPER, BINARYOPER -> {
                 OpInstruction opInstruction = (OpInstruction) instruction;
                 builder.append((new OperationInstructionBuilder(classUnit, method, opInstruction)).compile());
-                break;
-            case NOPER:
+            }
+            case NOPER -> {
                 SingleOpInstruction sopInstruction = (SingleOpInstruction) instruction;
                 builder.append(JasminUtils.buildLoadInstruction(sopInstruction.getSingleOperand(), method));
-                break;
-            default:
-                System.out.println("The guys forgot something: " + instruction.getInstType());
-                break;
+            }
+            default -> System.out.println("The guys forgot something: " + instruction.getInstType());
         }
 
         builder.append("\n");

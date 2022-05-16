@@ -244,27 +244,27 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, VisitResult> {
     }
 
     private VisitResult addExprVisit(JmmNode jmmNode, ArgumentPool argumentPool) {
-        return binOpVisit(jmmNode, argumentPool.getIsNotTerminal(), "+", "i32");
+        return binOpVisit(jmmNode, "+", "i32");
     }
 
     private VisitResult subExprVisit(JmmNode jmmNode, ArgumentPool argumentPool) {
-        return binOpVisit(jmmNode, argumentPool.getIsNotTerminal(), "-", "i32");
+        return binOpVisit(jmmNode, "-", "i32");
     }
 
     private VisitResult mulExprVisit(JmmNode jmmNode, ArgumentPool argumentPool) {
-        return binOpVisit(jmmNode, argumentPool.getIsNotTerminal(), "*", "i32");
+        return binOpVisit(jmmNode, "*", "i32");
     }
 
     private VisitResult divExprVisit(JmmNode jmmNode, ArgumentPool argumentPool) {
-        return binOpVisit(jmmNode, argumentPool.getIsNotTerminal(), "/", "i32");
+        return binOpVisit(jmmNode, "/", "i32");
     }
 
     private VisitResult lessExprVisit(JmmNode jmmNode, ArgumentPool argumentPool) {
-        return binOpVisit(jmmNode, argumentPool.getIsNotTerminal(), "<", "bool");
+        return binOpVisit(jmmNode, "<", "bool");
     }
 
     private VisitResult andExprVisit(JmmNode jmmNode, ArgumentPool argumentPool) {
-        return binOpVisit(jmmNode, argumentPool.getIsNotTerminal(), "&&", "bool");
+        return binOpVisit(jmmNode, "&&", "bool");
     }
 
     private VisitResult notExprVisit(JmmNode jmmNode, ArgumentPool argumentPool) {
@@ -348,7 +348,7 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, VisitResult> {
         return new VisitResult("", codeBuilder.toString(), "");
     }
 
-    private VisitResult binOpVisit(JmmNode jmmNode, boolean isNotTerminal, String operation, String returnType) {
+    private VisitResult binOpVisit(JmmNode jmmNode, String operation, String returnType) {
         final JmmNode lhsNode = jmmNode.getJmmChild(0);
         final JmmNode rhsNode = jmmNode.getJmmChild(1);
         final VisitResult lhsResult = visit(lhsNode, new ArgumentPool(returnType, OllirUtils.isNotTerminalNode(lhsNode)));

@@ -1,6 +1,9 @@
 package pt.up.fe.comp.jasmin.instruction;
 
-import org.specs.comp.ollir.*;
+import org.specs.comp.ollir.ClassUnit;
+import org.specs.comp.ollir.Element;
+import org.specs.comp.ollir.Method;
+import org.specs.comp.ollir.PutFieldInstruction;
 import pt.up.fe.comp.jasmin.AbstractBuilder;
 import pt.up.fe.comp.jasmin.JasminUtils;
 

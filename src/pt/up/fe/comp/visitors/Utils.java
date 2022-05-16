@@ -90,15 +90,11 @@ public class Utils {
 
         String methodName = rightNode.get("method");
         int result = isValidMethodCall(methodName, leftNodeType.getName(), leftNode.getKind(), className, symbolTable);
-        switch (result) {
-            case 0:
-                return symbolTable.getReturnType(methodName);
-            case 1:
-                return new Type(Types.UNKNOWN.toString(), Types.UNKNOWN.getIsArray());
-            default:
-                // ERROR
-                throw new RuntimeException("Invalid method call to method: " + methodName + " to element of type " + Utils.printTypeName(leftNodeType) + ".");
-        }
+        return switch (result) {
+            case 0 -> symbolTable.getReturnType(methodName);
+            case 1 -> new Type(Types.UNKNOWN.toString(), Types.UNKNOWN.getIsArray());
+            default -> throw new RuntimeException("Invalid method call to method: " + methodName + " to element of type " + Utils.printTypeName(leftNodeType) + ".");
+        };
     }
 
     private static boolean isBooleanExpression(String kind) {

@@ -16,7 +16,6 @@ import java.util.List;
 public class JmmAnalyser implements JmmAnalysis {
     @Override
     public JmmSemanticsResult semanticAnalysis(JmmParserResult parserResult) {
-        List<Report> reports = new ArrayList<>();
 
         MySymbolTable symbolTable = new MySymbolTable();
 
@@ -24,7 +23,7 @@ public class JmmAnalyser implements JmmAnalysis {
         JmmNode root = parserResult.getRootNode();
 
         System.out.println("visitor eval: " + eval.visit(root, null));
-        reports.addAll(eval.getReports());
+        List<Report> reports = new ArrayList<>(eval.getReports());
         // visitor code
 
         System.out.println("Symbol table ->" + symbolTable.getImports());

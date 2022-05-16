@@ -251,12 +251,6 @@ public class MySymbolTable implements SymbolTable {
         return localVars;
     }
 
-    public void myPrint() {
-        for (Map.Entry<MySymbol, Map<MySymbol, MySymbol>> entry : this.map.entrySet()) {
-            System.out.println(entry.getKey().getName() + ": " + this.buildMapString(entry.getValue()));
-        }
-    }
-
     public String buildMapString(Map<MySymbol, MySymbol> scope) {
         StringBuilder result = new StringBuilder("{");
 
