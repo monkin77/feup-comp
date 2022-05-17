@@ -43,7 +43,6 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, VisitResult> {
         addVisit("NotExpr", this::notExprVisit);
         addVisit("ImportRegion", this::ignore);
         addVisit("VarDecl", this::ignore);
-        addVisit("ReturnExpr", this::ignore);
         addVisit("_This", this::thisVisit);
         addVisit("ArrayExpr", this::arrayExprVisit);
         addVisit("IfElse", this::conditionalVisit);
@@ -63,7 +62,7 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, VisitResult> {
 
     private VisitResult returnExprVisit(JmmNode node, ArgumentPool argumentPool) {
         final JmmNode expr = node.getJmmChild(0);
-        final VisitResult exprResult = visit(expr, new ArgumentPool(null, true));
+        final VisitResult exprResult = visit(expr, new ArgumentPool(null, OllirUtils.isNotTerminalNode(expr)));
         final String exprId = exprResult.code;
         final String returnType = OllirUtils.convertType(symbolTable.getReturnType(currentMethod));
         final String code = "ret.%s %s.%s;".formatted(returnType, exprId, exprResult.returnType);
