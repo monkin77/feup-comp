@@ -71,7 +71,7 @@ public class JasminUtils {
         final Descriptor descriptor = method.getVarTable().get(elementName);
         final ElementType type = element.getType().getTypeOfElement();
 
-        if (element instanceof ArrayOperand) builder.append(loadArrayElement(type, descriptor));
+        if (element instanceof ArrayOperand) builder.append(loadArrayElement(type, (ArrayOperand) element, method));
         else builder.append(loadPrimitiveElement(type, descriptor));
 
         builder.append("\n");
@@ -90,17 +90,24 @@ public class JasminUtils {
         return className;
     }
 
-    private static String loadArrayElement(ElementType elemType, Descriptor descriptor) {
-        // TODO Load instruction arguments
+    private static String loadArrayElement(ElementType elemType, ArrayOperand operand, Method method) {
+        StringBuilder builder = new StringBuilder();
+
+        // Load Array ref
+        Descriptor arrayDescriptor = method.getVarTable().get(operand.getName());
+        builder.append("aload ").append(arrayDescriptor.getVirtualReg()).append("\n");
+
+        // Load index
+        Element index = operand.getIndexOperands().get(0);
+        builder.append(JasminUtils.buildLoadInstruction(index, method));
+
         switch (elemType) {
-            case THIS, OBJECTREF, CLASS, STRING, ARRAYREF -> {
-                return "aaload " + descriptor.getVirtualReg();
-            }
-            case INT32, BOOLEAN -> {
-                return "iaload " + descriptor.getVirtualReg();
-            }
+            case THIS, OBJECTREF, CLASS, STRING, ARRAYREF ->
+                    builder.append("aaload ");
+            case INT32, BOOLEAN ->
+                    builder.append("iaload ");
         }
-        return "";
+        return builder.toString();
     }
 
     private static String loadPrimitiveElement(ElementType elemType, Descriptor descriptor) {
