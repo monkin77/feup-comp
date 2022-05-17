@@ -237,6 +237,8 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, VisitResult> {
         final boolean isClassField = OllirUtils.isClassField(jmmNode.get("id"), currentMethod, symbolTable);
         if (isClassField && (argumentPool == null || !argumentPool.isTarget())) {
             final String annotatedId = jmmNode.get("id") + (type.isEmpty() ? "" : "." + type);
+            // TODO: This node will be interpreted as non-terminal node, and temporary variables will have getfield(this, x).type.type.
+            //  Will it be problematic?
             final String calculation = ("getfield(this, %s).%s").formatted(annotatedId, type);
             return new VisitResult("", calculation, "", type);
         }
@@ -359,13 +361,6 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, VisitResult> {
         return new VisitResult(preparationCode, code, finalCode, returnType);
     }
 
-    private VisitResult createTempVariable(String type, String rhsPreparationCode, String rhsCode, String finalCode) {
-        final String tempVariableName = "temp%d".formatted(tempCounter++);
-        final String preparationCode = "%s.%s :=.%s %s.%s;\n".formatted(tempVariableName, type, type, rhsCode, type);
-        final String code = "%s".formatted(tempVariableName);
-        return new VisitResult(rhsPreparationCode + preparationCode, code, finalCode, type);
-    }
-
     private VisitResult ignore(JmmNode jmmNode, ArgumentPool argumentPool) {
         return new VisitResult("", "", "");
     }
@@ -375,12 +370,19 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, VisitResult> {
         return super.visit(jmmNode, new ArgumentPool());
     }
 
+
+    private VisitResult tempVisit(JmmNode jmmNode, ArgumentPool argumentPool) {
+        final VisitResult visitResult = super.visit(jmmNode, argumentPool);
+        final String tempVariableName = "temp%d".formatted(tempCounter++);
+        final String suffix = !OllirUtils.isNotTerminalNode(jmmNode) ? ".%s;\n".formatted(visitResult.returnType) : ";\n";
+        final String preparationCode = "%s.%s :=.%s %s%s\n".formatted(tempVariableName, visitResult.returnType, visitResult.returnType, visitResult.code, suffix);
+        final String code = "%s".formatted(tempVariableName);
+        return new VisitResult(visitResult.preparationCode + preparationCode, code, visitResult.finalCode, visitResult.returnType);
+    }
+
     @Override
     public VisitResult visit(JmmNode jmmNode, ArgumentPool argumentPool) {
-        final VisitResult visitResult = super.visit(jmmNode, argumentPool);
-        if (argumentPool.getIsNotTerminal()) {
-            return createTempVariable(visitResult.returnType, visitResult.preparationCode, visitResult.code, visitResult.finalCode);
-        }
-        return new VisitResult(visitResult.preparationCode, visitResult.code, visitResult.finalCode, visitResult.returnType);
+        if (argumentPool.getIsNotTerminal()) return tempVisit(jmmNode, argumentPool);
+        return super.visit(jmmNode, argumentPool);
     }
 }
