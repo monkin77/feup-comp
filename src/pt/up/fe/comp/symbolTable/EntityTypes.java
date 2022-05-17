@@ -1,4 +1,4 @@
-package pt.up.fe.comp;
+package pt.up.fe.comp.symbolTable;
 
 public enum EntityTypes {
     GLOBAL("global"),

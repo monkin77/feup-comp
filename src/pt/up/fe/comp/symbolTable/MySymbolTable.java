@@ -1,4 +1,4 @@
-package pt.up.fe.comp;
+package pt.up.fe.comp.symbolTable;
 
 import pt.up.fe.comp.jmm.analysis.table.Symbol;
 import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
@@ -249,12 +249,6 @@ public class MySymbolTable implements SymbolTable {
         }
 
         return localVars;
-    }
-
-    public void myPrint() {
-        for (Map.Entry<MySymbol, Map<MySymbol, MySymbol>> entry : this.map.entrySet()) {
-            System.out.println(entry.getKey().getName() + ": " + this.buildMapString(entry.getValue()));
-        }
     }
 
     public String buildMapString(Map<MySymbol, MySymbol> scope) {

@@ -1,4 +1,4 @@
-package pt.up.fe.comp;
+package pt.up.fe.comp.symbolTable;
 
 public enum Types {
     INT("int", false),
@@ -29,15 +29,11 @@ public enum Types {
     }
 
     public static Types getType(String astType) {
-        switch (astType) {
-            case "IntArray":
-                return Types.INT_ARRAY;
-            case "_Int":
-                return Types.INT;
-            case "_Bool":
-                return Types.BOOLEAN;
-            default:
-                return Types.CUSTOM;
-        }
+        return switch (astType) {
+            case "IntArray" -> Types.INT_ARRAY;
+            case "_Int" -> Types.INT;
+            case "_Bool" -> Types.BOOLEAN;
+            default -> Types.CUSTOM;
+        };
     }
 }

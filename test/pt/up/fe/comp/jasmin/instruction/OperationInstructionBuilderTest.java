@@ -8,6 +8,7 @@ import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.specs.comp.ollir.*;
 import pt.up.fe.comp.jasmin.JasminUtils;
+import pt.up.fe.comp.jasmin.MethodsBuilder;
 
 import static org.junit.Assert.*;
 
@@ -47,7 +48,8 @@ public class OperationInstructionBuilderTest {
     public void notOperation() {
         Mockito.when(operation.getOpType()).thenReturn(OperationType.NOT);
 
-        assertEquals("ineg", unaryOperationInstructionBuilder.compile());
+        assertEquals("iload 7\n" +
+                "ineg", unaryOperationInstructionBuilder.compile());
     }
 
     @Test
@@ -98,6 +100,7 @@ public class OperationInstructionBuilderTest {
     @Test
     public void lessThanOperation() {
         Mockito.when(operation.getOpType()).thenReturn(OperationType.LTHI32);
+        MethodsBuilder.labelCounter = 0;
 
         assertEquals("iload 7\n" +
                 "iload 7\n" +

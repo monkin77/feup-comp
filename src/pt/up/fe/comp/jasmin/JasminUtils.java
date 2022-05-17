@@ -62,22 +62,20 @@ public class JasminUtils {
             // TODO Use iconst, etc. when possible
             builder.append("ldc ").append(elementName).append("\n");
             return builder.toString();
+        } else if (element.getType().getTypeOfElement() == ElementType.BOOLEAN && (elementName.equals("true") || elementName.equals("false"))) {
+            if (elementName.equals("false")) builder.append("iconst_0");
+            else builder.append("iconst_1");
+            return builder.toString();
         }
 
         final Descriptor descriptor = method.getVarTable().get(elementName);
         final ElementType type = element.getType().getTypeOfElement();
 
         // TODO Difference between iload 0 and iload_0
+        // TODO a[x] cases
         switch (type) {
-            case THIS: case OBJECTREF: case CLASS: case STRING:
-                builder.append("aload ").append(descriptor.getVirtualReg());
-                break;
-            case INT32: case BOOLEAN:
-                builder.append("iload ").append(descriptor.getVirtualReg());
-                break;
-            case ARRAYREF:
-                builder.append("iaload ").append(descriptor.getVirtualReg());
-                break;
+            case THIS, OBJECTREF, CLASS, STRING, ARRAYREF -> builder.append("aload ").append(descriptor.getVirtualReg());
+            case INT32, BOOLEAN -> builder.append("iload ").append(descriptor.getVirtualReg());
         }
 
         builder.append("\n");

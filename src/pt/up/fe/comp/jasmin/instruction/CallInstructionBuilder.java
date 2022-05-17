@@ -17,31 +17,24 @@ public class CallInstructionBuilder extends AbstractBuilder {
     @Override
     public String compile() {
         switch (instruction.getInvocationType()) {
-            case invokevirtual:
-                buildInvokeVirtual();
-                break;
-            case invokespecial:
-                buildInvokeSpecial();
-                break;
-            case invokestatic:
-                buildInvokeStatic();
-                break;
-            case invokeinterface:
-                builInvokeInterface();
-                break;
-            case NEW:
-                buildNew();
-                break;
-            case arraylength:
-                // TODO
-                break;
-            case ldc:
+            case invokevirtual -> buildInvokeVirtual();
+            case invokespecial -> buildInvokeSpecial();
+            case invokestatic -> buildInvokeStatic();
+            case invokeinterface -> builInvokeInterface();
+            case NEW -> buildNew();
+            case arraylength -> buildArrayLength();
+            case ldc -> {
                 LiteralElement literal = (LiteralElement) (instruction.getFirstArg());
                 builder.append("ldc ").append(literal.getLiteral());
-                break;
+            }
         }
 
         return builder.toString();
+    }
+
+    private void buildArrayLength() {
+        builder.append(JasminUtils.buildLoadInstruction(instruction.getFirstArg(), method));
+        builder.append("arraylength");
     }
 
     private void buildInvokeVirtual() {

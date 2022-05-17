@@ -1,11 +1,11 @@
 package pt.up.fe.comp.visitors;
 
-import pt.up.fe.comp.*;
 import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.AJmmVisitor;
 import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp.jmm.report.Report;
 import pt.up.fe.comp.jmm.report.Stage;
+import pt.up.fe.comp.symbolTable.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -357,7 +357,6 @@ public class TypeCheckingVisitor extends AJmmVisitor<Object, Integer> {
 
     /**
      * Verifies if the 2 given types are assignable
-     * @return
      */
     private boolean isSameType(Type type1, Type type2){
         if (type1.equals(type2) || type1.getName().equals(Types.UNKNOWN.toString()) || type2.getName().equals(Types.UNKNOWN.toString()))
@@ -369,7 +368,7 @@ public class TypeCheckingVisitor extends AJmmVisitor<Object, Integer> {
             if (this.symbolTable.hasInheritance()) {
                 System.out.println(this.symbolTable.getSuper());
                 System.out.println(type1.getName());
-                if (this.symbolTable.getSuper().equals(type1.getName())) return true;
+                return this.symbolTable.getSuper().equals(type1.getName());
             }
         }
 

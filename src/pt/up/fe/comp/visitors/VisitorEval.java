@@ -1,14 +1,14 @@
 package pt.up.fe.comp.visitors;
 
-import pt.up.fe.comp.EntityTypes;
-import pt.up.fe.comp.MySymbol;
-import pt.up.fe.comp.MySymbolTable;
-import pt.up.fe.comp.Types;
 import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.AJmmVisitor;
 import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp.jmm.report.Report;
 import pt.up.fe.comp.jmm.report.Stage;
+import pt.up.fe.comp.symbolTable.EntityTypes;
+import pt.up.fe.comp.symbolTable.MySymbol;
+import pt.up.fe.comp.symbolTable.MySymbolTable;
+import pt.up.fe.comp.symbolTable.Types;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -69,14 +69,14 @@ public class VisitorEval extends AJmmVisitor<Object, Integer> {
                     "Error attempting to put a symbol that is already defined: " + symbol.getName() + " in the scope: " + this.scopeStack.peek().getName(),
                     null));
         }
-        return opStatus;
+        return !opStatus;
     }
 
     private Integer classDeclVisit(JmmNode node, Object dummy) {
         MySymbol classSymbol = new MySymbol(new Type(Types.UNKNOWN.toString(), false), node.get("name"), EntityTypes.CLASS);
 
         // Insert next scope pointer in previous scope
-        if (!this.putSymbol(classSymbol, node)) return -1;
+        if (this.putSymbol(classSymbol, node)) return -1;
 
         // Add new scope
         if (!this.createScope(classSymbol, node)) return -1;
@@ -85,7 +85,7 @@ public class VisitorEval extends AJmmVisitor<Object, Integer> {
             Optional<String> extendedClass = node.getOptional("extends");
             if (extendedClass.isPresent()) {
                 MySymbol extendedSymbol = new MySymbol(new Type(Types.UNKNOWN.toString(), false), extendedClass.get(), EntityTypes.EXTENDS);
-                if (!this.putSymbol(extendedSymbol, node)) return -1;
+                if (this.putSymbol(extendedSymbol, node)) return -1;
             }
         } catch(Error ignored){
         }
@@ -105,14 +105,14 @@ public class VisitorEval extends AJmmVisitor<Object, Integer> {
         MySymbol mainSymbol = new MySymbol(new Type(Types.VOID.toString(), false), "main", EntityTypes.METHOD);
 
         // Insert next scope pointer in previous scope
-        if (!this.putSymbol(mainSymbol, node)) return -1;
+        if (this.putSymbol(mainSymbol, node)) return -1;
 
         // Add new scope
         if (!this.createScope(mainSymbol, node)) return -1;
 
         String argName = node.get("mainArgs");
         MySymbol argSymbol = new MySymbol(new Type(Types.STRING_ARRAY.toString(), true), argName, EntityTypes.ARG);
-       if (!this.putSymbol(argSymbol, node)) return -1;
+       if (this.putSymbol(argSymbol, node)) return -1;
 
         Integer visitResult = 0;
         for (int i = 0; i < node.getNumChildren(); ++i) {
@@ -135,7 +135,7 @@ public class VisitorEval extends AJmmVisitor<Object, Integer> {
             }
 
             MySymbol importSymbol = new MySymbol(new Type(Types.NONE.toString(), false), importName.toString(), EntityTypes.IMPORT);
-            if (!this.putSymbol(importSymbol, childNode)) return -1;
+            if (this.putSymbol(importSymbol, childNode)) return -1;
 
             return 0;
         }
@@ -151,7 +151,7 @@ public class VisitorEval extends AJmmVisitor<Object, Integer> {
 
             MySymbol varSymbol = new MySymbol(returnNodeType, varName, EntityTypes.VARIABLE);
 
-            if (!this.putSymbol(varSymbol, node)) return -1;
+            if (this.putSymbol(varSymbol, node)) return -1;
 
             return 0;
         }
@@ -168,7 +168,7 @@ public class VisitorEval extends AJmmVisitor<Object, Integer> {
         MySymbol methodSymbol = new MySymbol(returnNodeType, node.get("name"), EntityTypes.METHOD);
 
         // Insert next scope pointer in previous scope
-        if (!this.putSymbol(methodSymbol, node)) return -1;
+        if (this.putSymbol(methodSymbol, node)) return -1;
 
         // Add new scope
         if (!this.createScope(methodSymbol, node)) return -1;
@@ -209,7 +209,7 @@ public class VisitorEval extends AJmmVisitor<Object, Integer> {
             String argName = node.get("arg");
 
             MySymbol argSymbol = new MySymbol(returnNodeType, argName, EntityTypes.ARG);
-            if (!this.putSymbol(argSymbol, node)) return -1;
+            if (this.putSymbol(argSymbol, node)) return -1;
 
             // Adds argument to List of arguments of the function
             if (!this.symbolTable.putArgument(this.scopeStack.peek(), argSymbol)) return -1;

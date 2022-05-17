@@ -33,10 +33,8 @@ public class OperationInstructionBuilder extends AbstractBuilder {
         builder.append(JasminUtils.buildLoadInstruction(binaryOpInstruction.getRightOperand(), method));
 
         switch (type) {
-            case AND: case ANDI32: case ANDB:
-                builder.append("iand");
-                break;
-            case LTH: case LTHI32:
+            case AND, ANDI32, ANDB -> builder.append("iand");
+            case LTH, LTHI32 -> {
                 builder.append(JasminConstants.TAB);
                 builder.append("if_icmplt IS_LESS_THAN_").append(MethodsBuilder.labelCounter).append("\n");
                 builder.append(JasminConstants.TAB);
@@ -49,21 +47,12 @@ public class OperationInstructionBuilder extends AbstractBuilder {
                 builder.append("iconst_1\n");
                 builder.append(JasminConstants.TAB);
                 builder.append("NOT_LESS_THAN_").append(MethodsBuilder.labelCounter).append(":\n");
-
                 ++MethodsBuilder.labelCounter;
-                break;
-            case ADD: case ADDI32:
-                builder.append("iadd");
-                break;
-            case SUB: case SUBI32:
-                builder.append("isub");
-                break;
-            case DIV: case DIVI32:
-                builder.append("idiv");
-                break;
-            case MUL: case MULI32:
-                builder.append("imul");
-                break;
+            }
+            case ADD, ADDI32 -> builder.append("iadd");
+            case SUB, SUBI32 -> builder.append("isub");
+            case DIV, DIVI32 -> builder.append("idiv");
+            case MUL, MULI32 -> builder.append("imul");
         }
     }
 
@@ -72,6 +61,7 @@ public class OperationInstructionBuilder extends AbstractBuilder {
         final OperationType type = unaryOpInstruction.getOperation().getOpType();
 
         if (type != OperationType.NOT && type != OperationType.NOTB) return; // Not supported
+        builder.append(JasminUtils.buildLoadInstruction(unaryOpInstruction.getOperand(), method));
         builder.append("ineg");
     }
 }

@@ -28,17 +28,9 @@ public class ReturnInstructionBuilder extends AbstractBuilder {
             builder.append(JasminUtils.buildLoadInstruction(instruction.getOperand(), method));
 
         switch (instruction.getElementType()) {
-            case OBJECTREF: case CLASS: case STRING:
-            case ARRAYREF:
-                builder.append("areturn");
-                break;
-            case INT32: case BOOLEAN:
-                builder.append("ireturn");
-                break;
-            case VOID:
-                // TODO void instruction not appearing -> do it in OLLIR
-                builder.append("return");
-                break;
+            case OBJECTREF, CLASS, STRING, ARRAYREF -> builder.append("areturn");
+            case INT32, BOOLEAN -> builder.append("ireturn");
+            case VOID -> builder.append("return");
         }
         return builder.toString();
     }

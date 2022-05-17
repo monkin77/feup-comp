@@ -1,8 +1,9 @@
 package pt.up.fe.comp.visitors;
 
-import pt.up.fe.comp.*;
+import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
 import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.JmmNode;
+import pt.up.fe.comp.symbolTable.*;
 
 import java.util.*;
 
@@ -41,6 +42,8 @@ public class Utils {
         if(isBooleanExpression(kind)) return new Type(Types.BOOLEAN.toString(), Types.BOOLEAN.getIsArray());
 
         switch (kind){
+            case "ReturnExpr":
+                return calculateNodeType(node.getJmmChild(0), scopeStack, symbolTable);
             case "DotExpression":
                 return getReturnValueMethod(node, scopeStack, symbolTable);
             case "ArrayExpr":
@@ -87,15 +90,11 @@ public class Utils {
 
         String methodName = rightNode.get("method");
         int result = isValidMethodCall(methodName, leftNodeType.getName(), leftNode.getKind(), className, symbolTable);
-        switch (result) {
-            case 0:
-                return symbolTable.getReturnType(methodName);
-            case 1:
-                return new Type(Types.UNKNOWN.toString(), Types.UNKNOWN.getIsArray());
-            default:
-                // ERROR
-                throw new RuntimeException("Invalid method call to method: " + methodName + " to element of type " + Utils.printTypeName(leftNodeType) + ".");
-        }
+        return switch (result) {
+            case 0 -> symbolTable.getReturnType(methodName);
+            case 1 -> new Type(Types.UNKNOWN.toString(), Types.UNKNOWN.getIsArray());
+            default -> throw new RuntimeException("Invalid method call to method: " + methodName + " to element of type " + Utils.printTypeName(leftNodeType) + ".");
+        };
     }
 
     private static boolean isBooleanExpression(String kind) {
@@ -106,7 +105,7 @@ public class Utils {
         return kind.equals("MultExpr") || kind.equals("AddExpr") || kind.equals("SubExpr") || kind.equals("DivExpr");
     }
 
-    public static boolean hasImport(String checkImport, MySymbolTable symbolTable){
+    public static boolean hasImport(String checkImport, SymbolTable symbolTable){
         for(String importName : symbolTable.getImports()) {
             String[] splitImport = importName.split("\\.");
             if (splitImport[splitImport.length - 1].equals(checkImport)) return true;

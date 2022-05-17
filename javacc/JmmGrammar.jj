@@ -128,7 +128,7 @@ PublicMethodDeclaration #PublicMethod :
     <CLOSE_PAREN> <OPEN_CURLY>
         VarDeclarations
         ( Statement )*
-        <RETURN> Expression <SEMICOLON>
+        <RETURN> Expression #ReturnExpr <SEMICOLON>
     <CLOSE_CURLY>
 ;
 
@@ -153,7 +153,7 @@ Statement #void :
     ScopeBlock |
     IfElseStatement |
     WhileStatement |
-    ( Expression [ <EQUALS> Expression #AssignmentExpr(2) ] <SEMICOLON> )
+    ( Expression [ <EQUALS> Expression #AssignmentExpr(2) ] <SEMICOLON> ) #ClosedStatement
 ;
 
 ScopeBlock :
