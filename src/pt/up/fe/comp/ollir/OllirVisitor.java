@@ -183,7 +183,8 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, VisitResult> {
         for (int i = 0; i < node.getNumChildren(); ++i) {
             JmmNode childNode = node.getJmmChild(i);
             codeBuilder.append(", ");
-            final VisitResult result = visit(childNode, new ArgumentPool(null, OllirUtils.isNotTerminalNode(childNode)));
+            // TODO: Some parameters could be treated as terminal, but it is not clear which ones (1 vs a[0])
+            final VisitResult result = visit(childNode, new ArgumentPool(null, true));
             preparationBuilder.append(result.preparationCode);
             codeBuilder.append("%s.%s".formatted(result.code, result.returnType));
         }
