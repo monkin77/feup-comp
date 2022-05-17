@@ -31,7 +31,10 @@ public class OllirUtils {
                  || kind.equals("_Identifier") || kind.equals("BooleanLiteral") || kind.equals("_This") || kind.equals("NewObjExpr"));
     }
 
-    public static Symbol getSymbol(String symbol, String currentMethod, SymbolTable symbolTable) {
+    public static Symbol getSymbol(String symbol, String currentMethod, SymbolTable symbolTable
+    ) {
+        // TODO: Return type of field?
+        // TODO: $?
         for (Symbol s : symbolTable.getLocalVariables(currentMethod)) {
             if (s.getName().equals(symbol)) {
                 return s;
@@ -49,7 +52,6 @@ public class OllirUtils {
             }
         }
 
-        // TODO missing class fields
         return null;
     }
 

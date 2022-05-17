@@ -66,8 +66,10 @@ public class CallInstructionBuilder extends AbstractBuilder {
     }
 
     private void buildNew() {
-        final String className = JasminUtils.getTypeName(instruction.getFirstArg().getType(), classUnit);
-        builder.append("new ").append(className);
+//        final String className = JasminUtils.getTypeName(instruction.getFirstArg().getType(), classUnit);
+        final String className = "int";
+        builder.append(JasminUtils.buildLoadInstruction(instruction.getListOfOperands().get(0), method));
+        builder.append("newarray ").append(className);
     }
 
     private void buildInvocation(String invokeInstruction) {

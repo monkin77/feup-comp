@@ -138,9 +138,6 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, VisitResult> {
         final ArgumentPool rightArg = new ArgumentPool(lhsResult.code);
         rightArg.setExpectedReturnType(argumentPool.getType());
         final VisitResult rhsResult = visit(node.getJmmChild(1), rightArg);
-        // TODO invokespecial
-        // TODO remover esparguete
-        // TODO remover os builders
 
         final String type = argumentPool.getType() == null ? rhsResult.returnType : argumentPool.getType();
         final String preparationCode = rhsResult.preparationCode + lhsResult.preparationCode;
