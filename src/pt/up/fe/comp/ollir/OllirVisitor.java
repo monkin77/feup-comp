@@ -50,7 +50,14 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, VisitResult> {
         addVisit("NewArrayExpr", this::newArrayExprVisit);
         addVisit("NewObjExpr", this::newObjExprVisit);
         addVisit("ReturnExpr", this::returnExprVisit);
+        addVisit("BooleanCondition", this::booleanConditionVisit);
         setDefaultVisit(this::defaultVisit);
+    }
+
+    private VisitResult booleanConditionVisit(JmmNode node, ArgumentPool argumentPool) {
+        final VisitResult result = visit(node.getJmmChild(0), argumentPool);
+        final String code = result.code + (OllirUtils.isNotTerminalNode(node.getJmmChild(0)) ? "" : "." + result.returnType);
+        return new VisitResult(result.preparationCode, code, result.finalCode, "");
     }
 
     private VisitResult newObjExprVisit(JmmNode node, ArgumentPool argumentPool) {
@@ -87,14 +94,12 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, VisitResult> {
         final String bodyCode = loopResult.preparationCode + loopResult.code + conditionResult.preparationCode;
         int tempCounter1 = tempCounter++;
         final String code = ("""
-                %sif (%s.%s) goto whilebody_%d;
+                %sif (%s) goto whilebody_%d;
                 goto endwhile_%d;
                 whilebody_%d:
-                %sif (%s.%s) goto whilebody_%d;
+                %sif (%s) goto whilebody_%d;
                 endwhile_%d:
-                """).formatted(conditionResult.preparationCode, conditionResult.code, conditionResult.returnType,
-                    tempCounter1, tempCounter1, tempCounter1, bodyCode, conditionResult.code,
-                    conditionResult.returnType, tempCounter1, tempCounter1);
+                """).formatted(conditionResult.preparationCode, conditionResult.code, tempCounter1, tempCounter1, tempCounter1, bodyCode, conditionResult.code, tempCounter1, tempCounter1);
         return new VisitResult("", code, "");
     }
 
@@ -108,11 +113,11 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, VisitResult> {
         int tempCounter1 = tempCounter++;
         final String code = """
                 %s
-                if (%s.%s) goto ifbody_%d;
+                if (%s) goto ifbody_%d;
                     %sgoto endif_%d;
                 ifbody_%d:
                     %sendif_%d:
-                    """.formatted(conditionResult.preparationCode, conditionResult.code, conditionResult.returnType, tempCounter1, elseCode, tempCounter1, tempCounter1, ifCode, tempCounter1);
+                    """.formatted(conditionResult.preparationCode, conditionResult.code, tempCounter1, elseCode, tempCounter1, tempCounter1, ifCode, tempCounter1);
         return new VisitResult("", code, "");
     }
 

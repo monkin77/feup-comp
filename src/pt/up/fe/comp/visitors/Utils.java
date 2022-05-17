@@ -42,7 +42,7 @@ public class Utils {
         if(isBooleanExpression(kind)) return new Type(Types.BOOLEAN.toString(), Types.BOOLEAN.getIsArray());
 
         switch (kind){
-            case "ReturnExpr":
+            case "ReturnExpr": case "BooleanCondition":
                 return calculateNodeType(node.getJmmChild(0), scopeStack, symbolTable);
             case "DotExpression":
                 return getReturnValueMethod(node, scopeStack, symbolTable);

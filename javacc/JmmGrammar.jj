@@ -161,13 +161,13 @@ ScopeBlock :
 ;
 
 IfElseStatement #IfElse :
-    <IF> <OPEN_PAREN> Expression <CLOSE_PAREN>
+    <IF> <OPEN_PAREN> Expression #BooleanCondition <CLOSE_PAREN>
         Statement #IfBlock
     <ELSE> Statement #ElseBlock
 ;
 
 WhileStatement #WhileSt :
-    <WHILE> <OPEN_PAREN> Expression <CLOSE_PAREN>
+    <WHILE> <OPEN_PAREN> Expression #BooleanCondition <CLOSE_PAREN>
         Statement #WhileBlock
 ;
 
