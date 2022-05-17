@@ -50,6 +50,10 @@ public class CallInstructionBuilderTest {
         Mockito.when(callInstruction.getFirstArg()).thenReturn(firstArg);
         Mockito.when(callInstruction.getSecondArg()).thenReturn(secondArg);
 
+        final Type returnType = Mockito.mock(Type.class);
+        Mockito.when(returnType.getTypeOfElement()).thenReturn(ElementType.CLASS);
+        Mockito.when(callInstruction.getReturnType()).thenReturn(returnType);
+
         callInstructionBuilder = new CallInstructionBuilder(classUnit, method, callInstruction);
     }
 

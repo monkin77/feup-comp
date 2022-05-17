@@ -77,6 +77,6 @@ public class AssignInstructionBuilderTest {
         Mockito.when(assignType.getTypeOfElement()).thenReturn(ElementType.ARRAYREF);
 
         assertEquals("ldc 0\n" +
-                "iastore 7", assignInstructionBuilder.compile());
+                "astore 7", assignInstructionBuilder.compile());
     }
 }
