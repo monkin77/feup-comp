@@ -71,12 +71,8 @@ public class JasminUtils {
         final Descriptor descriptor = method.getVarTable().get(elementName);
         final ElementType type = element.getType().getTypeOfElement();
 
-        // TODO Difference between iload 0 and iload_0
-        // TODO a[x] cases
-        switch (type) {
-            case THIS, OBJECTREF, CLASS, STRING, ARRAYREF -> builder.append("aload ").append(descriptor.getVirtualReg());
-            case INT32, BOOLEAN -> builder.append("iload ").append(descriptor.getVirtualReg());
-        }
+        if (element instanceof ArrayOperand) builder.append(loadArrayElement(type, descriptor));
+        else builder.append(loadPrimitiveElement(type, descriptor));
 
         builder.append("\n");
         return builder.toString();
@@ -92,5 +88,31 @@ public class JasminUtils {
         }
 
         return className;
+    }
+
+    private static String loadArrayElement(ElementType elemType, Descriptor descriptor) {
+        // TODO Load instruction arguments
+        switch (elemType) {
+            case THIS, OBJECTREF, CLASS, STRING, ARRAYREF -> {
+                return "aaload " + descriptor.getVirtualReg();
+            }
+            case INT32, BOOLEAN -> {
+                return "iaload " + descriptor.getVirtualReg();
+            }
+        }
+        return "";
+    }
+
+    private static String loadPrimitiveElement(ElementType elemType, Descriptor descriptor) {
+        // TODO Difference between iload 0 and iload_0
+        switch (elemType) {
+            case THIS, OBJECTREF, CLASS, STRING, ARRAYREF -> {
+                return "aload " + descriptor.getVirtualReg();
+            }
+            case INT32, BOOLEAN -> {
+                return "iload " + descriptor.getVirtualReg();
+            }
+        }
+        return "";
     }
 }
