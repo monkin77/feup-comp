@@ -166,14 +166,14 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, VisitResult> {
             } else {
                 // Assume it's a symbol from our class
                 codeBuilder.append("invokevirtual(").append(id).append(".").append(this.symbolTable.getClassName());
-                returnType = this.symbolTable.getReturnType(node.get("method")).getName();
+                returnType = OllirUtils.convertType(this.symbolTable.getReturnType(node.get("method")));
             }
         } else {
             codeBuilder.append("invokevirtual(").append(symbol.getName()).append(".").append(OllirUtils.convertType(symbol.getType()));
 
             if (symbol.getType().getName().equals(this.symbolTable.getClassName())) {
                 // variable of class type
-                returnType = this.symbolTable.getReturnType(node.get("method")).getName();
+                returnType = OllirUtils.convertType(this.symbolTable.getReturnType(node.get("method")));
             } else {
                 returnType = "V";
             }
