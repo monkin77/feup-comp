@@ -197,7 +197,8 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, VisitResult> {
     }
 
     private VisitResult dotLengthVisit(JmmNode node, ArgumentPool argumentPool) {
-        // TODO check
+        // TODO: This node will be interpreted as non-terminal node, and temporary variables will have arraylength(this, x).type.type.
+        //  Will it be problematic?
         final String code = "arraylength(%s.array.i32).i32".formatted(argumentPool.getId());
         return new VisitResult("", code, "", "i32");
     }
