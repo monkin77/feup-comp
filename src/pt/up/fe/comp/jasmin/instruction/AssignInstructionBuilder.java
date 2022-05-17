@@ -27,7 +27,7 @@ public class AssignInstructionBuilder extends AbstractBuilder {
         switch (assignType) {
             case THIS, OBJECTREF, CLASS, STRING -> builder.append("astore ").append(descriptor.getVirtualReg());
             case INT32, BOOLEAN -> builder.append("istore ").append(descriptor.getVirtualReg());
-            case ARRAYREF -> builder.append("iastore ").append(descriptor.getVirtualReg());
+            case ARRAYREF -> builder.append("astore ").append(descriptor.getVirtualReg());
         }
 
         return builder.toString();
