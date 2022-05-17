@@ -214,7 +214,7 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, VisitResult> {
         final String assignTarget = split[0];
         final String assignType = lhsResult.returnType;
 
-        ArgumentPool rightArgs = new ArgumentPool(assignType, OllirUtils.isNotTerminalNode(rhs));
+        ArgumentPool rightArgs = new ArgumentPool(assignType);
         rightArgs.setId(assignTarget);
         VisitResult rhsResult = visit(rhs, rightArgs);
         final boolean isClassField = OllirUtils.isClassField(assignTarget, currentMethod, symbolTable);
