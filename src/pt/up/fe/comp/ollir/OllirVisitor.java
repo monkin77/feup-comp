@@ -66,7 +66,7 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, VisitResult> {
         final VisitResult exprResult = visit(expr, new ArgumentPool(null, true));
         final String exprId = exprResult.code;
         final String returnType = OllirUtils.convertType(symbolTable.getReturnType(currentMethod));
-        final String code = "ret.%s %s;".formatted(returnType, exprId);
+        final String code = "ret.%s %s.%s;".formatted(returnType, exprId, exprResult.returnType);
         return new VisitResult(exprResult.preparationCode, code, "", returnType);
     }
 
