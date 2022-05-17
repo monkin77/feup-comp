@@ -147,7 +147,7 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, VisitResult> {
 
         final String type = argumentPool.getType() == null ? rhsResult.returnType : argumentPool.getType();
         final String preparationCode = rhsResult.preparationCode + lhsResult.preparationCode;
-        final String code = rhsResult.code;
+        final String code = rhsResult.code + (argumentPool.getType() == null ? "" : "." + type);
         return new VisitResult(preparationCode, code, "", type);
     }
 

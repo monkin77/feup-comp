@@ -28,7 +28,7 @@ public class OllirUtils {
     public static boolean isNotTerminalNode(JmmNode node) {
         String kind = node.getKind();
         return !(kind.equals("IntegerLiteral") || kind.equals("ArrayExpr")
-                 || kind.equals("_Identifier") || kind.equals("BooleanLiteral") || kind.equals("_This") || kind.equals("NewObjExpr") || kind.equals("NewArrayExpr") || kind.equals("BooleanCondition"));
+                 || kind.equals("_Identifier") || kind.equals("BooleanLiteral") || kind.equals("_This") || kind.equals("NewObjExpr") || kind.equals("NewArrayExpr") || kind.equals("BooleanCondition") || kind.equals("DotMethod"));
     }
 
     public static Symbol getSymbol(String symbol, String currentMethod, SymbolTable symbolTable
