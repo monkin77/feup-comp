@@ -160,7 +160,7 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, VisitResult> {
                 returnType = "V";
             } else {
                 // Assume it's a symbol from our class
-                codeBuilder.append("invokevirtual(").append(id);
+                codeBuilder.append("invokevirtual(").append(id).append(".").append(this.symbolTable.getClassName());
                 returnType = this.symbolTable.getReturnType(node.get("method")).getName();
             }
         } else {
