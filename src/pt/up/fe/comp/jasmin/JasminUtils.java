@@ -59,8 +59,12 @@ public class JasminUtils {
         final String elementName = getElementName(element);
 
         if (element.isLiteral()) {
-            // TODO Use iconst, etc. when possible
-            builder.append("ldc ").append(elementName).append("\n");
+            int x = Integer.parseInt(elementName);
+            if (x == -1) builder.append("iconst_m1").append("\n");
+            else if (x >= 0 && x <= 5) builder.append("iconst_").append(x).append("\n");
+            else if (x >= -128 && x <= 127) builder.append("bipush ").append(x).append("\n");
+            else if (x >= -32768 && x <= 32767) builder.append("sipush ").append(x).append("\n");
+            else builder.append("ldc ").append(elementName).append("\n");
             return builder.toString();
         } else if (element.getType().getTypeOfElement() == ElementType.BOOLEAN && (elementName.equals("true") || elementName.equals("false"))) {
             if (elementName.equals("false")) builder.append("iconst_0");
@@ -102,24 +106,19 @@ public class JasminUtils {
         builder.append(JasminUtils.buildLoadInstruction(index, method));
 
         switch (elemType) {
-            case THIS, OBJECTREF, CLASS, STRING, ARRAYREF ->
-                    builder.append("aaload ");
-            case INT32, BOOLEAN ->
-                    builder.append("iaload ");
+            case THIS, OBJECTREF, CLASS, STRING, ARRAYREF -> builder.append("aaload ");
+            case INT32, BOOLEAN -> builder.append("iaload ");
         }
+
         return builder.toString();
     }
 
     private static String loadPrimitiveElement(ElementType elemType, Descriptor descriptor) {
-        // TODO Difference between iload 0 and iload_0
-        switch (elemType) {
-            case THIS, OBJECTREF, CLASS, STRING, ARRAYREF -> {
-                return "aload " + descriptor.getVirtualReg();
-            }
-            case INT32, BOOLEAN -> {
-                return "iload " + descriptor.getVirtualReg();
-            }
-        }
-        return "";
+        String mnemonic = switch (elemType) {
+            case THIS, OBJECTREF, CLASS, STRING, ARRAYREF -> "aload";
+            case INT32, BOOLEAN -> "iload";
+            case VOID -> null;
+        };
+        return mnemonic + (descriptor.getVirtualReg() <= 3 ? "_" : " ") + descriptor.getVirtualReg();
     }
 }
