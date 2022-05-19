@@ -20,16 +20,39 @@ public class AssignInstructionBuilder extends AbstractBuilder {
         final String destName = JasminUtils.getElementName(destiny);
         final Descriptor descriptor = method.getVarTable().get(destName);
 
-        builder.append((new InstructionBuilder(classUnit, method, instruction.getRhs())).compile());
-
         final ElementType assignType = instruction.getTypeOfAssign().getTypeOfElement();
-        // TODO Difference between istore 0 and istore_0
-        switch (assignType) {
-            case THIS, OBJECTREF, CLASS, STRING -> builder.append("astore ").append(descriptor.getVirtualReg());
-            case INT32, BOOLEAN -> builder.append("istore ").append(descriptor.getVirtualReg());
-            case ARRAYREF -> builder.append("astore ").append(descriptor.getVirtualReg());
-        }
+
+        if (destiny instanceof ArrayOperand) storeArrayElement(assignType, (ArrayOperand) destiny);
+        else storePrimitiveElement(assignType, descriptor);
 
         return builder.toString();
+    }
+
+    private void storeArrayElement(ElementType elemType, ArrayOperand operand) {
+        // Load Array ref
+        Descriptor arrayDescriptor = method.getVarTable().get(operand.getName());
+        builder.append("aload ").append(arrayDescriptor.getVirtualReg()).append("\n");
+
+        // Load index
+        Element index = operand.getIndexOperands().get(0);
+        builder.append(JasminUtils.buildLoadInstruction(index, method));
+
+        // Load value
+        builder.append((new InstructionBuilder(classUnit, method, instruction.getRhs())).compile());
+
+        switch (elemType) {
+            case THIS, OBJECTREF, CLASS, STRING, ARRAYREF -> builder.append("aastore ");
+            case INT32, BOOLEAN -> builder.append("iastore ");
+        }
+    }
+
+    private void storePrimitiveElement(ElementType elemType, Descriptor descriptor) {
+        builder.append((new InstructionBuilder(classUnit, method, instruction.getRhs())).compile());
+
+        // TODO Difference between istore 0 and istore_0
+        switch (elemType) {
+            case THIS, OBJECTREF, CLASS, STRING, ARRAYREF -> builder.append("astore ").append(descriptor.getVirtualReg());
+            case INT32, BOOLEAN -> builder.append("istore ").append(descriptor.getVirtualReg());
+        }
     }
 }

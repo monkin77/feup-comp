@@ -35,6 +35,7 @@ public class OperationInstructionBuilder extends AbstractBuilder {
         switch (type) {
             case AND, ANDI32, ANDB -> builder.append("iand");
             case LTH, LTHI32 -> {
+                // TODO Conversion to >= with neg
                 builder.append(JasminConstants.TAB);
                 builder.append("if_icmplt IS_LESS_THAN_").append(MethodsBuilder.labelCounter).append("\n");
                 builder.append(JasminConstants.TAB);

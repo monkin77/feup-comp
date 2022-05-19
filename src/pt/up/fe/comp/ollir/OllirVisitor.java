@@ -75,7 +75,7 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, VisitResult> {
         final VisitResult sizeResult = visit(size, new ArgumentPool(null, true));
         // COMBACK: Even though we only have int[], this feels weird.
         final String arrayElementType = "i32";
-        final String code = "new(array, %s)".formatted(sizeResult.code);
+        final String code = "new(array, %s.%s)".formatted(sizeResult.code, sizeResult.returnType);
         final String returnType = "array" + "." + arrayElementType;
         return new VisitResult(sizeResult.preparationCode, code, "", returnType);
     }
@@ -88,12 +88,14 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, VisitResult> {
         final String bodyCode = loopResult.preparationCode + loopResult.code + conditionResult.preparationCode;
         int tempCounter1 = tempCounter++;
         final String code = ("""
-                %sif (%s) goto whilebody_%d;
+                %sif (%s.%s) goto whilebody_%d;
                 goto endwhile_%d;
                 whilebody_%d:
-                %sif (%s) goto whilebody_%d;
+                %sif (%s.%s) goto whilebody_%d;
                 endwhile_%d:
-                """).formatted(conditionResult.preparationCode, conditionResult.code, tempCounter1, tempCounter1, tempCounter1, bodyCode, conditionResult.code, tempCounter1, tempCounter1);
+                """).formatted(conditionResult.preparationCode, conditionResult.code, conditionResult.returnType,
+                    tempCounter1, tempCounter1, tempCounter1, bodyCode, conditionResult.code,
+                    conditionResult.returnType, tempCounter1, tempCounter1);
         return new VisitResult("", code, "");
     }
 
@@ -107,11 +109,11 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, VisitResult> {
         int tempCounter1 = tempCounter++;
         final String code = """
                 %s
-                if (%s) goto ifbody_%d;
+                if (%s.%s) goto ifbody_%d;
                     %sgoto endif_%d;
                 ifbody_%d:
                     %sendif_%d:
-                    """.formatted(conditionResult.preparationCode, conditionResult.code, tempCounter1, elseCode, tempCounter1, tempCounter1, ifCode, tempCounter1);
+                    """.formatted(conditionResult.preparationCode, conditionResult.code, conditionResult.returnType, tempCounter1, elseCode, tempCounter1, tempCounter1, ifCode, tempCounter1);
         return new VisitResult("", code, "");
     }
 
@@ -122,7 +124,7 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, VisitResult> {
         final VisitResult rhsResult = visit(node.getJmmChild(1), rightArgumentPool);
         final String arrayElementType = lhsResult.returnType.split("\\.", 2)[1];
         final String preparationCode = rhsResult.preparationCode + lhsResult.preparationCode;
-        final String code = "%s[%s]".formatted(lhsResult.code, rhsResult.code);
+        final String code = "%s[%s.%s]".formatted(lhsResult.code, rhsResult.code, rhsResult.returnType);
         return new VisitResult(preparationCode, code, "", arrayElementType);
     }
 
@@ -191,6 +193,7 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, VisitResult> {
     }
 
     private VisitResult dotLengthVisit(JmmNode node, ArgumentPool argumentPool) {
+        // TODO check
         final String code = "arraylength(%s.array.i32).i32".formatted(argumentPool.getId());
         return new VisitResult("", code, "", "i32");
     }
@@ -359,7 +362,7 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, VisitResult> {
     private VisitResult createTempVariable(String type, String rhsPreparationCode, String rhsCode, String finalCode) {
         final String tempVariableName = "temp%d".formatted(tempCounter++);
         final String preparationCode = "%s.%s :=.%s %s.%s;\n".formatted(tempVariableName, type, type, rhsCode, type);
-        final String code = "%s.%s".formatted(tempVariableName, type);
+        final String code = "%s".formatted(tempVariableName);
         return new VisitResult(rhsPreparationCode + preparationCode, code, finalCode, type);
     }
 

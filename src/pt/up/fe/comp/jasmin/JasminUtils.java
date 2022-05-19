@@ -71,12 +71,8 @@ public class JasminUtils {
         final Descriptor descriptor = method.getVarTable().get(elementName);
         final ElementType type = element.getType().getTypeOfElement();
 
-        // TODO Difference between iload 0 and iload_0
-        // TODO a[x] cases
-        switch (type) {
-            case THIS, OBJECTREF, CLASS, STRING, ARRAYREF -> builder.append("aload ").append(descriptor.getVirtualReg());
-            case INT32, BOOLEAN -> builder.append("iload ").append(descriptor.getVirtualReg());
-        }
+        if (element instanceof ArrayOperand) builder.append(loadArrayElement(type, (ArrayOperand) element, method));
+        else builder.append(loadPrimitiveElement(type, descriptor));
 
         builder.append("\n");
         return builder.toString();
@@ -92,5 +88,38 @@ public class JasminUtils {
         }
 
         return className;
+    }
+
+    private static String loadArrayElement(ElementType elemType, ArrayOperand operand, Method method) {
+        StringBuilder builder = new StringBuilder();
+
+        // Load Array ref
+        Descriptor arrayDescriptor = method.getVarTable().get(operand.getName());
+        builder.append("aload ").append(arrayDescriptor.getVirtualReg()).append("\n");
+
+        // Load index
+        Element index = operand.getIndexOperands().get(0);
+        builder.append(JasminUtils.buildLoadInstruction(index, method));
+
+        switch (elemType) {
+            case THIS, OBJECTREF, CLASS, STRING, ARRAYREF ->
+                    builder.append("aaload ");
+            case INT32, BOOLEAN ->
+                    builder.append("iaload ");
+        }
+        return builder.toString();
+    }
+
+    private static String loadPrimitiveElement(ElementType elemType, Descriptor descriptor) {
+        // TODO Difference between iload 0 and iload_0
+        switch (elemType) {
+            case THIS, OBJECTREF, CLASS, STRING, ARRAYREF -> {
+                return "aload " + descriptor.getVirtualReg();
+            }
+            case INT32, BOOLEAN -> {
+                return "iload " + descriptor.getVirtualReg();
+            }
+        }
+        return "";
     }
 }
