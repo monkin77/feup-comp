@@ -23,7 +23,6 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, VisitResult> {
         addVisit("Start", this::startVisit);
         addVisit("MainDecl", this::mainDeclVisit);
         addVisit("PublicMethod", this::publicMethodVisit);
-        addVisit("ClosedStatement", this::closedStVisit);
         addVisit("AssignmentExpr", this::assignExprVisit);
         addVisit("DotExpression", this::dotExpressionVisit);
         addVisit("DotMethod", this::dotMethodVisit);
@@ -63,7 +62,7 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, VisitResult> {
     private VisitResult newObjExprVisit(JmmNode node, ArgumentPool argumentPool) {
         final String className = node.get("object");
         String code = "new(%s)".formatted(className);
-        String finalCode = ";\ninvokespecial(%s.%s,\"<init>\").V".formatted(argumentPool.getId(), className);
+        String finalCode = "invokespecial(%s.%s,\"<init>\").V;\n".formatted(argumentPool.getId(), className);
         return new VisitResult("", code, finalCode, className);
     }
 
@@ -132,11 +131,6 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, VisitResult> {
         return new VisitResult(preparationCode, code, "", arrayElementType);
     }
 
-    private VisitResult closedStVisit(JmmNode node, ArgumentPool argumentPool) {
-        final VisitResult visitResult = defaultVisit(node, null);
-        return new VisitResult(visitResult.preparationCode, visitResult.code + ";\n", "");
-    }
-
     private VisitResult dotExpressionVisit(JmmNode node, ArgumentPool argumentPool) {
         final ArgumentPool leftArg = new ArgumentPool(null, OllirUtils.isNotTerminalNode(node.getJmmChild(0)));
         final VisitResult lhsResult = visit(node.getJmmChild(0), leftArg);
@@ -146,7 +140,7 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, VisitResult> {
         final VisitResult rhsResult = visit(node.getJmmChild(1), rightArg);
 
         final String type = argumentPool.getType() == null ? rhsResult.returnType : argumentPool.getType();
-        final String preparationCode = rhsResult.preparationCode + lhsResult.preparationCode;
+        final String preparationCode = rhsResult.preparationCode + lhsResult.preparationCode + lhsResult.finalCode + rhsResult.finalCode;
         final String code = rhsResult.code + (argumentPool.getType() == null ? "" : "." + type);
         return new VisitResult(preparationCode, code, "", type);
     }
@@ -325,6 +319,7 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, VisitResult> {
             final VisitResult result = visit(childNode, new ArgumentPool());
             codeBuilder.append(result.preparationCode);
             codeBuilder.append(result.code);
+            if (node.getKind().equals("ClosedStatement")) codeBuilder.append(";\n");
             codeBuilder.append(result.finalCode);
         }
 
@@ -383,9 +378,15 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, VisitResult> {
 
 
     private VisitResult tempVisit(JmmNode jmmNode, ArgumentPool argumentPool) {
-        final VisitResult visitResult = super.visit(jmmNode, argumentPool);
         final String tempVariableName = "temp%d".formatted(tempCounter++);
-        final String suffix = !OllirUtils.isNotTerminalNode(jmmNode) ? ".%s;\n".formatted(visitResult.returnType) : ";\n";
+        argumentPool.setId(tempVariableName);
+        final VisitResult visitResult = super.visit(jmmNode, argumentPool);
+        final String suffix;
+        if (!OllirUtils.isNotTerminalNode(jmmNode) || jmmNode.getKind().equals("NewObjExpr") || jmmNode.getKind().equals("NewArrayExpr")) {
+            suffix = ".%s;".formatted(visitResult.returnType);
+        } else {
+            suffix = ";";
+        }
         final String preparationCode = "%s.%s :=.%s %s%s\n".formatted(tempVariableName, visitResult.returnType, visitResult.returnType, visitResult.code, suffix);
         final String code = "%s".formatted(tempVariableName);
         return new VisitResult(visitResult.preparationCode + preparationCode, code, visitResult.finalCode, visitResult.returnType);
