@@ -245,6 +245,10 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, VisitResult> {
             final String annotatedId = jmmNode.get("id") + (type.isEmpty() ? "" : "." + type);
             // TODO: This node will be interpreted as non-terminal node, and temporary variables will have getfield(this, x).type.type.
             //  Will it be problematic?
+            // TODO: There is probably a better way to avoid temporary variables on assignment.
+            if (argumentPool != null && !jmmNode.getJmmParent().getKind().equals("AssignExpr")) {
+                argumentPool.setNotTerminal(true);
+            }
             final String calculation = ("getfield(this, %s).%s").formatted(annotatedId, type);
             return new VisitResult("", calculation, "", type);
         }
@@ -388,7 +392,8 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, VisitResult> {
 
     @Override
     public VisitResult visit(JmmNode jmmNode, ArgumentPool argumentPool) {
+        VisitResult visit = super.visit(jmmNode, argumentPool);
         if (argumentPool.getIsNotTerminal()) return tempVisit(jmmNode, argumentPool);
-        return super.visit(jmmNode, argumentPool);
+        return visit;
     }
 }
