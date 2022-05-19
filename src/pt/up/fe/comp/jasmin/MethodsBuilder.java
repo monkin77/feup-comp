@@ -1,9 +1,6 @@
 package pt.up.fe.comp.jasmin;
 
-import org.specs.comp.ollir.ClassUnit;
-import org.specs.comp.ollir.Element;
-import org.specs.comp.ollir.Instruction;
-import org.specs.comp.ollir.Method;
+import org.specs.comp.ollir.*;
 import pt.up.fe.comp.jasmin.instruction.InstructionBuilder;
 
 import java.util.ArrayList;
@@ -37,7 +34,6 @@ public class MethodsBuilder extends AbstractBuilder {
             builder.append(JasminUtils.getTypeName(method.getReturnType(), classUnit, true)).append("\n");
 
             compileMethodBody(method);
-            if (method.isConstructMethod()) builder.append("return").append("\n");
             builder.append(".end method\n\n");
         }
 
@@ -54,6 +50,12 @@ public class MethodsBuilder extends AbstractBuilder {
         for (final Instruction instruction : instructions) {
             builder.append(TAB);
             builder.append((new InstructionBuilder(classUnit, method, instruction)).compile());
+        }
+
+        if (instructions.size() == 0 ||
+                instructions.get(instructions.size() - 1).getInstType() != InstructionType.RETURN) {
+            builder.append(TAB);
+            builder.append("return").append("\n");
         }
     }
 }

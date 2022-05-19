@@ -1,3 +1,4 @@
+import MathUtils;
 import io;
 
 class FindMaximum {
@@ -7,12 +8,14 @@ class FindMaximum {
         int x;
         _x = 3;
         x = _x;
-        return x;
+        return 8;
     }
 
     public FindMaximum fm() {
-        FindMaximum fm;
-        return fm;
+        FindMaximum fm2;
+        fm2 = new FindMaximum();
+        io.println(69420);
+        return fm2;
     }
 
     public static void main(String[] args) {
@@ -30,7 +33,6 @@ class FindMaximum {
         b = x < 1;
         b = b && b;
         b = !b;
-        a[0] = 1;
         if (x < 3) {
             x = 3;
         } else {
@@ -38,10 +40,28 @@ class FindMaximum {
         }
         io.println(x);
         while (x < 10) {
-           x = x + 1;
-           io.println(x);
+            x = x + 1;
+            io.println(x);
         }
-        // a = new int[15]; // TODO: needs to be reviewed in Jasmin, no array type
+        a = new int[15];
+        x = MathUtils.random(3, 3);
+        fm1 = new FindMaximum();
         fm1.fm().fm().fm().fm();
+        io.println(a.length);
+        x = a.length;
+        while (0 < x) {
+            a[x - 1] = x * x;
+            x = x - 1;
+        }
+        y = x + a[0];
+        x = a.length;
+        while (0 < x) {
+            y = a[x - 1];
+            io.println(y);
+            x = x - 1;
+        }
+        io.println(a[0 + 3]);
+        io.println(new FindMaximum().fm().f());
+        io.println(new int[250].length);
     }
 }

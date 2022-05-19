@@ -21,6 +21,8 @@ public class CallInstructionBuilderTest {
     private Method method;
     private static MockedStatic<JasminUtils> mockedUtils;
     private ClassUnit classUnit;
+    private Type returnType;
+    private Element firstArg;
 
     @BeforeClass
     public static void setupStatic() {
@@ -45,10 +47,14 @@ public class CallInstructionBuilderTest {
         operands = new ArrayList<>();
         Mockito.when(callInstruction.getListOfOperands()).thenReturn(operands);
 
-        final Element firstArg = Mockito.mock(Element.class);
+        firstArg = Mockito.mock(Element.class);
         final Element secondArg = Mockito.mock(Element.class);
         Mockito.when(callInstruction.getFirstArg()).thenReturn(firstArg);
         Mockito.when(callInstruction.getSecondArg()).thenReturn(secondArg);
+
+        returnType = Mockito.mock(Type.class);
+        Mockito.when(returnType.getTypeOfElement()).thenReturn(ElementType.CLASS);
+        Mockito.when(callInstruction.getReturnType()).thenReturn(returnType);
 
         callInstructionBuilder = new CallInstructionBuilder(classUnit, method, callInstruction);
     }
@@ -121,10 +127,22 @@ public class CallInstructionBuilderTest {
     }
 
     @Test
-    public void invokeNew() {
+    public void invokeNewObject() {
         Mockito.when(callInstruction.getInvocationType()).thenReturn(CallType.NEW);
 
         assertEquals("new T", callInstructionBuilder.compile());
+    }
+
+    @Test
+    public void invokeNewArray() {
+        Mockito.when(callInstruction.getInvocationType()).thenReturn(CallType.NEW);
+        Mockito.when(returnType.getTypeOfElement()).thenReturn(ElementType.ARRAYREF);
+
+        ArrayList<Element> operands = new ArrayList<>();
+        operands.add(firstArg);
+        Mockito.when(callInstruction.getListOfOperands()).thenReturn(operands);
+
+        assertEquals("aload 7\nnewarray int", callInstructionBuilder.compile());
     }
 
     @Test
@@ -142,7 +160,6 @@ public class CallInstructionBuilderTest {
     public void arrayLength() {
         Mockito.when(callInstruction.getInvocationType()).thenReturn(CallType.arraylength);
 
-        // TODO
         assertEquals("aload 7\narraylength", callInstructionBuilder.compile());
     }
 }

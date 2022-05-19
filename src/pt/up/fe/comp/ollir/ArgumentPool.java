@@ -2,7 +2,7 @@ package pt.up.fe.comp.ollir;
 
 public class ArgumentPool {
     private final String type;
-    private final boolean isNotTerminal;
+    private boolean isNotTerminal;
     private String id;
     private String expectedReturnType;
     private boolean isTarget;
@@ -56,5 +56,9 @@ public class ArgumentPool {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public void setNotTerminal(boolean notTerminal) {
+        isNotTerminal = notTerminal;
     }
 }
