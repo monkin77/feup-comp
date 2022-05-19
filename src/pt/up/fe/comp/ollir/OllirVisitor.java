@@ -183,8 +183,9 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, VisitResult> {
         for (int i = 0; i < node.getNumChildren(); ++i) {
             JmmNode childNode = node.getJmmChild(i);
             codeBuilder.append(", ");
-            // TODO: Some parameters could be treated as terminal, but it is not clear which ones (1 vs a[0])
-            final VisitResult result = visit(childNode, new ArgumentPool(null, true));
+            // TODO: There is probably a better way to differentiate what can and can't be inlined.
+            boolean needsVariable = !(childNode.getKind().equals("_Identifier") || childNode.getKind().equals("IntegerLiteral") || childNode.getKind().equals("BooleanLiteral"));
+            final VisitResult result = visit(childNode, new ArgumentPool(null, needsVariable));
             preparationBuilder.append(result.preparationCode);
             codeBuilder.append("%s.%s".formatted(result.code, result.returnType));
         }
