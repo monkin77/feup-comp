@@ -63,8 +63,8 @@ public class JasminUtils {
             builder.append("ldc ").append(elementName).append("\n");
             return builder.toString();
         } else if (element.getType().getTypeOfElement() == ElementType.BOOLEAN && (elementName.equals("true") || elementName.equals("false"))) {
-            if (elementName.equals("false")) builder.append("iconst_0");
-            else builder.append("iconst_1");
+            if (elementName.equals("false")) builder.append("iconst_0").append("\n");
+            else builder.append("iconst_1").append("\n");
             return builder.toString();
         }
 
@@ -102,10 +102,8 @@ public class JasminUtils {
         builder.append(JasminUtils.buildLoadInstruction(index, method));
 
         switch (elemType) {
-            case THIS, OBJECTREF, CLASS, STRING, ARRAYREF ->
-                    builder.append("aaload ");
-            case INT32, BOOLEAN ->
-                    builder.append("iaload ");
+            case THIS, OBJECTREF, CLASS, STRING, ARRAYREF -> builder.append("aaload ");
+            case INT32, BOOLEAN -> builder.append("iaload ");
         }
         return builder.toString();
     }
