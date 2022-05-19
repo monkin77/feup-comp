@@ -49,10 +49,11 @@ public class AssignInstructionBuilder extends AbstractBuilder {
     private void storePrimitiveElement(ElementType elemType, Descriptor descriptor) {
         builder.append((new InstructionBuilder(classUnit, method, instruction.getRhs())).compile());
 
-        // TODO Difference between istore 0 and istore_0
-        switch (elemType) {
-            case THIS, OBJECTREF, CLASS, STRING, ARRAYREF -> builder.append("astore ").append(descriptor.getVirtualReg());
-            case INT32, BOOLEAN -> builder.append("istore ").append(descriptor.getVirtualReg());
-        }
+        final String mnemonic = switch (elemType) {
+            case THIS, OBJECTREF, CLASS, STRING, ARRAYREF -> ("astore");
+            case INT32, BOOLEAN -> ("istore");
+            case VOID -> null;
+        };
+        builder.append(mnemonic).append(descriptor.getVirtualReg() <= 3 ? "_" : " ").append(descriptor.getVirtualReg());
     }
 }
