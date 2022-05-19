@@ -61,5 +61,7 @@ class FindMaximum {
             x = x - 1;
         }
         io.println(a[0 + 3]);
+        io.println(new FindMaximum().fm().f());
+        io.println(new int[250].length);
     }
 }
