@@ -276,15 +276,9 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, VisitResult> {
 
     private VisitResult notExprVisit(JmmNode jmmNode, ArgumentPool argumentPool) {
         final JmmNode node = jmmNode.getJmmChild(0);
-        final Symbol symbol = getSymbol(node.get("id"), currentMethod, symbolTable);
-        final String assignType = OllirUtils.convertType(symbol.getType());
-
-        final VisitResult rhsResult = visit(node, new ArgumentPool(assignType, OllirUtils.isNotTerminalNode(node)));
-
-        final String preparationCode = rhsResult.preparationCode;
-        final String code = "!.bool %s.%s".formatted(rhsResult.code, rhsResult.returnType);
-
-        return new VisitResult(preparationCode, code, "", "bool");
+        final VisitResult result = visit(node, new ArgumentPool("bool", OllirUtils.isNotTerminalNode(node)));
+        final String code = "!.bool %s.%s".formatted(result.code, result.returnType);
+        return new VisitResult(result.preparationCode, code, result.finalCode, "bool");
     }
 
     private VisitResult publicMethodVisit(JmmNode jmmNode, ArgumentPool o) {
