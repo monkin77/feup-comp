@@ -213,7 +213,7 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, VisitResult> {
         final boolean isClassField = OllirUtils.isClassField(assignTarget, currentMethod, symbolTable);
         ArgumentPool rightArgs = new ArgumentPool(assignType);
         rightArgs.setId(assignTarget);
-        if (isClassField) rightArgs.setNotTerminal(true);
+        if (isClassField) rightArgs.setNotTerminal(OllirUtils.isNotTerminalNode(rhs));
         VisitResult rhsResult = visit(rhs, rightArgs);
         if (isClassField) {
             final String preparationCode = rhsResult.preparationCode + lhsResult.preparationCode;
