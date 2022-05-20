@@ -3,11 +3,24 @@ import io;
 
 class FindMaximum {
     int _x;
+    int[] fieldArray;
+    FindMaximum fm2;
 
     public int f() {
         int x;
+        FindMaximum fm1;
         _x = 3;
         x = _x;
+        fieldArray = new int[10];
+        x = fieldArray.length;
+        fieldArray[0] = 5;
+        x = fieldArray[0];
+        fieldArray[5] = 3;
+        fieldArray[3] = 1;
+        fieldArray[fieldArray[0 * 5]] = fieldArray[fieldArray[fieldArray[0]]];
+        fieldArray[fieldArray.length - 2] = fieldArray[0];
+        fm1 = new FindMaximum();
+        fm1.fm();
         return 8;
     }
 

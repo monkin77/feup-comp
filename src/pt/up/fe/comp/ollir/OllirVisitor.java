@@ -210,10 +210,11 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, VisitResult> {
         final String assignTarget = split[0];
         final String assignType = lhsResult.returnType;
 
+        final boolean isClassField = OllirUtils.isClassField(assignTarget, currentMethod, symbolTable);
         ArgumentPool rightArgs = new ArgumentPool(assignType);
         rightArgs.setId(assignTarget);
+        if (isClassField) rightArgs.setNotTerminal(true);
         VisitResult rhsResult = visit(rhs, rightArgs);
-        final boolean isClassField = OllirUtils.isClassField(assignTarget, currentMethod, symbolTable);
         if (isClassField) {
             final String preparationCode = rhsResult.preparationCode + lhsResult.preparationCode;
             final String code = "putfield(this, %s.%s, %s.%s).V".formatted(lhsResult.code, lhsResult.returnType, rhsResult.code, lhsResult.returnType);
@@ -238,13 +239,11 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, VisitResult> {
         final boolean isClassField = OllirUtils.isClassField(jmmNode.get("id"), currentMethod, symbolTable);
         if (isClassField && (argumentPool == null || !argumentPool.isTarget())) {
             final String annotatedId = jmmNode.get("id") + (type.isEmpty() ? "" : "." + type);
-            // TODO: This node will be interpreted as non-terminal node, and temporary variables will have getfield(this, x).type.type.
-            //  Will it be problematic?
             // TODO: There is probably a better way to avoid temporary variables on assignment.
             if (argumentPool != null && !jmmNode.getJmmParent().getKind().equals("AssignExpr")) {
                 argumentPool.setNotTerminal(true);
             }
-            final String calculation = ("getfield(this, %s).%s").formatted(annotatedId, type);
+            final String calculation = ("getfield(this, %s)").formatted(annotatedId, type);
             return new VisitResult("", calculation, "", type);
         }
         return new VisitResult("", jmmNode.get("id"), "", type);
