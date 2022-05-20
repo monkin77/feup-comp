@@ -136,7 +136,7 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, VisitResult> {
         final VisitResult lhsResult = visit(node.getJmmChild(0), leftArg);
 
         final ArgumentPool rightArg = new ArgumentPool(lhsResult.code);
-        rightArg.setExpectedReturnType(argumentPool.getType());
+        rightArg.setExpectedReturnType(argumentPool.getExpectedReturnType());
         final VisitResult rhsResult = visit(node.getJmmChild(1), rightArg);
 
         final String type = argumentPool.getType() == null ? rhsResult.returnType : argumentPool.getType();
@@ -211,8 +211,8 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, VisitResult> {
         final String assignType = lhsResult.returnType;
 
         final boolean isClassField = OllirUtils.isClassField(assignTarget, currentMethod, symbolTable);
-        ArgumentPool rightArgs = new ArgumentPool(assignType);
-        rightArgs.setId(assignTarget);
+        ArgumentPool rightArgs = new ArgumentPool(assignTarget);
+        rightArgs.setExpectedReturnType(assignType);
         if (isClassField) rightArgs.setNotTerminal(OllirUtils.isNotTerminalNode(rhs));
         VisitResult rhsResult = visit(rhs, rightArgs);
         if (isClassField) {
