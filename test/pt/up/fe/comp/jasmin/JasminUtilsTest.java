@@ -20,7 +20,7 @@ public class JasminUtilsTest {
 
         literalElement = Mockito.mock(LiteralElement.class);
         Mockito.when(literalElement.isLiteral()).thenReturn(true);
-        Mockito.when(literalElement.getLiteral()).thenReturn("LiteralElement");
+        Mockito.when(literalElement.getLiteral()).thenReturn("5");
     }
 
     @Test
@@ -52,7 +52,7 @@ public class JasminUtilsTest {
         Mockito.when(operand.isLiteral()).thenReturn(false);
         Mockito.when(operand.getName()).thenReturn("Operand");
 
-        assertEquals("LiteralElement", JasminUtils.getElementName(literalElement));
+        assertEquals("5", JasminUtils.getElementName(literalElement));
         assertEquals("Operand", JasminUtils.getElementName(operand));
     }
 
@@ -89,7 +89,8 @@ public class JasminUtilsTest {
         Mockito.when(arrayElement.getType()).thenReturn(arrayType);
         Mockito.when(arrayElement.getName()).thenReturn("OperandElement");
 
-        assertEquals("ldc LiteralElement\n", JasminUtils.buildLoadInstruction(literalElement, method));
+        // TODO Tests for different type of loads
+        assertEquals("iconst_5\n", JasminUtils.buildLoadInstruction(literalElement, method));
         assertEquals("aload 7\n", JasminUtils.buildLoadInstruction(objectElement, method));
         assertEquals("iload 7\n", JasminUtils.buildLoadInstruction(intElement, method));
         assertEquals("aload 7\n", JasminUtils.buildLoadInstruction(arrayElement, method));
