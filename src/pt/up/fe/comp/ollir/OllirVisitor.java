@@ -54,8 +54,16 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, VisitResult> {
     }
 
     private VisitResult booleanConditionVisit(JmmNode node, ArgumentPool argumentPool) {
-        final VisitResult result = visit(node.getJmmChild(0), argumentPool);
-        final String code = result.code + (OllirUtils.isNotTerminalNode(node.getJmmChild(0)) ? "" : "." + result.returnType);
+        String kind = node.getJmmChild(0).getKind();
+        boolean isNotTerminalNode = !(kind.equals("ArrayExpr") || kind.equals("NotExpr") || kind.equals("LessExpr")
+                || kind.equals("AndExpr") || kind.equals("_Identifier") || kind.equals("BooleanLiteral")) ;
+
+        // boolean isNotTerminalNode = OllirUtils.isNotTerminalNode(node.getJmmChild(0));
+        final VisitResult result = visit(node.getJmmChild(0), new ArgumentPool(null, isNotTerminalNode));
+
+        boolean needsBooleanType = isNotTerminalNode || kind.equals("BooleanLiteral") || kind.equals("_Identifier")
+            || kind.equals("ArrayExpr");
+        final String code = result.code + (needsBooleanType ? ".bool" : "");
         return new VisitResult(result.preparationCode, code, result.finalCode, "");
     }
 
