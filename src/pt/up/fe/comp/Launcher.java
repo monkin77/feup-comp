@@ -22,22 +22,35 @@ public class Launcher {
 
         SpecsLogs.info("Executing with args: " + Arrays.toString(args));
 
+        String numRegisters = "-1";
         // read the input code
-        if (args.length != 1) {
+        if (args.length < 1) {
             throw new RuntimeException("Expected a single argument, a path to an existing input file.");
+        } else {
+            for (int i = 0; i < args.length; i++) {
+                if (args[i].equals("-r")) {
+                    int numRegIdx = i+1;
+                    if (numRegIdx < args.length) {
+                        numRegisters = args[numRegIdx];
+                    } else {
+                        throw new RuntimeException("Missing argument for the number of register allocated.");
+                    }
+                }
+            }
         }
-        File inputFile = new File(args[0]);
-        if (!inputFile.isFile()) {
-            throw new RuntimeException("Expected a path to an existing input file, got '" + args[0] + "'.");
-        }
-        String input = SpecsIo.read(inputFile);
 
         // Create config
         Map<String, String> config = new HashMap<>();
         config.put("inputFile", args[0]);
         config.put("optimize", "false");
-        config.put("registerAllocation", "-1");
+        config.put("registerAllocation", numRegisters);
         config.put("debug", "false");
+
+        File inputFile = new File(args[0]);
+        if (!inputFile.isFile()) {
+            throw new RuntimeException("Expected a path to an existing input file, got '" + args[0] + "'.");
+        }
+        String input = SpecsIo.read(inputFile);
 
         // Instantiate JmmParser
         SimpleParser parser = new SimpleParser();
@@ -63,13 +76,14 @@ public class Launcher {
         // Instantiate Optimization stage
         JmmOptimization jmmOptimization = new JmmOptimizer();
 
-        JmmSemanticsResult optimizedResult = jmmOptimization.optimize(analysisResult);
-
-        // Optimization stage
-        OllirResult ollirResult = jmmOptimization.toOllir(optimizedResult);
+        // Create Ollir code
+        OllirResult ollirResult = jmmOptimization.toOllir(analysisResult);
 
         // Check if there are optimization errors
         TestUtils.noErrors(ollirResult.getReports());
+
+        // Optimization stage
+        ollirResult = jmmOptimization.optimize(ollirResult);
 
         // Instantiate Compilation stage
         JasminBackend jasminBackend = new JasminBackendJmm();
