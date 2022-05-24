@@ -160,6 +160,7 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, VisitResult> {
             } else {
                 // Assume it's a symbol from our class
                 codeBuilder.append("invokevirtual(").append(id);
+                if (!id.equals("this")) codeBuilder.append(".").append(this.symbolTable.getClassName());
                 returnType = OllirUtils.convertType(this.symbolTable.getReturnType(node.get("method")));
             }
         } else {
@@ -376,8 +377,7 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, VisitResult> {
         argumentPool.setId(tempVariableName);
         final VisitResult visitResult = super.visit(jmmNode, argumentPool);
         final String suffix;
-        if (!OllirUtils.isNotTerminalNode(jmmNode) || jmmNode.getKind().equals("NewObjExpr") || jmmNode.getKind().equals("NewArrayExpr")
-            || jmmNode.getKind().equals("DotExpression")) {
+        if (!OllirUtils.isNotTerminalNode(jmmNode) || jmmNode.getKind().equals("NewObjExpr") || jmmNode.getKind().equals("NewArrayExpr")) {
             suffix = ".%s;".formatted(visitResult.returnType);
         } else {
             suffix = ";";
