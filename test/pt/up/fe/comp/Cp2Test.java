@@ -89,6 +89,10 @@ public class Cp2Test {
         var result = TestUtils.optimize(SpecsIo.getResource(resource));
         var testName = new File(resource).getName();
         System.out.println(testName + ":\n" + result.getOllirCode());
+
+        if (ollirTester != null) {
+            ollirTester.accept(result.getOllirClass());
+        }
     }
 
     public static void testJmmCompilation(String resource) {
@@ -101,171 +105,171 @@ public class Cp2Test {
 
     @Test
     public void test_1_00_SymbolTable() {
-        // System.out.println(TestUtils.parse(SpecsIo.getResource("pt/up/fe/comp/fixtures/public/cp2/SymbolTable.jmm"))
+        // System.out.println(TestUtils.parse(SpecsIo.getResource("fixtures/public/cp2/SymbolTable.jmm"))
         // .getRootNode().toTree());
 
-        var result = TestUtils.analyse(SpecsIo.getResource("pt/up/fe/comp/fixtures/public/cp2/SymbolTable.jmm"));
+        var result = TestUtils.analyse(SpecsIo.getResource("fixtures/public/cp2/SymbolTable.jmm"));
         System.out.println("Symbol Table:\n" + result.getSymbolTable().print());
     }
 
     @Test
     public void test_1_01_VarNotDeclared() {
-        var result = TestUtils.analyse(SpecsIo.getResource("pt/up/fe/comp/fixtures/public/cp2/VarNotDeclared.jmm"));
+        var result = TestUtils.analyse(SpecsIo.getResource("fixtures/public/cp2/VarNotDeclared.jmm"));
         TestUtils.mustFail(result);
     }
 
     @Test
     public void test_1_02_ClassNotImported() {
-        var result = TestUtils.analyse(SpecsIo.getResource("pt/up/fe/comp/fixtures/public/cp2/ClassNotImported.jmm"));
+        var result = TestUtils.analyse(SpecsIo.getResource("fixtures/public/cp2/ClassNotImported.jmm"));
         TestUtils.mustFail(result);
     }
 
     @Test
     public void test_1_03_IntPlusObject() {
-        var result = TestUtils.analyse(SpecsIo.getResource("pt/up/fe/comp/fixtures/public/cp2/IntPlusObject.jmm"));
+        var result = TestUtils.analyse(SpecsIo.getResource("fixtures/public/cp2/IntPlusObject.jmm"));
         TestUtils.mustFail(result);
     }
 
     @Test
     public void test_1_04_BoolTimesInt() {
-        var result = TestUtils.analyse(SpecsIo.getResource("pt/up/fe/comp/fixtures/public/cp2/BoolTimesInt.jmm"));
+        var result = TestUtils.analyse(SpecsIo.getResource("fixtures/public/cp2/BoolTimesInt.jmm"));
         TestUtils.mustFail(result);
     }
 
     @Test
     public void test_1_05_ArrayPlusInt() {
-        var result = TestUtils.analyse(SpecsIo.getResource("pt/up/fe/comp/fixtures/public/cp2/ArrayPlusInt.jmm"));
+        var result = TestUtils.analyse(SpecsIo.getResource("fixtures/public/cp2/ArrayPlusInt.jmm"));
         TestUtils.mustFail(result);
     }
 
     @Test
     public void test_1_06_ArrayAccessOnInt() {
-        var result = TestUtils.analyse(SpecsIo.getResource("pt/up/fe/comp/fixtures/public/cp2/ArrayAccessOnInt.jmm"));
+        var result = TestUtils.analyse(SpecsIo.getResource("fixtures/public/cp2/ArrayAccessOnInt.jmm"));
         TestUtils.mustFail(result);
     }
 
     @Test
     public void test_1_07_ArrayIndexNotInt() {
-        var result = TestUtils.analyse(SpecsIo.getResource("pt/up/fe/comp/fixtures/public/cp2/ArrayIndexNotInt.jmm"));
+        var result = TestUtils.analyse(SpecsIo.getResource("fixtures/public/cp2/ArrayIndexNotInt.jmm"));
         TestUtils.mustFail(result);
     }
 
     @Test
     public void test_1_08_AssignIntToBool() {
-        var result = TestUtils.analyse(SpecsIo.getResource("pt/up/fe/comp/fixtures/public/cp2/AssignIntToBool.jmm"));
+        var result = TestUtils.analyse(SpecsIo.getResource("fixtures/public/cp2/AssignIntToBool.jmm"));
         TestUtils.mustFail(result);
     }
 
     @Test
     public void test_1_09_ObjectAssignmentFail() {
-        var result = TestUtils.analyse(SpecsIo.getResource("pt/up/fe/comp/fixtures/public/cp2/ObjectAssignmentFail.jmm"));
+        var result = TestUtils.analyse(SpecsIo.getResource("fixtures/public/cp2/ObjectAssignmentFail.jmm"));
         TestUtils.mustFail(result);
     }
 
     @Test
     public void test_1_10_ObjectAssignmentPassExtends() {
-        var result = TestUtils.analyse(SpecsIo.getResource("pt/up/fe/comp/fixtures/public/cp2/ObjectAssignmentPassExtends.jmm"));
+        var result = TestUtils.analyse(SpecsIo.getResource("fixtures/public/cp2/ObjectAssignmentPassExtends.jmm"));
         TestUtils.noErrors(result);
     }
 
     @Test
     public void test_1_11_ObjectAssignmentPassImports() {
-        var result = TestUtils.analyse(SpecsIo.getResource("pt/up/fe/comp/fixtures/public/cp2/ObjectAssignmentPassImports.jmm"));
+        var result = TestUtils.analyse(SpecsIo.getResource("fixtures/public/cp2/ObjectAssignmentPassImports.jmm"));
         TestUtils.noErrors(result);
     }
 
     @Test
     public void test_1_12_IntInIfCondition() {
-        var result = TestUtils.analyse(SpecsIo.getResource("pt/up/fe/comp/fixtures/public/cp2/IntInIfCondition.jmm"));
+        var result = TestUtils.analyse(SpecsIo.getResource("fixtures/public/cp2/IntInIfCondition.jmm"));
         TestUtils.mustFail(result);
     }
 
     @Test
     public void test_1_13_ArrayInWhileCondition() {
-        var result = TestUtils.analyse(SpecsIo.getResource("pt/up/fe/comp/fixtures/public/cp2/ArrayInWhileCondition.jmm"));
+        var result = TestUtils.analyse(SpecsIo.getResource("fixtures/public/cp2/ArrayInWhileCondition.jmm"));
         TestUtils.mustFail(result);
     }
 
     @Test
     public void test_1_14_CallToUndeclaredMethod() {
-        var result = TestUtils.analyse(SpecsIo.getResource("pt/up/fe/comp/fixtures/public/cp2/CallToUndeclaredMethod.jmm"));
+        var result = TestUtils.analyse(SpecsIo.getResource("fixtures/public/cp2/CallToUndeclaredMethod.jmm"));
         TestUtils.mustFail(result);
     }
 
     @Test
     public void test_1_15_CallToMethodAssumedInExtends() {
         var result = TestUtils
-                .analyse(SpecsIo.getResource("pt/up/fe/comp/fixtures/public/cp2/CallToMethodAssumedInExtends.jmm"));
+                .analyse(SpecsIo.getResource("fixtures/public/cp2/CallToMethodAssumedInExtends.jmm"));
         TestUtils.noErrors(result);
     }
 
     @Test
     public void test_1_16_CallToMethodAssumedInImport() {
         var result = TestUtils
-                .analyse(SpecsIo.getResource("pt/up/fe/comp/fixtures/public/cp2/CallToMethodAssumedInImport.jmm"));
+                .analyse(SpecsIo.getResource("fixtures/public/cp2/CallToMethodAssumedInImport.jmm"));
         TestUtils.noErrors(result);
     }
 
     @Test
     public void test_1_17_IncompatibleArguments() {
         var result = TestUtils
-                .analyse(SpecsIo.getResource("pt/up/fe/comp/fixtures/public/cp2/IncompatibleArguments.jmm"));
+                .analyse(SpecsIo.getResource("fixtures/public/cp2/IncompatibleArguments.jmm"));
         TestUtils.mustFail(result);
     }
 
     @Test
     public void test_1_18_IncompatibleReturn() {
         var result = TestUtils
-                .analyse(SpecsIo.getResource("pt/up/fe/comp/fixtures/public/cp2/IncompatibleReturn.jmm"));
+                .analyse(SpecsIo.getResource("fixtures/public/cp2/IncompatibleReturn.jmm"));
         TestUtils.mustFail(result);
     }
 
     @Test
     public void test_1_19_AssumeArguments() {
         var result = TestUtils
-                .analyse(SpecsIo.getResource("pt/up/fe/comp/fixtures/public/cp2/AssumeArguments.jmm"));
+                .analyse(SpecsIo.getResource("fixtures/public/cp2/AssumeArguments.jmm"));
         TestUtils.noErrors(result);
     }
 
     @Test
     public void test_2_01_CompileBasic() {
-        testJmmCompilation("pt/up/fe/comp/fixtures/public/cp2/CompileBasic.jmm", this::ollirTest_2_01_CompileBasic);
+        testJmmCompilation("fixtures/public/cp2/CompileBasic.jmm", this::ollirTest_2_01_CompileBasic);
     }
 
     @Test
     public void test_2_02_CompileArithmetic() {
-        testJmmCompilation("pt/up/fe/comp/fixtures/public/cp2/CompileArithmetic.jmm", this::ollirTest_2_02_CompileArithmetic);
+        testJmmCompilation("fixtures/public/cp2/CompileArithmetic.jmm", this::ollirTest_2_02_CompileArithmetic);
     }
 
     @Test
     public void test_2_03_CompileMethodInvocation() {
-        testJmmCompilation("pt/up/fe/comp/fixtures/public/cp2/CompileMethodInvocation.jmm",
+        testJmmCompilation("fixtures/public/cp2/CompileMethodInvocation.jmm",
                 this::ollirTest_2_03_CompileMethodInvocation);
     }
 
     @Test
     public void test_2_04_CompileAssignment() {
-        testJmmCompilation("pt/up/fe/comp/fixtures/public/cp2/CompileAssignment.jmm", this::ollirTest_2_04_CompileAssignment);
+        testJmmCompilation("fixtures/public/cp2/CompileAssignment.jmm", this::ollirTest_2_04_CompileAssignment);
     }
 
     @Test
     public void test_3_01_OllirToJasminBasic() {
-        testOllirToJasmin("pt/up/fe/comp/fixtures/public/cp2/OllirToJasminBasic.ollir");
+        testOllirToJasmin("fixtures/public/cp2/OllirToJasminBasic.ollir");
     }
 
     @Test
     public void test_3_02_OllirToJasminArithmetics() {
-        testOllirToJasmin("pt/up/fe/comp/fixtures/public/cp2/OllirToJasminArithmetics.ollir");
+        testOllirToJasmin("fixtures/public/cp2/OllirToJasminArithmetics.ollir");
     }
 
     @Test
     public void test_3_03_OllirToJasminInvoke() {
-        testOllirToJasmin("pt/up/fe/comp/fixtures/public/cp2/OllirToJasminInvoke.ollir");
+        testOllirToJasmin("fixtures/public/cp2/OllirToJasminInvoke.ollir");
     }
 
     @Test
     public void test_3_04_OllirToJasminFields() {
-        testOllirToJasmin("pt/up/fe/comp/fixtures/public/cp2/OllirToJasminFields.ollir");
+        testOllirToJasmin("fixtures/public/cp2/OllirToJasminFields.ollir");
     }
 
     public void ollirTest_2_01_CompileBasic(ClassUnit classUnit) {
@@ -321,7 +325,7 @@ public class Cp2Test {
 
         var binOpInst = methodFoo.getInstructions().stream()
                 .filter(inst -> inst instanceof AssignInstruction)
-                .map(instr -> (AssignInstruction)instr)
+                .map(instr -> (AssignInstruction) instr)
                 .filter(assign -> assign.getRhs() instanceof BinaryOpInstruction)
                 .findFirst();
 
