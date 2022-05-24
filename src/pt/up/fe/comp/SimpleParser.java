@@ -50,6 +50,7 @@ public class SimpleParser implements JmmParser {
             new LineColAnnotator().visit((JmmNode) root);
 
             JmmNode rootImpl = ((JmmNode) parser.rootNode()).sanitize();
+            System.out.println("AST:");
             System.out.println(rootImpl.toTree());
 
             if (!(root instanceof JmmNode)) {

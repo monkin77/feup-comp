@@ -1,0 +1,47 @@
+import io;
+Life {
+    .field private UNDERPOP_LIM.i32;
+    .field private REPRODUCE_NUM.i32;
+    .field private LOOPS_PER_MS.i32;
+    .field private yMax.i32;
+    .field private OVERPOP_LIM.i32;
+    .field private field.array.i32;
+    .field private xMax.i32;
+
+    .construct Life().V {
+        invokespecial(this, "<init>").V;
+    }
+
+    .method public static main(a.array.String).V {
+l.Life :=.Life new(Life).Life;
+invokespecial(l.Life,"<init>").V;
+invokevirtual(l.Life, "init").bool;
+if (true.bool) goto whilebody_0;
+goto endwhile_0;
+whilebody_0:
+invokevirtual(l.Life, "printField").bool;
+invokevirtual(l.Life, "update").bool;
+unused.i32 :=.i32 invokestatic(io, "read").i32;
+if (true.bool) goto whilebody_0;
+endwhile_0:
+
+ret.V;
+    }
+    .method public init().bool {
+temp1.i32 :=.i32 1.i32;
+lineLenA.array.i32 :=.array.i32 new(array, temp1.i32).array.i32;
+putfield(this, UNDERPOP_LIM.i32, 2.i32).V;
+putfield(this, OVERPOP_LIM.i32, 3.i32).V;
+putfield(this, REPRODUCE_NUM.i32, 3.i32).V;
+putfield(this, LOOPS_PER_MS.i32, 225000.i32).V;
+temp2.array.i32 :=.array.i32 invokevirtual(this, "field", lineLenA.array.i32);
+putfield(this, field.array.i32, temp2.array.i32).V;
+temp3.i32 :=.i32 0.i32;
+lineLen.i32 :=.i32 lineLenA[temp3.i32].i32;
+temp4.i32 :=.i32 lineLen.i32 -.i32 1.i32;
+putfield(this, xMax.i32, temp4.i32).V;
+temp19.array.i32 :=.array.i32 getfield(this, field.array.i32).array.i32;
+temp18.i32 :=.i32 arraylength(temp19.array.i32).i32.i32;
+temp16.i32 :=.i32 temp18.i32 /.i32 lineLen.i32;
+temp12.i32 :=.i32 temp16.i32 -.i32 1.i32;
+putfield(this, yMax.i32, temp12.i32).V;
