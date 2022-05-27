@@ -91,7 +91,7 @@ public class CompilationTest {
 
     @Test
     public void simple() {
-        testCompilation("pt/up/fe/comp/fixtures/public/Simple.jmm");
+        testCompilation("pt/up/fe/comp/fixtures/public/Simple.jmm", "30\n");
     }
 
     @Test
@@ -101,7 +101,18 @@ public class CompilationTest {
 
     @Test
     public void whileAndIf() {
-        testCompilation("pt/up/fe/comp/fixtures/public/WhileAndIf.jmm");
+        testCompilation("pt/up/fe/comp/fixtures/public/WhileAndIf.jmm", """
+                10
+                10
+                10
+                10
+                10
+                10
+                10
+                10
+                10
+                10
+                """);
     }
 
     private void testCompilation(String file, String executionResult) {
