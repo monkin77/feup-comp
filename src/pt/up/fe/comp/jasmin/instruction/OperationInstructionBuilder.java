@@ -37,23 +37,23 @@ public class OperationInstructionBuilder extends AbstractBuilder {
             case LTH, LTHI32 -> {
                 // TODO Conversion to >= with neg
                 builder.append(JasminConstants.TAB);
-                builder.append("if_icmplt IS_LESS_THAN_").append(MethodsBuilder.labelCounter).append("\n");
+                builder.append(InstructionList.if_icmplt("IS_LESS_THAN_" + MethodsBuilder.labelCounter)).append("\n");
                 builder.append(JasminConstants.TAB);
-                builder.append("iconst_0\n");
+                builder.append(InstructionList.loadIntConstant(0)).append("\n");
                 builder.append(JasminConstants.TAB);
-                builder.append("goto NOT_LESS_THAN_").append(MethodsBuilder.labelCounter).append("\n");
+                builder.append(InstructionList.gotoInstruction("NOT_LESS_THAN_" + MethodsBuilder.labelCounter)).append("\n");
                 builder.append(JasminConstants.TAB);
                 builder.append("IS_LESS_THAN_").append(MethodsBuilder.labelCounter).append(":\n");
                 builder.append(JasminConstants.TAB.repeat(2));
-                builder.append("iconst_1\n");
+                builder.append(InstructionList.loadIntConstant(1)).append("\n");
                 builder.append(JasminConstants.TAB);
                 builder.append("NOT_LESS_THAN_").append(MethodsBuilder.labelCounter).append(":\n");
                 ++MethodsBuilder.labelCounter;
             }
-            case ADD, ADDI32 -> builder.append("iadd");
-            case SUB, SUBI32 -> builder.append("isub");
-            case DIV, DIVI32 -> builder.append("idiv");
-            case MUL, MULI32 -> builder.append("imul");
+            case ADD, ADDI32 -> builder.append(InstructionList.iadd());
+            case SUB, SUBI32 -> builder.append(InstructionList.isub());
+            case DIV, DIVI32 -> builder.append(InstructionList.idiv());
+            case MUL, MULI32 -> builder.append(InstructionList.imul());
         }
     }
 
@@ -63,6 +63,6 @@ public class OperationInstructionBuilder extends AbstractBuilder {
 
         if (type != OperationType.NOT && type != OperationType.NOTB) return; // Not supported
         builder.append(JasminUtils.buildLoadInstruction(unaryOpInstruction.getOperand(), method));
-        builder.append("ineg");
+        builder.append(InstructionList.ineg());
     }
 }

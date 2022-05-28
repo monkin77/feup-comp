@@ -2,6 +2,7 @@ package pt.up.fe.comp.jasmin;
 
 import org.specs.comp.ollir.*;
 import pt.up.fe.comp.jasmin.instruction.InstructionBuilder;
+import pt.up.fe.comp.jasmin.instruction.InstructionList;
 
 import java.util.ArrayList;
 
@@ -47,10 +48,10 @@ public class MethodsBuilder extends AbstractBuilder {
         stackLimit = 0;
         currentStack = 0;
 
+        method.buildVarTable();
+
         sb.append(".limit locals ").append(getLocalsLimits(method)).append("\n");
         final ArrayList<Instruction> instructions = method.getInstructions();
-
-        method.buildVarTable();
 
         for (final Instruction instruction : instructions) {
             sb.append(TAB);
@@ -60,7 +61,7 @@ public class MethodsBuilder extends AbstractBuilder {
         if (instructions.size() == 0 ||
                 instructions.get(instructions.size() - 1).getInstType() != InstructionType.RETURN) {
             sb.append(TAB);
-            sb.append("return").append("\n");
+            sb.append(InstructionList.returnInstruction()).append("\n");
         }
 
         builder.append(".limit stack ").append(stackLimit).append("\n").append(sb);
