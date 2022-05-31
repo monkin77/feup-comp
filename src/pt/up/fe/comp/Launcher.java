@@ -75,8 +75,10 @@ public class Launcher {
         // Check if there are compilation errors
         TestUtils.noErrors(jasminResult.getReports());
 
-        System.out.println("JASMIN:\n" + jasminResult.getJasminCode());
+        // We can run the code with something like java -cp /tmp/jasmin_bruno/:libs-jmm/compiled/ FindMaximum
+        jasminResult.compile();
 
+        System.out.println("JASMIN:\n" + jasminResult.getJasminCode());
         System.out.println("JASMIN RUN:\n" + jasminResult.run());
     }
 

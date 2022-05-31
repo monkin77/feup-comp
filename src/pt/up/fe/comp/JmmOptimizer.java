@@ -14,7 +14,7 @@ public class JmmOptimizer implements JmmOptimization {
     @Override
     public OllirResult toOllir(JmmSemanticsResult semanticsResult) {
         String code = new OllirBuilder(semanticsResult).compile();
-        System.out.println("OLLIR:");
+        System.out.println("Ollir code:");
         System.out.println(code);
         return new OllirResult(semanticsResult, code, semanticsResult.getReports());
     }

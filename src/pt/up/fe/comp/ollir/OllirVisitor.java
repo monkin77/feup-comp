@@ -54,8 +54,16 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, VisitResult> {
     }
 
     private VisitResult booleanConditionVisit(JmmNode node, ArgumentPool argumentPool) {
-        final VisitResult result = visit(node.getJmmChild(0), argumentPool);
-        final String code = result.code + (OllirUtils.isNotTerminalNode(node.getJmmChild(0)) ? "" : "." + result.returnType);
+        String kind = node.getJmmChild(0).getKind();
+        boolean isNotTerminalNode = !(kind.equals("ArrayExpr") || kind.equals("NotExpr") || kind.equals("LessExpr")
+                || kind.equals("AndExpr") || kind.equals("_Identifier") || kind.equals("BooleanLiteral")) ;
+
+        // boolean isNotTerminalNode = OllirUtils.isNotTerminalNode(node.getJmmChild(0));
+        final VisitResult result = visit(node.getJmmChild(0), new ArgumentPool(null, isNotTerminalNode));
+
+        boolean needsBooleanType = isNotTerminalNode || kind.equals("BooleanLiteral") || kind.equals("_Identifier")
+            || kind.equals("ArrayExpr");
+        final String code = result.code + (needsBooleanType ? ".bool" : "");
         return new VisitResult(result.preparationCode, code, result.finalCode, "");
     }
 
@@ -159,7 +167,8 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, VisitResult> {
                 returnType = "V";
             } else {
                 // Assume it's a symbol from our class
-                codeBuilder.append("invokevirtual(").append(id).append(".").append(this.symbolTable.getClassName());
+                codeBuilder.append("invokevirtual(").append(id);
+                if (!id.equals("this")) codeBuilder.append(".").append(this.symbolTable.getClassName());
                 returnType = OllirUtils.convertType(this.symbolTable.getReturnType(node.get("method")));
             }
         } else {
@@ -222,6 +231,7 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, VisitResult> {
         }
         final String preparationCode = rhsResult.preparationCode + lhsResult.preparationCode;
         final String code = "%s.%s :=.%s %s.%s".formatted(lhsResult.code, lhsResult.returnType, assignType, rhsResult.code, lhsResult.returnType);
+        System.out.println("ola mano" + code);
         return new VisitResult(preparationCode, code, rhsResult.finalCode);
     }
 
@@ -375,7 +385,9 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, VisitResult> {
         argumentPool.setId(tempVariableName);
         final VisitResult visitResult = super.visit(jmmNode, argumentPool);
         final String suffix;
-        if (!OllirUtils.isNotTerminalNode(jmmNode) || jmmNode.getKind().equals("NewObjExpr") || jmmNode.getKind().equals("NewArrayExpr")) {
+        if (!OllirUtils.isNotTerminalNode(jmmNode) || jmmNode.getKind().equals("NewObjExpr") || jmmNode.getKind().equals("NewArrayExpr")
+            || jmmNode.getKind().equals("DotExpression")) {
+            // TODO Repeated types sometimes (.FindMaximum.FindMaximum)
             suffix = ".%s;".formatted(visitResult.returnType);
         } else {
             suffix = ";";

@@ -14,6 +14,8 @@ public class JasminBackendJmm implements JasminBackend {
     public JasminResult toJasmin(OllirResult ollirResult) {
         final ClassUnit classUnit = ollirResult.getOllirClass();
         final String code = new JasminBuilder(classUnit).compile();
+        System.out.println("Jasmin Code:");
+        System.out.println(code);
         return new JasminResult(classUnit.getClassName(), code, Collections.emptyList());
     }
 }
