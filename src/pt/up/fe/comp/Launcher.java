@@ -83,13 +83,16 @@ public class Launcher {
         TestUtils.noErrors(ollirResult.getReports());
 
         // Optimization stage
-        ollirResult = jmmOptimization.optimize(ollirResult);
+        OllirResult optimizedOllirResult = jmmOptimization.optimize(ollirResult);
+
+        // Check if there are optimization errors
+        TestUtils.noErrors(optimizedOllirResult.getReports());
 
         // Instantiate Compilation stage
         JasminBackend jasminBackend = new JasminBackendJmm();
 
         // Compilation stage
-        JasminResult jasminResult = jasminBackend.toJasmin(ollirResult);
+        JasminResult jasminResult = jasminBackend.toJasmin(optimizedOllirResult);
 
         // Check if there are compilation errors
         TestUtils.noErrors(jasminResult.getReports());
