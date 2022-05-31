@@ -4,6 +4,7 @@ import org.specs.comp.ollir.*;
 import pt.up.fe.comp.jasmin.AbstractBuilder;
 import pt.up.fe.comp.jasmin.JasminConstants;
 import pt.up.fe.comp.jasmin.JasminUtils;
+import pt.up.fe.comp.jasmin.MethodsBuilder;
 
 public class CallInstructionBuilder extends AbstractBuilder {
     private final CallInstruction instruction;
@@ -25,7 +26,7 @@ public class CallInstructionBuilder extends AbstractBuilder {
             case arraylength -> buildArrayLength();
             case ldc -> {
                 LiteralElement literal = (LiteralElement) (instruction.getFirstArg());
-                builder.append("ldc ").append(literal.getLiteral());
+                builder.append(InstructionList.ldc(literal.getLiteral()));
             }
         }
 
@@ -34,18 +35,18 @@ public class CallInstructionBuilder extends AbstractBuilder {
 
     private void buildArrayLength() {
         builder.append(JasminUtils.buildLoadInstruction(instruction.getFirstArg(), method));
-        builder.append("arraylength");
+        builder.append(InstructionList.arraylength());
     }
 
     private void buildInvokeVirtual() {
         this.buildInvocation("invokevirtual");
+        MethodsBuilder.updateStackLimit(-1); // object reference
     }
 
     private void buildInvokeSpecial() {
         final Element firstArg = instruction.getFirstArg();
         String className;
 
-        // TODO: This should *definitely* not be here
         if (method.isConstructMethod() && JasminUtils.getElementName(instruction.getSecondArg()).equals("\"<init>\"")) {
             className = classUnit.getSuperClass() == null ? JasminConstants.DEFAULT_SUPERCLASS : classUnit.getSuperClass();
         } else {
@@ -53,6 +54,7 @@ public class CallInstructionBuilder extends AbstractBuilder {
         }
         // TODO: What is invokenonvirtual ?
         this.buildInvocation("invokespecial", className, true);
+        MethodsBuilder.updateStackLimit(-1); // object reference
     }
 
     private void buildInvokeStatic() {
@@ -62,6 +64,8 @@ public class CallInstructionBuilder extends AbstractBuilder {
 
     private void builInvokeInterface() {
         this.buildInvocation("invokeinterface");
+        MethodsBuilder.updateStackLimit(-1); // object reference
+
         builder.append(" ").append(instruction.getListOfOperands().size());
     }
 
@@ -69,12 +73,12 @@ public class CallInstructionBuilder extends AbstractBuilder {
         if (instruction.getReturnType().getTypeOfElement() == ElementType.ARRAYREF) {
             final String className = "int"; // TODO Only works for int
             builder.append(JasminUtils.buildLoadInstruction(instruction.getListOfOperands().get(0), method));
-            builder.append("newarray ").append(className);
+            builder.append(InstructionList.newarray(className));
             return;
         }
 
         final String className = JasminUtils.getTypeName(instruction.getFirstArg().getType(), classUnit);
-        builder.append("new ").append(className);
+        builder.append(InstructionList.newInstruction(className));
     }
 
     private void buildInvocation(String invokeInstruction) {
@@ -93,6 +97,11 @@ public class CallInstructionBuilder extends AbstractBuilder {
         if (loadObject) builder.append(JasminUtils.buildLoadInstruction(firstArg, method));
         for (Element element : instruction.getListOfOperands())
             builder.append(JasminUtils.buildLoadInstruction(element, method));
+
+        MethodsBuilder.updateStackLimit(-instruction.getListOfOperands().size());
+        if (instruction.getReturnType().getTypeOfElement() != ElementType.VOID) {
+            MethodsBuilder.updateStackLimit(1);
+        }
 
         builder.append(invokeInstruction).append(" ");
         builder.append(className).append("/").append(methodName).append("(");

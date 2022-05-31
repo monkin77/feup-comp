@@ -26,7 +26,7 @@ public class CondInstructionBuilder extends AbstractBuilder {
             builder.append("\n");
         }
 
-        builder.append("ifne ").append(instruction.getLabel());
+        builder.append(InstructionList.ifne(instruction.getLabel()));
         return builder.toString();
     }
 }

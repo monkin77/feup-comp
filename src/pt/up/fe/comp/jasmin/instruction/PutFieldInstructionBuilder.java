@@ -31,8 +31,7 @@ public class PutFieldInstructionBuilder extends AbstractBuilder {
 
         final String typeName = JasminUtils.getTypeName(secondArg.getType(), classUnit, true);
 
-        builder.append("putfield ").append(className).append("/").append(fieldName);
-        builder.append(" ").append(typeName);
+        builder.append(InstructionList.putfield(className, fieldName, typeName));
 
         return builder.toString();
     }

@@ -32,7 +32,7 @@ public class InstructionBuilder extends AbstractBuilder {
             }
             case GOTO -> {
                 GotoInstruction gotoInstruction = (GotoInstruction) instruction;
-                builder.append("goto ").append(gotoInstruction.getLabel());
+                builder.append(InstructionList.gotoInstruction(gotoInstruction.getLabel()));
             }
             case BRANCH -> {
                 CondBranchInstruction condBranchInstruction = (CondBranchInstruction) instruction;

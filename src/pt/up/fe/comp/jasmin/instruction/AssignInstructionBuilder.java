@@ -31,7 +31,7 @@ public class AssignInstructionBuilder extends AbstractBuilder {
     private void storeArrayElement(ElementType elemType, ArrayOperand operand) {
         // Load Array ref
         Descriptor arrayDescriptor = method.getVarTable().get(operand.getName());
-        builder.append("aload ").append(arrayDescriptor.getVirtualReg()).append("\n");
+        builder.append(InstructionList.aload(arrayDescriptor.getVirtualReg())).append("\n");
 
         // Load index
         Element index = operand.getIndexOperands().get(0);
@@ -41,19 +41,19 @@ public class AssignInstructionBuilder extends AbstractBuilder {
         builder.append((new InstructionBuilder(classUnit, method, instruction.getRhs())).compile());
 
         switch (elemType) {
-            case THIS, OBJECTREF, CLASS, STRING, ARRAYREF -> builder.append("aastore ");
-            case INT32, BOOLEAN -> builder.append("iastore ");
+            case THIS, OBJECTREF, CLASS, STRING, ARRAYREF -> builder.append(InstructionList.aastore());
+            case INT32, BOOLEAN -> builder.append(InstructionList.iastore());
         }
     }
 
     private void storePrimitiveElement(ElementType elemType, Descriptor descriptor) {
         builder.append((new InstructionBuilder(classUnit, method, instruction.getRhs())).compile());
 
-        final String mnemonic = switch (elemType) {
-            case THIS, OBJECTREF, CLASS, STRING, ARRAYREF -> ("astore");
-            case INT32, BOOLEAN -> ("istore");
+        final String storeInstruction = switch (elemType) {
+            case THIS, OBJECTREF, CLASS, STRING, ARRAYREF -> InstructionList.astore(descriptor.getVirtualReg());
+            case INT32, BOOLEAN -> InstructionList.istore(descriptor.getVirtualReg());
             case VOID -> null;
         };
-        builder.append(mnemonic).append(descriptor.getVirtualReg() <= 3 ? "_" : " ").append(descriptor.getVirtualReg());
+        builder.append(storeInstruction);
     }
 }

@@ -58,63 +58,81 @@ public class MethodsBuilderTest {
 
     @Test
     public void methodScaffold() {
-        assertEquals(".method public methodName()T\n" +
-                ".limit stack 99\n" +
-                ".limit locals 99\n" +
-                "    return\n" +
-                ".end method\n\n", methodsBuilder.compile());
+        assertEquals("""
+                .method public methodName()T
+                .limit stack 0
+                .limit locals 1
+                    return
+                .end method
+
+                """, methodsBuilder.compile());
     }
 
     @Test
     public void staticMethod() {
         Mockito.when(method.isStaticMethod()).thenReturn(true);
-        assertEquals(".method public static methodName()T\n" +
-                ".limit stack 99\n" +
-                ".limit locals 99\n" +
-                "    return\n" +
-                ".end method\n\n", methodsBuilder.compile());
+        assertEquals("""
+                .method public static methodName()T
+                .limit stack 0
+                .limit locals 0
+                    return
+                .end method
+
+                """, methodsBuilder.compile());
     }
 
     @Test
     public void finalMethod() {
         Mockito.when(method.isFinalMethod()).thenReturn(true);
-        assertEquals(".method public final methodName()T\n" +
-                ".limit stack 99\n" +
-                ".limit locals 99\n" +
-                "    return\n" +
-                ".end method\n\n", methodsBuilder.compile());
+        assertEquals("""
+                .method public final methodName()T
+                .limit stack 0
+                .limit locals 1
+                    return
+                .end method
+
+                """, methodsBuilder.compile());
     }
 
     @Test
     public void staticFinalMethod() {
         Mockito.when(method.isStaticMethod()).thenReturn(true);
         Mockito.when(method.isFinalMethod()).thenReturn(true);
-        assertEquals(".method public static final methodName()T\n" +
-                ".limit stack 99\n" +
-                ".limit locals 99\n" +
-                "    return\n" +
-                ".end method\n\n", methodsBuilder.compile());
+        assertEquals("""
+                .method public static final methodName()T
+                .limit stack 0
+                .limit locals 0
+                    return
+                .end method
+
+                """, methodsBuilder.compile());
     }
 
     @Test
     public void constructMethod() {
         Mockito.when(method.isConstructMethod()).thenReturn(true);
-        assertEquals(".method public <init>()T\n" +
-                ".limit stack 99\n" +
-                ".limit locals 99\n" +
-                "    return\n" +
-                ".end method\n\n", methodsBuilder.compile());
+        assertEquals("""
+                .method public <init>()T
+                .limit stack 0
+                .limit locals 1
+                    return
+                .end method
+
+                """, methodsBuilder.compile());
     }
 
     @Test
     public void methodWithParameters() {
         final Element mockedElement = Mockito.mock(Element.class);
         params.add(mockedElement); params.add(mockedElement);
-        assertEquals(".method public methodName(TT)T\n" +
-                ".limit stack 99\n" +
-                ".limit locals 99\n" +
-                "    return\n" +
-                ".end method\n\n", methodsBuilder.compile());
+        assertEquals("""
+                .method public methodName(TT)T
+                .limit stack 0
+                .limit locals 1
+                    return
+                .end method
+
+                """, methodsBuilder.compile());
     }
 
     @Test
@@ -129,15 +147,19 @@ public class MethodsBuilderTest {
 
         methods.add(newMethod);
 
-        assertEquals(".method public methodName()T\n" +
-                ".limit stack 99\n" +
-                ".limit locals 99\n" +
-                "    return\n" +
-                ".end method\n\n" +
-                ".method public final newMethodName()T\n" +
-                ".limit stack 99\n" +
-                ".limit locals 99\n" +
-                "    return\n" +
-                ".end method\n\n", methodsBuilder.compile());
+        assertEquals("""
+                .method public methodName()T
+                .limit stack 0
+                .limit locals 1
+                    return
+                .end method
+
+                .method public final newMethodName()T
+                .limit stack 0
+                .limit locals 1
+                    return
+                .end method
+
+                """, methodsBuilder.compile());
     }
 }

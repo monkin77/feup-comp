@@ -1,6 +1,7 @@
 package pt.up.fe.comp.jasmin;
 
 import org.specs.comp.ollir.*;
+import pt.up.fe.comp.jasmin.instruction.InstructionList;
 
 import java.util.Locale;
 
@@ -60,15 +61,11 @@ public class JasminUtils {
 
         if (element.isLiteral()) {
             int x = Integer.parseInt(elementName);
-            if (x == -1) builder.append("iconst_m1").append("\n");
-            else if (x >= 0 && x <= 5) builder.append("iconst_").append(x).append("\n");
-            else if (x >= -128 && x <= 127) builder.append("bipush ").append(x).append("\n");
-            else if (x >= -32768 && x <= 32767) builder.append("sipush ").append(x).append("\n");
-            else builder.append("ldc ").append(elementName).append("\n");
+            builder.append(InstructionList.loadIntConstant(x)).append("\n");
             return builder.toString();
         } else if (element.getType().getTypeOfElement() == ElementType.BOOLEAN && (elementName.equals("true") || elementName.equals("false"))) {
-            if (elementName.equals("false")) builder.append("iconst_0").append("\n");
-            else builder.append("iconst_1").append("\n");
+            if (elementName.equals("false")) builder.append(InstructionList.loadIntConstant(0)).append("\n");
+            else builder.append(InstructionList.loadIntConstant(1)).append("\n");
             return builder.toString();
         }
 
@@ -99,26 +96,25 @@ public class JasminUtils {
 
         // Load Array ref
         Descriptor arrayDescriptor = method.getVarTable().get(operand.getName());
-        builder.append("aload ").append(arrayDescriptor.getVirtualReg()).append("\n");
+        builder.append(InstructionList.aload(arrayDescriptor.getVirtualReg())).append("\n");
 
         // Load index
         Element index = operand.getIndexOperands().get(0);
         builder.append(JasminUtils.buildLoadInstruction(index, method));
 
         switch (elemType) {
-            case THIS, OBJECTREF, CLASS, STRING, ARRAYREF -> builder.append("aaload ");
-            case INT32, BOOLEAN -> builder.append("iaload ");
+            case THIS, OBJECTREF, CLASS, STRING, ARRAYREF -> builder.append(InstructionList.aaload());
+            case INT32, BOOLEAN -> builder.append(InstructionList.iaload());
         }
 
         return builder.toString();
     }
 
     private static String loadPrimitiveElement(ElementType elemType, Descriptor descriptor) {
-        String mnemonic = switch (elemType) {
-            case THIS, OBJECTREF, CLASS, STRING, ARRAYREF -> "aload";
-            case INT32, BOOLEAN -> "iload";
+        return switch (elemType) {
+            case THIS, OBJECTREF, CLASS, STRING, ARRAYREF -> InstructionList.aload(descriptor.getVirtualReg());
+            case INT32, BOOLEAN -> InstructionList.iload(descriptor.getVirtualReg());
             case VOID -> null;
         };
-        return mnemonic + (descriptor.getVirtualReg() <= 3 ? "_" : " ") + descriptor.getVirtualReg();
     }
 }
