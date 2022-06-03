@@ -48,8 +48,8 @@ public class OperationInstructionBuilderTest {
     public void notOperation() {
         Mockito.when(operation.getOpType()).thenReturn(OperationType.NOT);
 
-        assertEquals("iload 7\n" +
-                "ineg", unaryOperationInstructionBuilder.compile());
+        assertEquals("iload 7\n" + "iconst_1\n" +
+                "ixor", unaryOperationInstructionBuilder.compile());
     }
 
     @Test
