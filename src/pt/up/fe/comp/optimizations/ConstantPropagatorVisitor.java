@@ -20,10 +20,28 @@ public class ConstantPropagatorVisitor extends PostorderVisitorProhibited<Object
         addVisit("AssignmentExpr", this::visitAssignmentExpr);
         addVisit("IfElse", this::visitIfElse);
         addVisit("WhileSt", this::visitWhileSt);
+        addVisit("DotMethod", this::visitDotMethod);
+        addVisit("PublicMethod", this::visitPublicMethod);
+        addVisit("MainDecl", this::visitMainDecl);
 
         setReduceSimple(Boolean::logicalOr);
         setReduce((b, l) -> l.stream().reduce(b, Boolean::logicalOr));
         setDefaultValue(() -> false);
+    }
+
+    private Boolean visitMainDecl(JmmNode node, Object o) {
+        this.constantMap.clear();
+        return false;
+    }
+
+    private Boolean visitPublicMethod(JmmNode node, Object o) {
+        this.constantMap.clear();
+        return false;
+    }
+
+    private Boolean visitDotMethod(JmmNode node, Object o) {
+        constantMap.clear();
+        return false;
     }
 
     private Boolean visitWhileSt(JmmNode node, Object o) {
