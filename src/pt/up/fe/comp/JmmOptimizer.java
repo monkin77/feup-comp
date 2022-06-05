@@ -5,14 +5,21 @@ import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp.jmm.ollir.JmmOptimization;
 import pt.up.fe.comp.jmm.ollir.OllirResult;
 import pt.up.fe.comp.ollir.OllirBuilder;
+import pt.up.fe.comp.optimizations.ConstantFolderVisitor;
+import pt.up.fe.comp.optimizations.ConstantPropagatorVisitor;
 
 
 public class JmmOptimizer implements JmmOptimization {
     @Override
     public JmmSemanticsResult optimize(JmmSemanticsResult semanticsResult) {
-        boolean change = false;
+        ConstantPropagatorVisitor constantPropagatorVisitor = new ConstantPropagatorVisitor(semanticsResult);
+        ConstantFolderVisitor constantFolderVisitor = new ConstantFolderVisitor();
         JmmNode rootNode = semanticsResult.getRootNode();
+        boolean change;
         do {
+            change = false;
+            change |= constantPropagatorVisitor.visit(rootNode);
+            change |= constantFolderVisitor.visit(rootNode);
         } while (change);
         return semanticsResult;
     }
