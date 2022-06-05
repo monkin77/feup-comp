@@ -10,21 +10,18 @@ import pt.up.fe.comp.symbolTable.MySymbol;
 import pt.up.fe.comp.symbolTable.MySymbolTable;
 import pt.up.fe.comp.symbolTable.Types;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Stack;
+import java.util.*;
 
 import static pt.up.fe.comp.visitors.Utils.existsInScope;
 
 public class ExistenceVisitor extends AJmmVisitor<Object, Integer> {
     private final MySymbolTable symbolTable;
-    private final Stack<MySymbol> scopeStack;
+    private final Deque<MySymbol> scopeStack;
     private final List<Report> reports;
 
     public ExistenceVisitor(MySymbolTable symbolTable) {
         this.symbolTable = symbolTable;
-        this.scopeStack = new Stack<>();
+        this.scopeStack = new ArrayDeque<>();
         this.reports = new ArrayList<>();
 
         MySymbol globalScope = new MySymbol(new Type(Types.NONE.toString(), false), "global", EntityTypes.GLOBAL);
