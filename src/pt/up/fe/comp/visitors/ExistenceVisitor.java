@@ -272,7 +272,8 @@ public class ExistenceVisitor extends AJmmVisitor<Object, Integer> {
      */
     public boolean hasThisDotMethod(JmmNode node){
         String identifier = node.get("method");
-        if (!this.symbolTable.getMethods().contains(identifier)) {
+        MySymbol symbol = existsInScope(identifier, Collections.singletonList(EntityTypes.METHOD), this.scopeStack, this.symbolTable);
+        if (symbol == null) {
             this.reports.add(Report.newError(Stage.SEMANTIC, Integer.parseInt(node.get("line")), Integer.parseInt(node.get("col")),
                     "Method \"" + identifier + "\" is undefined",
                     null));
