@@ -75,6 +75,8 @@ public class ExistenceVisitor extends AJmmVisitor<Object, Integer> {
     private Integer mainDeclVisit(JmmNode node, Object dummy) {
         MySymbol mainSymbol = new MySymbol(new Type(Types.VOID.toString(), false), "main", EntityTypes.METHOD);
 
+        // Temporarily remove class scope (main is a static method)
+        MySymbol classScope = this.scopeStack.pop();
         // Add new scope
         this.createScope(mainSymbol);
 
@@ -85,6 +87,8 @@ public class ExistenceVisitor extends AJmmVisitor<Object, Integer> {
         }
 
         this.scopeStack.pop();
+        // Restore class scope
+        this.scopeStack.push(classScope);
 
         return visitResult;
     }
