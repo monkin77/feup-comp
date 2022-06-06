@@ -113,8 +113,8 @@ public class InstructionList {
         return "idiv";
     }
 
-    public static String ineg() {
-        return "ineg";
+    public static String ixor() {
+        return "ixor";
     }
 
     public static String ireturn() {

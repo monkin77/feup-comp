@@ -56,10 +56,13 @@ public class MethodsBuilder extends AbstractBuilder {
         for (final Instruction instruction : instructions) {
             sb.append(TAB);
             sb.append((new InstructionBuilder(classUnit, method, instruction)).compile());
+            if (instruction.getInstType() == InstructionType.CALL && ((CallInstruction) (instruction)).getReturnType().getTypeOfElement() != ElementType.VOID) {
+                sb.append("pop").append("\n");
+            }
         }
 
         if (instructions.size() == 0 ||
-                instructions.get(instructions.size() - 1).getInstType() != InstructionType.RETURN) {
+            instructions.get(instructions.size() - 1).getInstType() != InstructionType.RETURN) {
             sb.append(TAB);
             sb.append(InstructionList.returnInstruction()).append("\n");
         }
@@ -68,9 +71,9 @@ public class MethodsBuilder extends AbstractBuilder {
     }
 
     private int getLocalsLimits(final Method method) {
-        int locals = method.getVarTable().size();
-        if (!method.isStaticMethod()) locals++; // this
-        return locals;
+        if (method.getVarTable().isEmpty()) return method.isStaticMethod() ? 0 : 1;
+        int maxReg = method.getVarTable().values().stream().mapToInt(Descriptor::getVirtualReg).max().orElse(-1);
+        return maxReg + 1;
     }
 
     public static void updateStackLimit(int sizeChange) {
