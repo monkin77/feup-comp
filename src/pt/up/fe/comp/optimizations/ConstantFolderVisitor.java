@@ -45,14 +45,6 @@ public class ConstantFolderVisitor extends PostorderVisitorProhibited<Object, Bo
             newNode.put("value", String.valueOf(result));
             OptimizerUtils.replaceWithPosition(node, newNode);
             return true;
-        } else if (left.getKind().equals("BooleanLiteral") && left.get("value").equals("false") ||
-                right.getKind().equals("BooleanLiteral") && right.get("value").equals("true")) {
-            OptimizerUtils.replaceWithPosition(node, left);
-            return true;
-        } else if (left.getKind().equals("BooleanLiteral") && left.get("value").equals("true") ||
-                right.getKind().equals("BooleanLiteral") && right.get("value").equals("false")) {
-            OptimizerUtils.replaceWithPosition(node, right);
-            return true;
         }
         return false;
     }
@@ -86,62 +78,18 @@ public class ConstantFolderVisitor extends PostorderVisitorProhibited<Object, Bo
     }
 
     private Boolean visitAddExpr(JmmNode node, Object o) {
-        JmmNode left = node.getJmmChild(0);
-        JmmNode right = node.getJmmChild(1);
-        if (left.getKind().equals("IntegerLiteral") && left.get("value").equals("0")) {
-            OptimizerUtils.replaceWithPosition(node, right);
-            return true;
-        } else if (right.getKind().equals("IntegerLiteral") && right.get("value").equals("0")) {
-            OptimizerUtils.replaceWithPosition(node, left);
-            return true;
-        }
         return visitArithmeticExpr(node, Integer::sum);
     }
 
     private Boolean visitSubExpr(JmmNode node, Object o) {
-        JmmNode left = node.getJmmChild(0);
-        JmmNode right = node.getJmmChild(1);
-        if (right.getKind().equals("IntegerLiteral") && right.get("value").equals("0")) {
-            OptimizerUtils.replaceWithPosition(node, left);
-            return true;
-        }
         return visitArithmeticExpr(node, (a, b) -> a - b);
     }
 
     private Boolean visitMultExpr(JmmNode node, Object o) {
-        JmmNode left = node.getJmmChild(0);
-        JmmNode right = node.getJmmChild(1);
-        if (left.getKind().equals("IntegerLiteral") && right.getKind().equals("IntegerLiteral")) {
-            return visitArithmeticExpr(node, (l, r) -> l * r);
-        } else if (left.getKind().equals("IntegerLiteral") && left.get("value").equals("1")) {
-            OptimizerUtils.replaceWithPosition(node, right);
-            return true;
-        } else if (right.getKind().equals("IntegerLiteral") && right.get("value").equals("0")) {
-            boolean sideEffectFree = left.getKind().equals("_Identifier");
-            if (sideEffectFree) {
-                OptimizerUtils.replaceWithPosition(node, right);
-                return true;
-            }
-        } else if (right.getKind().equals("IntegerLiteral") && right.get("value").equals("1")) {
-            OptimizerUtils.replaceWithPosition(node, left);
-            return true;
-        } else if (left.getKind().equals("IntegerLiteral") && left.get("value").equals("0")) {
-            boolean sideEffectFree = right.getKind().equals("_Identifier");
-            if (sideEffectFree) {
-                OptimizerUtils.replaceWithPosition(node, left);
-                return true;
-            }
-        }
-        return false;
+        return visitArithmeticExpr(node, (l, r) -> l * r);
     }
 
     private Boolean visitDivExpr(JmmNode node, Object o) {
-        JmmNode left = node.getJmmChild(0);
-        JmmNode right = node.getJmmChild(1);
-        if (right.getKind().equals("IntegerLiteral") && right.get("value").equals("1")) {
-            OptimizerUtils.replaceWithPosition(node, left);
-            return true;
-        }
         return visitArithmeticExpr(node, (l, r) -> l / r);
     }
 
