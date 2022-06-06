@@ -10,17 +10,26 @@ public class DeadStoreRemoverVisitor extends PostorderVisitorProhibited<Object, 
     JmmSemanticsResult result;
 
     public DeadStoreRemoverVisitor(JmmSemanticsResult result) {
-        super(List.of("IfElse", "WhileSt"));
+        super(List.of("IfElse", "WhileSt", "PublicMethod", "MainDecl"));
         this.result = result;
         this.pendingAssignments = new HashMap<>();
 
         addVisit("IfElse", this::visitIfElse);
         addVisit("WhileSt", this::visitWhileSt);
         addVisit("_Identifier", this::visitIdentifier);
+        addVisit("PublicMethod", this::visitPublicMethod);
+        addVisit("MainDecl", this::visitPublicMethod);
 
         setReduceSimple(Boolean::logicalOr);
         setReduce((b, l) -> l.stream().reduce(b, Boolean::logicalOr));
         setDefaultValue(() -> false);
+    }
+
+    private Boolean visitPublicMethod(JmmNode jmmNode, Object o) {
+        this.pendingAssignments.clear();
+        visitAllChildren(jmmNode, o);
+        this.pendingAssignments.forEach((k, v) -> v.forEach(this::dealWithOldAssignment));
+        return this.pendingAssignments.isEmpty();
     }
 
     private Boolean visitIdentifier(JmmNode node, Object o) {
