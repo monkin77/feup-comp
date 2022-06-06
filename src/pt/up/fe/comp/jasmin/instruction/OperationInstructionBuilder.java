@@ -33,8 +33,8 @@ public class OperationInstructionBuilder extends AbstractBuilder {
         builder.append(JasminUtils.buildLoadInstruction(binaryOpInstruction.getRightOperand(), method));
 
         switch (type) {
-            case AND, ANDI32, ANDB -> builder.append("iand");
-            case LTH, LTHI32 -> {
+            case AND, ANDB -> builder.append("iand");
+            case LTH -> {
                 // TODO Conversion to >= with neg
                 builder.append(JasminConstants.TAB);
                 builder.append(InstructionList.if_icmplt("IS_LESS_THAN_" + MethodsBuilder.labelCounter)).append("\n");
@@ -50,10 +50,10 @@ public class OperationInstructionBuilder extends AbstractBuilder {
                 builder.append("NOT_LESS_THAN_").append(MethodsBuilder.labelCounter).append(":\n");
                 ++MethodsBuilder.labelCounter;
             }
-            case ADD, ADDI32 -> builder.append(InstructionList.iadd());
-            case SUB, SUBI32 -> builder.append(InstructionList.isub());
-            case DIV, DIVI32 -> builder.append(InstructionList.idiv());
-            case MUL, MULI32 -> builder.append(InstructionList.imul());
+            case ADD -> builder.append(InstructionList.iadd());
+            case SUB -> builder.append(InstructionList.isub());
+            case DIV -> builder.append(InstructionList.idiv());
+            case MUL -> builder.append(InstructionList.imul());
         }
     }
 

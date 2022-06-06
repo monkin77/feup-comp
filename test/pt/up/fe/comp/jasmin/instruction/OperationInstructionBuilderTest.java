@@ -54,7 +54,7 @@ public class OperationInstructionBuilderTest {
 
     @Test
     public void andOperation() {
-        Mockito.when(operation.getOpType()).thenReturn(OperationType.ANDI32);
+        Mockito.when(operation.getOpType()).thenReturn(OperationType.AND);
 
         assertEquals("iload 7\n" +
                 "iload 7\n" +
@@ -63,7 +63,7 @@ public class OperationInstructionBuilderTest {
 
     @Test
     public void addOperation() {
-        Mockito.when(operation.getOpType()).thenReturn(OperationType.ADDI32);
+        Mockito.when(operation.getOpType()).thenReturn(OperationType.ADD);
 
         assertEquals("iload 7\n" +
                 "iload 7\n" +
@@ -72,7 +72,7 @@ public class OperationInstructionBuilderTest {
 
     @Test
     public void subOperation() {
-        Mockito.when(operation.getOpType()).thenReturn(OperationType.SUBI32);
+        Mockito.when(operation.getOpType()).thenReturn(OperationType.SUB);
 
         assertEquals("iload 7\n" +
                 "iload 7\n" +
@@ -81,7 +81,7 @@ public class OperationInstructionBuilderTest {
 
     @Test
     public void divOperation() {
-        Mockito.when(operation.getOpType()).thenReturn(OperationType.DIVI32);
+        Mockito.when(operation.getOpType()).thenReturn(OperationType.DIV);
 
         assertEquals("iload 7\n" +
                 "iload 7\n" +
@@ -90,7 +90,7 @@ public class OperationInstructionBuilderTest {
 
     @Test
     public void mulOperation() {
-        Mockito.when(operation.getOpType()).thenReturn(OperationType.MULI32);
+        Mockito.when(operation.getOpType()).thenReturn(OperationType.MUL);
 
         assertEquals("iload 7\n" +
                 "iload 7\n" +
@@ -99,7 +99,7 @@ public class OperationInstructionBuilderTest {
 
     @Test
     public void lessThanOperation() {
-        Mockito.when(operation.getOpType()).thenReturn(OperationType.LTHI32);
+        Mockito.when(operation.getOpType()).thenReturn(OperationType.LTH);
         MethodsBuilder.labelCounter = 0;
 
         assertEquals("iload 7\n" +
