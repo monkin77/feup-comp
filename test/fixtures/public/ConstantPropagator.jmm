@@ -28,8 +28,7 @@ class ConstantPropagator {
         return 0;
     }
 
-    public int integerAbsorventSimplificationVariable() {
-        int i;
+    public int integerAbsorventSimplificationVariable(int i) {
         int i1;
         int i2;
 
@@ -85,8 +84,7 @@ class ConstantPropagator {
         return 0;
     }
 
-    public int integerNeutralSimplificationVariable() {
-        int i;
+    public int integerNeutralSimplificationVariable(int i) {
         int i1;
         int i2;
         int i3;
@@ -104,8 +102,7 @@ class ConstantPropagator {
         return 0;
     }
 
-    public int booleanSimplificationVariable() {
-        boolean b;
+    public int booleanSimplificationVariable(boolean b) {
         boolean b1;
         boolean b2;
         boolean b3;
@@ -136,7 +133,8 @@ class ConstantPropagator {
 
     public int conditionalSimplificationLiteral() {
         boolean b;
-        int i1; int i2;
+        int i1;
+        int i2;
 
         b = false;
         if (b) {
