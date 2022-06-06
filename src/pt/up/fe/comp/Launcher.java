@@ -60,8 +60,10 @@ public class Launcher {
         // Instantiate Optimization stage
         JmmOptimization jmmOptimization = new JmmOptimizer();
 
+        JmmSemanticsResult optimizedResult = jmmOptimization.optimize(analysisResult);
+
         // Optimization stage
-        OllirResult ollirResult = jmmOptimization.toOllir(analysisResult);
+        OllirResult ollirResult = jmmOptimization.toOllir(optimizedResult);
 
         // Check if there are optimization errors
         TestUtils.noErrors(ollirResult.getReports());

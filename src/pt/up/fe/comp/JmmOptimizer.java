@@ -1,13 +1,19 @@
 package pt.up.fe.comp;
 
 import pt.up.fe.comp.jmm.analysis.JmmSemanticsResult;
+import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp.jmm.ollir.JmmOptimization;
 import pt.up.fe.comp.jmm.ollir.OllirResult;
 import pt.up.fe.comp.ollir.OllirBuilder;
 
+
 public class JmmOptimizer implements JmmOptimization {
     @Override
     public JmmSemanticsResult optimize(JmmSemanticsResult semanticsResult) {
+        boolean change = false;
+        JmmNode rootNode = semanticsResult.getRootNode();
+        do {
+        } while (change);
         return semanticsResult;
     }
 
