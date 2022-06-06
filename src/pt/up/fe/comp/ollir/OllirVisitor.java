@@ -56,20 +56,20 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, VisitResult> {
     private VisitResult booleanConditionVisit(JmmNode node, ArgumentPool argumentPool) {
         String kind = node.getJmmChild(0).getKind();
         boolean isNotTerminalNode = !(kind.equals("ArrayExpr") || kind.equals("NotExpr") || kind.equals("LessExpr")
-                || kind.equals("AndExpr") || kind.equals("_Identifier") || kind.equals("BooleanLiteral")) ;
+                                      || kind.equals("AndExpr") || kind.equals("_Identifier") || kind.equals("BooleanLiteral"));
 
         // boolean isNotTerminalNode = OllirUtils.isNotTerminalNode(node.getJmmChild(0));
         final VisitResult result = visit(node.getJmmChild(0), new ArgumentPool(null, isNotTerminalNode));
 
         boolean needsBooleanType = isNotTerminalNode || kind.equals("BooleanLiteral") || kind.equals("_Identifier")
-            || kind.equals("ArrayExpr");
+                                   || kind.equals("ArrayExpr");
         final String code = result.code + (needsBooleanType ? ".bool" : "");
         return new VisitResult(result.preparationCode, code, result.finalCode, "");
     }
 
     private VisitResult newObjExprVisit(JmmNode node, ArgumentPool argumentPool) {
         final String className = node.get("object");
-        String code = "new(%s)".formatted(className);
+        String code = "new(%s).%s".formatted(className, className);
         String finalCode = "invokespecial(%s.%s,\"<init>\").V;\n".formatted(argumentPool.getId(), className);
         return new VisitResult("", code, finalCode, className);
     }
@@ -88,8 +88,8 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, VisitResult> {
         final VisitResult sizeResult = visit(size, new ArgumentPool(null, true));
         // COMBACK: Even though we only have int[], this feels weird.
         final String arrayElementType = "i32";
-        final String code = "new(array, %s.%s)".formatted(sizeResult.code, sizeResult.returnType);
         final String returnType = "array" + "." + arrayElementType;
+        final String code = "new(array, %s.%s).%s".formatted(sizeResult.code, sizeResult.returnType, returnType);
         return new VisitResult(sizeResult.preparationCode, code, "", returnType);
     }
 
@@ -196,6 +196,7 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, VisitResult> {
 
         codeBuilder.append(")");
         if (argumentPool.getExpectedReturnType() == null) codeBuilder.append(".%s".formatted(returnType));
+        else codeBuilder.append(".%s".formatted(argumentPool.getExpectedReturnType()));
         final String code = codeBuilder.toString();
         final String preparationCode = preparationBuilder.toString();
         return new VisitResult(preparationCode, code, "", returnType);
@@ -230,8 +231,12 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, VisitResult> {
             return new VisitResult(preparationCode, code, "");
         }
         final String preparationCode = rhsResult.preparationCode + lhsResult.preparationCode;
-        final String code = "%s.%s :=.%s %s.%s".formatted(lhsResult.code, lhsResult.returnType, assignType, rhsResult.code, lhsResult.returnType);
-        System.out.println("ola mano" + code);
+        final String code;
+        if (OllirUtils.isNotTerminalNode(rhs)) {
+            code = "%s.%s :=.%s %s".formatted(lhsResult.code, lhsResult.returnType, assignType, rhsResult.code);
+        } else {
+            code = "%s.%s :=.%s %s.%s".formatted(lhsResult.code, lhsResult.returnType, assignType, rhsResult.code, lhsResult.returnType);
+        }
         return new VisitResult(preparationCode, code, rhsResult.finalCode);
     }
 
