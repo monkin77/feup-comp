@@ -86,6 +86,15 @@ public class ConstantFolderVisitor extends PostorderVisitorProhibited<Object, Bo
     }
 
     private Boolean visitAddExpr(JmmNode node, Object o) {
+        JmmNode left = node.getJmmChild(0);
+        JmmNode right = node.getJmmChild(1);
+        if (left.getKind().equals("IntegerLiteral") && left.get("value").equals("0")) {
+            OptimizerUtils.replaceWithPosition(node, right);
+            return true;
+        } else if (right.getKind().equals("IntegerLiteral") && right.get("value").equals("0")) {
+            OptimizerUtils.replaceWithPosition(node, left);
+            return true;
+        }
         return visitArithmeticExpr(node, Integer::sum);
     }
 
