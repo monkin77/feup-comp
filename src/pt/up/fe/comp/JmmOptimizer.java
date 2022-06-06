@@ -5,9 +5,9 @@ import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp.jmm.ollir.JmmOptimization;
 import pt.up.fe.comp.jmm.ollir.OllirResult;
 import pt.up.fe.comp.ollir.OllirBuilder;
-import pt.up.fe.comp.optimizations.DeadCodeRemoverVisitor;
 import pt.up.fe.comp.optimizations.ConstantFolderVisitor;
 import pt.up.fe.comp.optimizations.ConstantPropagatorVisitor;
+import pt.up.fe.comp.optimizations.DeadCodeRemoverVisitor;
 
 
 public class JmmOptimizer implements JmmOptimization {
@@ -18,12 +18,14 @@ public class JmmOptimizer implements JmmOptimization {
         ConstantFolderVisitor constantFolderVisitor = new ConstantFolderVisitor();
         DeadCodeRemoverVisitor deadCodeRemover = new DeadCodeRemoverVisitor();
         boolean change;
-        do {
-            change = false;
-            change |= constantPropagatorVisitor.visit(rootNode);
-            change |= constantFolderVisitor.visit(rootNode);
-            change |= deadCodeRemover.visit(rootNode);
-        } while (change);
+        if (semanticsResult.getConfig().getOrDefault("optimize", "false").equals("true")) {
+            do {
+                change = false;
+                change |= constantPropagatorVisitor.visit(rootNode);
+                change |= constantFolderVisitor.visit(rootNode);
+                change |= deadCodeRemover.visit(rootNode);
+            } while (change);
+        }
         return semanticsResult;
     }
 
