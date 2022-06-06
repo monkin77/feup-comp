@@ -45,6 +45,14 @@ public class ConstantFolderVisitor extends PostorderVisitorProhibited<Object, Bo
             newNode.put("value", String.valueOf(result));
             OptimizerUtils.replaceWithPosition(node, newNode);
             return true;
+        } else if (left.getKind().equals("BooleanLiteral") && left.get("value").equals("false") ||
+                right.getKind().equals("BooleanLiteral") && right.get("value").equals("true")) {
+            OptimizerUtils.replaceWithPosition(node, left);
+            return true;
+        } else if (left.getKind().equals("BooleanLiteral") && left.get("value").equals("true") ||
+                right.getKind().equals("BooleanLiteral") && right.get("value").equals("false")) {
+            OptimizerUtils.replaceWithPosition(node, right);
+            return true;
         }
         return false;
     }
