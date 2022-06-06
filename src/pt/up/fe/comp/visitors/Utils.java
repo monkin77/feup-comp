@@ -15,7 +15,7 @@ public class Utils {
      * @param entityTypes List of entityTypes to be accepted
      * @return symbol if found, null otherwise
      */
-    public static MySymbol existsInScope(String name, List<EntityTypes> entityTypes, Stack<MySymbol> scopeStack, MySymbolTable symbolTable) {
+    public static MySymbol existsInScope(String name, List<EntityTypes> entityTypes, Deque<MySymbol> scopeStack, MySymbolTable symbolTable) {
         Iterator<MySymbol> scopeIter = scopeStack.iterator();
 
         String fullName = name;
@@ -35,7 +35,7 @@ public class Utils {
     /**
      * Calculates the type of a Node, iterating the tree recursively.
      */
-    public static Type calculateNodeType(JmmNode node, Stack<MySymbol> scopeStack, MySymbolTable symbolTable){
+    public static Type calculateNodeType(JmmNode node, Deque<MySymbol> scopeStack, MySymbolTable symbolTable) {
         String kind = node.getKind();
 
         if(isMathExpression(kind)) return new Type(Types.INT.toString(), Types.INT.getIsArray());
@@ -77,7 +77,7 @@ public class Utils {
         }
     }
 
-    private static Type getReturnValueMethod(JmmNode node, Stack<MySymbol> scopeStack, MySymbolTable symbolTable) {
+    private static Type getReturnValueMethod(JmmNode node, Deque<MySymbol> scopeStack, MySymbolTable symbolTable) {
         JmmNode leftNode = node.getJmmChild(0);
         JmmNode rightNode = node.getJmmChild(1);
 

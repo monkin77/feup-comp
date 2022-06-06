@@ -10,21 +10,18 @@ import pt.up.fe.comp.symbolTable.MySymbol;
 import pt.up.fe.comp.symbolTable.MySymbolTable;
 import pt.up.fe.comp.symbolTable.Types;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Stack;
+import java.util.*;
 
 import static pt.up.fe.comp.visitors.Utils.existsInScope;
 
 public class ExistenceVisitor extends AJmmVisitor<Object, Integer> {
     private final MySymbolTable symbolTable;
-    private final Stack<MySymbol> scopeStack;
+    private final Deque<MySymbol> scopeStack;
     private final List<Report> reports;
 
     public ExistenceVisitor(MySymbolTable symbolTable) {
         this.symbolTable = symbolTable;
-        this.scopeStack = new Stack<>();
+        this.scopeStack = new ArrayDeque<>();
         this.reports = new ArrayList<>();
 
         MySymbol globalScope = new MySymbol(new Type(Types.NONE.toString(), false), "global", EntityTypes.GLOBAL);
@@ -78,6 +75,8 @@ public class ExistenceVisitor extends AJmmVisitor<Object, Integer> {
     private Integer mainDeclVisit(JmmNode node, Object dummy) {
         MySymbol mainSymbol = new MySymbol(new Type(Types.VOID.toString(), false), "main", EntityTypes.METHOD);
 
+        // Temporarily remove class scope (main is a static method)
+        MySymbol classScope = this.scopeStack.pop();
         // Add new scope
         this.createScope(mainSymbol);
 
@@ -88,6 +87,8 @@ public class ExistenceVisitor extends AJmmVisitor<Object, Integer> {
         }
 
         this.scopeStack.pop();
+        // Restore class scope
+        this.scopeStack.push(classScope);
 
         return visitResult;
     }
@@ -271,7 +272,8 @@ public class ExistenceVisitor extends AJmmVisitor<Object, Integer> {
      */
     public boolean hasThisDotMethod(JmmNode node){
         String identifier = node.get("method");
-        if (!this.symbolTable.getMethods().contains(identifier)) {
+        MySymbol symbol = existsInScope(identifier, Collections.singletonList(EntityTypes.METHOD), this.scopeStack, this.symbolTable);
+        if (symbol == null) {
             this.reports.add(Report.newError(Stage.SEMANTIC, Integer.parseInt(node.get("line")), Integer.parseInt(node.get("col")),
                     "Method \"" + identifier + "\" is undefined",
                     null));

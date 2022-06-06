@@ -22,7 +22,7 @@ public class MySymbolTable implements SymbolTable {
     public boolean openScope(MySymbol symbol) {
         if (this.map.get(symbol) != null) return false;
 
-        this.map.put(symbol, new HashMap<>());
+        this.map.put(symbol, new LinkedHashMap<>());
 
         return true;
     }

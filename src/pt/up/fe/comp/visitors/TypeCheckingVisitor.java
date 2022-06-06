@@ -7,18 +7,19 @@ import pt.up.fe.comp.jmm.report.Report;
 import pt.up.fe.comp.jmm.report.Stage;
 import pt.up.fe.comp.symbolTable.*;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.List;
-import java.util.Stack;
 
 public class TypeCheckingVisitor extends AJmmVisitor<Object, Integer> {
     private final MySymbolTable symbolTable;
-    private final Stack<MySymbol> scopeStack;
+    private final Deque<MySymbol> scopeStack;
     private final List<Report> reports;
 
     public TypeCheckingVisitor(MySymbolTable symbolTable) {
         this.symbolTable = symbolTable;
-        this.scopeStack = new Stack<>();
+        this.scopeStack = new ArrayDeque<>();
         this.reports = new ArrayList<>();
 
         MySymbol globalScope = new MySymbol(new Type(Types.NONE.toString(), false), "global", EntityTypes.GLOBAL);
