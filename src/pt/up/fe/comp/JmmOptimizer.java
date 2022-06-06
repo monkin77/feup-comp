@@ -5,14 +5,17 @@ import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp.jmm.ollir.JmmOptimization;
 import pt.up.fe.comp.jmm.ollir.OllirResult;
 import pt.up.fe.comp.ollir.OllirBuilder;
+import pt.up.fe.comp.optimizations.DeadCodeRemoverVisitor;
 
 
 public class JmmOptimizer implements JmmOptimization {
     @Override
     public JmmSemanticsResult optimize(JmmSemanticsResult semanticsResult) {
+        DeadCodeRemoverVisitor deadCodeRemover = new DeadCodeRemoverVisitor();
         boolean change = false;
         JmmNode rootNode = semanticsResult.getRootNode();
         do {
+            change |= deadCodeRemover.visit(rootNode);
         } while (change);
         return semanticsResult;
     }
