@@ -15,7 +15,7 @@ public class JmmOptimizer implements JmmOptimization {
         ConstantPropagatorVisitor constantPropagatorVisitor = new ConstantPropagatorVisitor(semanticsResult);
         ConstantFolderSimplifierVisitor constantFolderSimplifierVisitor = new ConstantFolderSimplifierVisitor();
         ConstantFolderVisitor constantFolderVisitor = new ConstantFolderVisitor();
-        DeadCodeRemoverVisitor deadCodeRemover = new DeadCodeRemoverVisitor();
+        DeadConditionalLoopsVisitor deadConditionalLoopsVisitor = new DeadConditionalLoopsVisitor();
         boolean change;
         if (semanticsResult.getConfig().getOrDefault("optimize", "false").equals("true")) {
             do {
@@ -23,7 +23,7 @@ public class JmmOptimizer implements JmmOptimization {
                 change |= constantPropagatorVisitor.visit(rootNode);
                 change |= constantFolderSimplifierVisitor.visit(rootNode);
                 change |= constantFolderVisitor.visit(rootNode);
-                change |= deadCodeRemover.visit(rootNode);
+                change |= deadConditionalLoopsVisitor.visit(rootNode);
             } while (change);
         }
         return semanticsResult;
