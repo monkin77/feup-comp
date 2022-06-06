@@ -113,7 +113,13 @@ public class ConstantFolderVisitor extends PostorderVisitorProhibited<Object, Bo
     }
 
     private Boolean visitDivExpr(JmmNode node, Object o) {
-        return visitArithmeticExpr(node, (left, right) -> left / right);
+        JmmNode left = node.getJmmChild(0);
+        JmmNode right = node.getJmmChild(1);
+        if (right.getKind().equals("IntegerLiteral") && right.get("value").equals("1")) {
+            OptimizerUtils.replaceWithPosition(node, left);
+            return true;
+        }
+        return visitArithmeticExpr(node, (l, r) -> l / r);
     }
 
     private Boolean visitArithmeticExpr(JmmNode node, BiFunction<Integer, Integer, Integer> f) {
