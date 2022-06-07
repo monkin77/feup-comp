@@ -10,12 +10,11 @@ public class DeadStoreRemoverVisitor extends PostorderVisitorProhibited<Object, 
     JmmSemanticsResult result;
 
     public DeadStoreRemoverVisitor(JmmSemanticsResult result) {
-        super(List.of("IfElse", "WhileSt", "PublicMethod", "MainDecl"));
+        super(List.of("IfElse", "PublicMethod", "MainDecl"));
         this.result = result;
         this.pendingAssignments = new HashMap<>();
 
         addVisit("IfElse", this::visitIfElse);
-        addVisit("WhileSt", this::visitWhileSt);
         addVisit("_Identifier", this::visitIdentifier);
         addVisit("PublicMethod", this::visitPublicMethod);
         addVisit("MainDecl", this::visitPublicMethod);
@@ -43,6 +42,9 @@ public class DeadStoreRemoverVisitor extends PostorderVisitorProhibited<Object, 
                     result |= sideEffectFree;
                 }
                 pendingAssignments.remove(id);
+                Set<JmmNode> set = new HashSet<>();
+                set.add(node.getJmmParent());
+                pendingAssignments.put(id, set);
                 return result;
             } else {
                 Set<JmmNode> set = new HashSet<>();
@@ -65,10 +67,6 @@ public class DeadStoreRemoverVisitor extends PostorderVisitorProhibited<Object, 
 //            assignment.replace(value);
         }
         return sideEffectFree;
-    }
-
-    private Boolean visitWhileSt(JmmNode node, Object o) {
-        return false;
     }
 
     private Boolean visitIfElse(JmmNode node, Object o) {
