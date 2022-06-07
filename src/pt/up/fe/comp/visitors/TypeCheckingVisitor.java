@@ -7,10 +7,7 @@ import pt.up.fe.comp.jmm.report.Report;
 import pt.up.fe.comp.jmm.report.Stage;
 import pt.up.fe.comp.symbolTable.*;
 
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Deque;
-import java.util.List;
+import java.util.*;
 
 public class TypeCheckingVisitor extends AJmmVisitor<Object, Integer> {
     private final MySymbolTable symbolTable;
@@ -302,6 +299,25 @@ public class TypeCheckingVisitor extends AJmmVisitor<Object, Integer> {
         List<MySymbol> parameters = this.symbolTable.getMethodArguments(methodName);
 
         boolean isImport = parameters == null;
+        if (!isImport) {
+            JmmNode parent = node.getJmmParent();
+            JmmNode leftNode = parent.getJmmChild(0);
+
+                if (leftNode.getKind().equals(AstTypes.DOT_EXPR.toString())) {
+                    String importName = Utils.calculateNodeType(leftNode, this.scopeStack, this.symbolTable).getName();
+                    isImport = Utils.hasImport(importName, this.symbolTable);
+                } else {
+                    Optional<String> optId = leftNode.getOptional("id");
+                    if (optId.isPresent()) {
+                        isImport = Utils.hasImport(optId.get(), this.symbolTable);
+                        if (!isImport) {
+                            Type leftType = Utils.calculateNodeType(leftNode, this.scopeStack, this.symbolTable);
+                            isImport = Utils.hasImport(leftType.getName(), this.symbolTable);
+                        }
+                    }
+                }
+        }
+
         if (!isImport && node.getNumChildren() != parameters.size()) {
             this.reports.add(Report.newError(Stage.SEMANTIC, Integer.parseInt(node.get("line")), Integer.parseInt(node.get("col")),
                     "Type error. Expected " + parameters.size() + " arguments but found " + node.getNumChildren() + " in method '" + methodName + "'.",

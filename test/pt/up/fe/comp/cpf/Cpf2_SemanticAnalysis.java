@@ -26,11 +26,11 @@ import pt.up.fe.specs.util.SpecsIo;
 public class Cpf2_SemanticAnalysis {
 
     static JasminResult getJasminResult(String filename) {
-        return TestUtils.backend(SpecsIo.getResource("fixtures/public/cpf/2_semantic_analysis/" + filename));
+        return TestUtils.backend(SpecsIo.getResource("pt/up/fe/comp/fixtures/public/cpf/2_semantic_analysis/" + filename));
     }
 
     static JmmSemanticsResult getSemanticsResult(String filename) {
-        return TestUtils.analyse(SpecsIo.getResource("fixtures/public/cpf/2_semantic_analysis/" + filename));
+        return TestUtils.analyse(SpecsIo.getResource("pt/up/fe/comp/fixtures/public/cpf/2_semantic_analysis/" + filename));
     }
 
     static JmmSemanticsResult test(String filename, boolean fail) {
