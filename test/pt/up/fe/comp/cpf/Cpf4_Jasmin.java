@@ -29,7 +29,7 @@ import pt.up.fe.specs.util.utilities.LineStream;
 public class Cpf4_Jasmin {
 
     static JasminResult getJasminResult(String filename) {
-        return TestUtils.backend(SpecsIo.getResource("fixtures/public/cpf/4_jasmin/" + filename));
+        return TestUtils.backend(SpecsIo.getResource("pt/up/fe/comp/fixtures/public/cpf/4_jasmin/" + filename));
     }
 
     /**

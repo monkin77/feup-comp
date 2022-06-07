@@ -283,6 +283,13 @@ public class ExistenceVisitor extends AJmmVisitor<Object, Integer> {
         return true;
     }
 
+    /**
+     * Check if method is valid in the given object
+     * @param nodeName
+     * @param calledMethod
+     * @param node
+     * @return
+     */
     public boolean checkObjectMethod(String nodeName, String calledMethod, JmmNode node) {
         MySymbol foundSymbol = existsInScope(nodeName, Utils.identifierTypes, this.scopeStack, this.symbolTable);
         if (foundSymbol == null) {

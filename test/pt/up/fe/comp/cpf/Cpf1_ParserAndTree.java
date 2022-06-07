@@ -24,7 +24,7 @@ import pt.up.fe.specs.util.SpecsStrings;
 public class Cpf1_ParserAndTree {
 
     static JasminResult getJmmResult(String filename) {
-        return TestUtils.backend(SpecsIo.getResource("fixtures/public/cpf/1_parser_and_tree/" + filename));
+        return TestUtils.backend(SpecsIo.getResource("pt/up/fe/comp/fixtures/public/cpf/1_parser_and_tree/" + filename));
     }
 
     @Test

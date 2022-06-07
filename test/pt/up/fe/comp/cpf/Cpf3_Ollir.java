@@ -39,7 +39,7 @@ import pt.up.fe.specs.util.SpecsIo;
 public class Cpf3_Ollir {
 
     static OllirResult getOllirResult(String filename) {
-        return TestUtils.optimize(SpecsIo.getResource("fixtures/public/cpf/3_ollir/" + filename));
+        return TestUtils.optimize(SpecsIo.getResource("pt/up/fe/comp/fixtures/public/cpf/3_ollir/" + filename));
     }
 
     /**
@@ -185,7 +185,6 @@ public class Cpf3_Ollir {
     @Test
     public void section4_Calls_Invoke_Virtual() {
         var result = getOllirResult("calls/NoArgsFuncCall.jmm");
-
         var method = CpUtils.getMethod(result, "bar");
 
         var calls = CpUtils.assertInstExists(CallInstruction.class, method, result);
