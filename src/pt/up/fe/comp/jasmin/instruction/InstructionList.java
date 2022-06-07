@@ -139,6 +139,7 @@ public class InstructionList {
     }
 
     public static String ixor() {
+        MethodsBuilder.updateStackLimit(-1);
         return "ixor";
     }
 
