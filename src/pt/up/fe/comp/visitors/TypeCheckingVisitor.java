@@ -150,6 +150,8 @@ public class TypeCheckingVisitor extends AJmmVisitor<Object, Integer> {
                 return -1;
             }
 
+            secondChild.put("type", assignType.getName());
+
             return 0;
         }
 
@@ -338,6 +340,7 @@ public class TypeCheckingVisitor extends AJmmVisitor<Object, Integer> {
             }
             visit(node.getJmmChild(i));
         }
+
 
         return 0;
     }

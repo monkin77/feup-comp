@@ -57,6 +57,9 @@ public class Launcher {
         // Check if there are analysis errors
         TestUtils.noErrors(analysisResult.getReports());
 
+        System.out.println("AST:");
+        System.out.println(analysisResult.getRootNode().toTree());
+
         // Instantiate Optimization stage
         JmmOptimization jmmOptimization = new JmmOptimizer();
 
