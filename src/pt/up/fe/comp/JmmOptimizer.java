@@ -47,7 +47,7 @@ public class JmmOptimizer implements JmmOptimization {
         if (ollirResult.getConfig().get("registerAllocation").equals("-1"))
             return ollirResult;
 
-        ollirResult.getOllirClass().
+        // ollirResult.getOllirClass().
         return ollirResult;
     }
 }

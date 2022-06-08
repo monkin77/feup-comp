@@ -2,9 +2,7 @@ package pt.up.fe.comp.registerAllocation.dataflow;
 
 import org.specs.comp.ollir.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.*;
 
 public class DataflowAnalysis {
     private final Method method;
@@ -50,7 +48,7 @@ public class DataflowAnalysis {
     }
 
     /**
-     * Stores the defined variables
+     * Stores the defined variable in a given instruction
      * @param node
      */
     private void storeDefined(Node node) {
@@ -71,9 +69,15 @@ public class DataflowAnalysis {
         }
     }
 
+    /**
+     * Stores the used variables in a given instruction
+     * @param node
+     */
     private void storeUsed(Node node) {
         int index = node.getId() - 1;
         Instruction instr = method.getInstr(index);
         String[] usedVariables = new UsedVariables(instr).getUsed();
+        Set<String> set = new HashSet<>(Arrays.asList(usedVariables));
+        use[index] = set.toArray(new String[0]);
     }
 }

@@ -3,6 +3,7 @@ package pt.up.fe.comp.registerAllocation;
 import org.specs.comp.ollir.ClassUnit;
 import org.specs.comp.ollir.Method;
 import pt.up.fe.comp.jmm.ollir.OllirResult;
+import pt.up.fe.comp.registerAllocation.dataflow.DataflowAnalysis;
 
 public class AllocateRegisters {
     private OllirResult ollirResult;
@@ -25,6 +26,6 @@ public class AllocateRegisters {
     }
 
     private boolean allocateMethodRegisters(Method method) {
-
+        DataflowAnalysis dataflowAnalysis = new DataflowAnalysis(method);
     }
 }
