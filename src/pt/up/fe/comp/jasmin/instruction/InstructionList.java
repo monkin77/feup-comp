@@ -156,4 +156,8 @@ public class InstructionList {
     public static String returnInstruction() {
         return "return";
     }
+
+    public static String iinc(int reg, int value) {
+        return "iinc " + reg + " " + value;
+    }
 }
