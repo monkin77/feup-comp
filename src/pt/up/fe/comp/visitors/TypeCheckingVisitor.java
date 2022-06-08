@@ -118,7 +118,6 @@ public class TypeCheckingVisitor extends AJmmVisitor<Object, Integer> {
     }
 
 
-
     private Integer assignExprVisit(JmmNode node, Object dummy) {
         // IF .length -> type is int
         // IF method -> use SymbolTable method to check method return type
@@ -145,12 +144,12 @@ public class TypeCheckingVisitor extends AJmmVisitor<Object, Integer> {
                 return -1;
             } else if (!(this.isSameType(idType, assignType))) {
                 this.reports.add(Report.newError(Stage.SEMANTIC, Integer.parseInt(firstChild.get("line")), Integer.parseInt(firstChild.get("col")),
-                        "Type error. Attempting to assign value of type " + Utils.printTypeName(assignType) + " to a variable of type " + Utils.printTypeName(idType)  + ".",
+                        "Type error. Attempting to assign value of type " + Utils.printTypeName(assignType) + " to a variable of type " + Utils.printTypeName(idType) + ".",
                         null));
                 return -1;
             }
 
-            secondChild.put("type", assignType.getName());
+            secondChild.put("type", idType.getName());
 
             return 0;
         }
@@ -284,7 +283,7 @@ public class TypeCheckingVisitor extends AJmmVisitor<Object, Integer> {
             // check if it's an accepted type
             String leftTypeName = Utils.printTypeName(leftType);
 
-           if (!this.isBoolType(leftTypeName)) {
+            if (!this.isBoolType(leftTypeName)) {
                 this.reports.add(Report.newError(Stage.SEMANTIC, Integer.parseInt(conditionChild.get("line")), Integer.parseInt(conditionChild.get("col")),
                         "Type error. Condition is not boolean. Type: '" + leftTypeName + "'.",
                         null));
@@ -305,19 +304,19 @@ public class TypeCheckingVisitor extends AJmmVisitor<Object, Integer> {
             JmmNode parent = node.getJmmParent();
             JmmNode leftNode = parent.getJmmChild(0);
 
-                if (leftNode.getKind().equals(AstTypes.DOT_EXPR.toString())) {
-                    String importName = Utils.calculateNodeType(leftNode, this.scopeStack, this.symbolTable).getName();
-                    isImport = Utils.hasImport(importName, this.symbolTable);
-                } else {
-                    Optional<String> optId = leftNode.getOptional("id");
-                    if (optId.isPresent()) {
-                        isImport = Utils.hasImport(optId.get(), this.symbolTable);
-                        if (!isImport) {
-                            Type leftType = Utils.calculateNodeType(leftNode, this.scopeStack, this.symbolTable);
-                            isImport = Utils.hasImport(leftType.getName(), this.symbolTable);
-                        }
+            if (leftNode.getKind().equals(AstTypes.DOT_EXPR.toString())) {
+                String importName = Utils.calculateNodeType(leftNode, this.scopeStack, this.symbolTable).getName();
+                isImport = Utils.hasImport(importName, this.symbolTable);
+            } else {
+                Optional<String> optId = leftNode.getOptional("id");
+                if (optId.isPresent()) {
+                    isImport = Utils.hasImport(optId.get(), this.symbolTable);
+                    if (!isImport) {
+                        Type leftType = Utils.calculateNodeType(leftNode, this.scopeStack, this.symbolTable);
+                        isImport = Utils.hasImport(leftType.getName(), this.symbolTable);
                     }
                 }
+            }
         }
 
         if (!isImport && node.getNumChildren() != parameters.size()) {
@@ -367,18 +366,18 @@ public class TypeCheckingVisitor extends AJmmVisitor<Object, Integer> {
         return visitResult;
     }
 
-    private boolean isArithmeticType(String type){
+    private boolean isArithmeticType(String type) {
         return type.equals(Types.UNKNOWN.toString()) || type.equals(Types.INT.toString());
     }
 
-    private boolean isBoolType(String type){
+    private boolean isBoolType(String type) {
         return type.equals(Types.UNKNOWN.toString()) || type.equals(Types.BOOLEAN.toString());
     }
 
     /**
      * Verifies if the 2 given types are assignable
      */
-    private boolean isSameType(Type type1, Type type2){
+    private boolean isSameType(Type type1, Type type2) {
         if (type1.equals(type2) || type1.getName().equals(Types.UNKNOWN.toString()) || type2.getName().equals(Types.UNKNOWN.toString()))
             return true;
 
