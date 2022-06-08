@@ -1,0 +1,11 @@
+import io;
+class Increment {
+	public static void main(String[] args) {
+	    int x;
+		x = 1;
+		x = x + 1;
+		x = 2 + x;
+		x = x + x;
+		io.println(x);
+	}
+}

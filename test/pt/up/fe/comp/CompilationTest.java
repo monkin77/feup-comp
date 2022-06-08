@@ -58,6 +58,11 @@ public class CompilationTest {
         testCompilation("pt/up/fe/comp/fixtures/public/HelloWorld.jmm", "Hello, World!\n");
     }
 
+    @Test
+    public void increment() {
+        testCompilation("pt/up/fe/comp/fixtures/public/Increment.jmm", "8\n");
+    }
+
     /*@Test
     public void lazySort() {
         testCompilation("pt/up/fe/comp/fixtures/public/Lazysort.jmm", """
