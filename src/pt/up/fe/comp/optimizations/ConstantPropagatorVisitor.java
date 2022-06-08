@@ -1,6 +1,7 @@
 package pt.up.fe.comp.optimizations;
 
 import pt.up.fe.comp.jmm.analysis.JmmSemanticsResult;
+import pt.up.fe.comp.jmm.analysis.table.Symbol;
 import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp.jmm.ast.JmmNodeImpl;
 
@@ -11,9 +12,10 @@ import java.util.Map;
 public class ConstantPropagatorVisitor extends PostorderVisitorProhibited<Object, Boolean> {
     private final JmmSemanticsResult result;
     private final Map<String, String> constantMap;
+    private String currentMethod;
 
     public ConstantPropagatorVisitor(JmmSemanticsResult result) {
-        super(List.of("IfElse", "WhileSt"));
+        super(List.of("IfElse", "WhileSt", "PublicMethod", "MainDecl"));
         this.result = result;
         constantMap = new HashMap<>();
         addVisit("_Identifier", this::visitIdentifier);
@@ -31,11 +33,15 @@ public class ConstantPropagatorVisitor extends PostorderVisitorProhibited<Object
 
     private Boolean visitMainDecl(JmmNode node, Object o) {
         this.constantMap.clear();
+        this.currentMethod = "main";
+        visitAllChildren(node, o);
         return false;
     }
 
     private Boolean visitPublicMethod(JmmNode node, Object o) {
         this.constantMap.clear();
+        this.currentMethod = node.get("name");
+        visitAllChildren(node, o);
         return false;
     }
 
@@ -78,7 +84,13 @@ public class ConstantPropagatorVisitor extends PostorderVisitorProhibited<Object
         }
         String id = node.get("id");
         if (constantMap.containsKey(id)) {
-            String kind = "IntegerLiteral";
+            // TODO: A type-checking visitor should probably have annotated this.
+            List<Symbol> symbols = result.getSymbolTable().getLocalVariables(currentMethod);
+            symbols.addAll(result.getSymbolTable().getParameters(currentMethod));
+            symbols.addAll(result.getSymbolTable().getFields());
+            Symbol symbol = symbols.stream().filter(v -> v.getName().equals(id)).findFirst().orElseThrow();
+            String symbolType = symbol.getType().getName();
+            String kind = symbolType.equals("int") ? "IntegerLiteral" : "BooleanLiteral";
             JmmNode newNode = new JmmNodeImpl(kind);
             newNode.put("value", constantMap.get(id));
             OptimizerUtils.replaceWithPosition(node, newNode);

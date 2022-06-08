@@ -86,11 +86,11 @@ public class ConstantFolderVisitor extends PostorderVisitorProhibited<Object, Bo
     }
 
     private Boolean visitMultExpr(JmmNode node, Object o) {
-        return visitArithmeticExpr(node, (left, right) -> left * right);
+        return visitArithmeticExpr(node, (l, r) -> l * r);
     }
 
     private Boolean visitDivExpr(JmmNode node, Object o) {
-        return visitArithmeticExpr(node, (left, right) -> left / right);
+        return visitArithmeticExpr(node, (l, r) -> l / r);
     }
 
     private Boolean visitArithmeticExpr(JmmNode node, BiFunction<Integer, Integer, Integer> f) {

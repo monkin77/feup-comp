@@ -3,8 +3,8 @@ package pt.up.fe.comp.optimizations;
 import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp.jmm.ast.PostorderJmmVisitor;
 
-public class DeadCodeRemoverVisitor extends PostorderJmmVisitor<Object, Boolean> {
-    public DeadCodeRemoverVisitor() {
+public class DeadConditionalLoopsVisitor extends PostorderJmmVisitor<Object, Boolean> {
+    public DeadConditionalLoopsVisitor() {
         addVisit("IfElse", this::visitIfElse);
         addVisit("WhileSt", this::visitWhileSt);
 
