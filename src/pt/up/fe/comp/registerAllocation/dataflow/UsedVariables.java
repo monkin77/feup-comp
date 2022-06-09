@@ -27,6 +27,9 @@ public class UsedVariables {
             case PUTFIELD -> {
                 getUsedPutField((PutFieldInstruction) instruction);
             }
+            case BINARYOPER -> {
+                getUsedBinaryOp((BinaryOpInstruction) instruction);
+            }
         }
 
         return new String[]{};
@@ -66,13 +69,27 @@ public class UsedVariables {
     }
 
     private String[] getUsedPutField(PutFieldInstruction instruction) {
-        List<String> used = new ArrayList<>();
-        used.addAll(getOperandUses(instruction.getThirdOperand()));
+        List<String> used = new ArrayList<>(getOperandUses(instruction.getThirdOperand()));
         return used.toArray(new String[0]);
     }
 
+    private String[] getUsedBinaryOp(BinaryOpInstruction instruction) {
+        OperationType instType = instruction.getOperation().getOpType();
+        List<String> used = new ArrayList<>();
 
+        if (instType == OperationType.NOTB) {
+            used.addAll(getOperandUses(instruction.getRightOperand()));
+        } else {
+            used.addAll(getOperandUses(instruction.getLeftOperand()));
+            used.addAll(getOperandUses(instruction.getRightOperand()));
+        }
 
+        return used.toArray(new String[0]);
+    }
+
+    /**
+     * @return List of elements that are used in the given operand
+     */
     private List<String> getOperandUses(Element element) {
         List<String> elementsName = new ArrayList<>();
 
@@ -86,6 +103,9 @@ public class UsedVariables {
         return elementsName;
     }
 
+    /**
+     * Adds the element that is used as index in the array
+     */
     public String getArrayIndexName(Element arrayElem) {
         ArrayOperand arrayOperand = (ArrayOperand) arrayElem;
         ArrayList<Element> indexOperand = arrayOperand.getIndexOperands();
