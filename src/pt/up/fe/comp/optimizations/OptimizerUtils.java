@@ -11,6 +11,7 @@ public class OptimizerUtils {
         for (JmmNode child : block.getChildren()) {
             if (child.getKind().equals("AssignmentExpr")) {
                 JmmNode target = child.getJmmChild(0);
+                if (!target.getKind().equals("_Identifier")) continue;
                 blockAssignTargets.add(target.get("id"));
             }
             blockAssignTargets.addAll(getAssignTargets(child));

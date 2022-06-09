@@ -68,7 +68,9 @@ public class ConstantPropagatorVisitor extends PostorderVisitorProhibited<Object
     }
 
     private Boolean visitAssignmentExpr(JmmNode node, Object o) {
-        String id = node.getJmmChild(0).get("id");
+        JmmNode target = node.getJmmChild(0);
+        if (!target.getKind().equals("_Identifier")) return false;
+        String id = target.get("id");
         JmmNode value = node.getJmmChild(1);
         if (value.getKind().contains("Literal")) {
             constantMap.put(id, value.get("value"));
