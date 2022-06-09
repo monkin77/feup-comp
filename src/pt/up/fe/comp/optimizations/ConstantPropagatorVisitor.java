@@ -75,6 +75,8 @@ public class ConstantPropagatorVisitor extends PostorderVisitorProhibited<Object
         if (value.getKind().contains("Literal")) {
             constantMap.put(id, value.get("value"));
             return false;
+        } else {
+            constantMap.remove(id);
         }
         return false;
     }
