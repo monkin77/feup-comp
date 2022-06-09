@@ -49,9 +49,7 @@ public class SimpleParser implements JmmParser {
             // Visit the tree to register each node's line and column
             new LineColAnnotator().visit((JmmNode) root);
 
-            JmmNode rootImpl = ((JmmNode) parser.rootNode()).sanitize();
-            System.out.println("AST:");
-            System.out.println(rootImpl.toTree());
+            ((JmmNode) parser.rootNode()).sanitize();
 
             if (!(root instanceof JmmNode)) {
                 return JmmParserResult.newError(new Report(ReportType.WARNING, Stage.SYNTATIC, -1,
