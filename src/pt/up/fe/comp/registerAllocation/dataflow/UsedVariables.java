@@ -35,6 +35,12 @@ public class UsedVariables {
             case NOPER -> {
                 return getUsedNoper((SingleOpInstruction) instruction);
             }
+            case BRANCH -> {
+                return getUsedBranch((CondBranchInstruction) instruction);
+            }
+            case RETURN -> {
+                return getUsedReturn((ReturnInstruction) instruction);
+            }
         }
 
         return new String[]{};
@@ -118,6 +124,12 @@ public class UsedVariables {
             }
         } */
         return used.toArray(new String[0]);
+    }
+
+    private String[] getUsedReturn(ReturnInstruction instruction) {
+        if (instruction.hasReturnValue())
+            return getOperandUses(instruction.getOperand()).toArray(new String[0]);
+        return new String[]{};
     }
 
     /**
