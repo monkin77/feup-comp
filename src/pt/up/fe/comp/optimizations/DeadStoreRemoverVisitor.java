@@ -58,15 +58,35 @@ public class DeadStoreRemoverVisitor extends PostorderVisitorProhibited<Object, 
     }
 
     private boolean dealWithOldAssignment(JmmNode assignment) {
+        JmmNode parent = assignment.getJmmParent();
         JmmNode value = assignment.getJmmChild(1);
-        boolean sideEffectFree = value.getKind().equals("IntegerLiteral") || value.getKind().equals("BooleanLiteral") || value.getKind().equals("_Identifier");
-        if (sideEffectFree) {
-            assignment.delete();
-        } else {
-            // TODO: This can't be done yet because sometimes we need the assignment to infer the return type - annotate with type checking visitor
-//            assignment.replace(value);
+        List<JmmNode> sideEffects = sideEffects(value);
+        int n = assignment.getIndexOfSelf();
+        for (JmmNode sideEffect : sideEffects) parent.add(sideEffect, n++);
+        assignment.delete();
+        return !sideEffects.isEmpty();
+    }
+
+    private boolean isSideEffectFree(JmmNode value) {
+        String kind = value.getKind();
+        if (kind.equals("IntegerLiteral") || kind.equals("BooleanLiteral")) return true;
+        if (kind.equals("_Identifier")) return true;
+        if (kind.equals("DotExpression")) return value.getJmmChild(0).getKind().equals("DotLength");
+        if (kind.equals("AddExpr") || kind.equals("SubExpr") || kind.equals("MultExpr") || kind.equals("DivExpr"))
+            return true;
+        if (kind.equals("NotExpr") || kind.equals("LessExpr") || kind.equals("LessEqualExpr") || kind.equals("GreaterExpr") ||
+            kind.equals("GreaterEqualExpr") || kind.equals("EqualExpr") || kind.equals("NotEqualExpr"))
+            return true;
+        return value.getChildren().stream().allMatch(this::isSideEffectFree);
+    }
+
+    private List<JmmNode> sideEffects(JmmNode value) {
+        List<JmmNode> sideEffects = new ArrayList<>();
+        for (JmmNode child : value.getChildren()) {
+            if (!isSideEffectFree(child)) sideEffects.add(child);
+            sideEffects.addAll(sideEffects(child));
         }
-        return sideEffectFree;
+        return sideEffects;
     }
 
     private Boolean visitIfElse(JmmNode node, Object o) {
