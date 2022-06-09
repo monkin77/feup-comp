@@ -21,6 +21,10 @@ public class BooleanSimplifierVisitor extends PostorderJmmVisitor<Object, Boolea
 
 
     public BooleanSimplifierVisitor() {
+        setReduceSimple(Boolean::logicalOr);
+        setReduce((b, l) -> l.stream().reduce(b, Boolean::logicalOr));
+        setDefaultValue(() -> false);
+
         normalAndReduce = new HashMap<>();
         normalAndReduce.put(List.of("LessExpr", "LessEqualExpr"), "LessExpr");
         normalAndReduce.put(List.of("LessExpr", "NotEqualExpr"), "LessExpr");
