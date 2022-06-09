@@ -41,23 +41,13 @@ public class BooleanSimplifierVisitor extends PostorderJmmVisitor<Object, Boolea
         switchedAndReduce.put(List.of("LessExpr", "GreaterExpr"), "LessExpr");
         switchedAndReduce.put(List.of("LessExpr", "GreaterEqualExpr"), "LessExpr");
         switchedAndReduce.put(List.of("LessExpr", "NotEqualExpr"), "LessExpr");
-        switchedAndReduce.put(List.of("GreaterExpr", "LessExpr"), "GreaterExpr");
         switchedAndReduce.put(List.of("GreaterExpr", "LessEqualExpr"), "GreaterExpr");
         switchedAndReduce.put(List.of("GreaterExpr", "NotEqualExpr"), "GreaterExpr");
         switchedAndReduce.put(List.of("GreaterEqualExpr", "LessEqualExpr"), "GreaterEqualExpr");
-        switchedAndReduce.put(List.of("LessEqualExpr", "GreaterEqualExpr"), "LessEqualExpr");
         switchedAndReduce.put(List.of("EqualExpr", "GreaterEqualExpr"), "EqualExpr");
         switchedAndReduce.put(List.of("EqualExpr", "LessEqualExpr"), "EqualExpr");
-        switchedAndReduce.put(List.of("GreaterEqualExpr", "LessExpr"), "GreaterExpr");
-        switchedAndReduce.put(List.of("GreaterEqualExpr", "EqualExpr"), "EqualExpr");
         switchedAndReduce.put(List.of("GreaterEqualExpr", "NotEqualExpr"), "GreaterExpr");
-        switchedAndReduce.put(List.of("LessEqualExpr", "GreaterExpr"), "LessExpr");
-        switchedAndReduce.put(List.of("LessEqualExpr", "EqualExpr"), "EqualExpr");
         switchedAndReduce.put(List.of("LessEqualExpr", "NotEqualExpr"), "LessExpr");
-        switchedAndReduce.put(List.of("NotEqualExpr", "LessExpr"), "GreaterExpr");
-        switchedAndReduce.put(List.of("NotEqualExpr", "GreaterExpr"), "LessExpr");
-        switchedAndReduce.put(List.of("NotEqualExpr", "GreaterEqualExpr"), "LessExpr");
-        switchedAndReduce.put(List.of("NotEqualExpr", "LessEqualExpr"), "GreaterExpr");
 
         normalAndFalse = new HashSet<>();
         normalAndFalse.add(List.of("LessExpr", "GreaterExpr"));
@@ -109,25 +99,15 @@ public class BooleanSimplifierVisitor extends PostorderJmmVisitor<Object, Boolea
 
         switchedOrReduce = new HashMap<>();
         switchedOrReduce.put(List.of("LessExpr", "GreaterExpr"), "LessExpr");
-        switchedOrReduce.put(List.of("GreaterExpr", "LessExpr"), "GreaterExpr");
         switchedOrReduce.put(List.of("GreaterEqualExpr", "LessExpr"), "GreaterEqualExpr");
         switchedOrReduce.put(List.of("GreaterEqualExpr", "LessEqualExpr"), "GreaterEqualExpr");
         switchedOrReduce.put(List.of("GreaterEqualExpr", "EqualExpr"), "GreaterEqualExpr");
         switchedOrReduce.put(List.of("LessEqualExpr", "GreaterExpr"), "LessEqualExpr");
-        switchedOrReduce.put(List.of("LessEqualExpr", "GreaterEqualExpr"), "LessEqualExpr");
         switchedOrReduce.put(List.of("LessEqualExpr", "EqualExpr"), "LessEqualExpr");
         switchedOrReduce.put(List.of("NotEqualExpr", "LessExpr"), "NotEqualExpr");
         switchedOrReduce.put(List.of("NotEqualExpr", "GreaterExpr"), "NotEqualExpr");
-        switchedOrReduce.put(List.of("LessExpr", "GreaterEqualExpr"), "LessEqualExpr");
         switchedOrReduce.put(List.of("LessExpr", "EqualExpr"), "LessEqualExpr");
-        switchedOrReduce.put(List.of("LessExpr", "NotEqualExpr"), "NotEqualExpr");
-        switchedOrReduce.put(List.of("GreaterExpr", "LessEqualExpr"), "GreaterEqualExpr");
         switchedOrReduce.put(List.of("GreaterExpr", "EqualExpr"), "GreaterEqualExpr");
-        switchedOrReduce.put(List.of("GreaterExpr", "NotEqualExpr"), "NotEqualExpr");
-        switchedOrReduce.put(List.of("EqualExpr", "LessExpr"), "GreaterEqualExpr");
-        switchedOrReduce.put(List.of("EqualExpr", "GreaterExpr"), "LessEqualExpr");
-        switchedOrReduce.put(List.of("EqualExpr", "GreaterEqualExpr"), "LessEqualExpr");
-        switchedOrReduce.put(List.of("EqualExpr", "LessEqualExpr"), "GreaterEqualExpr");
 
         notReduce.put("LessExpr", "GreaterEqualExpr");
         notReduce.put("GreaterExpr", "LessEqualExpr");
@@ -199,7 +179,7 @@ public class BooleanSimplifierVisitor extends PostorderJmmVisitor<Object, Boolea
         if (sameVariableOrder) {
             if (sameOperation) {
                 node.replace(lhs);
-            } else simplify(node, lhsKind, rhsKind, lhsLhs, lhsRhs, normalAndFalse, normalAndReduce);
+            } else simplify(node, lhsKind, rhsKind, lhsLhs, lhsRhs, normalAndFalse, normalAndReduce, false);
         } else if (switchedVariableOrder) {
             if (sameOperation) {
                 boolean equal = lhsKind.equals("LessEqualExpr") || lhsKind.equals("GreaterEqualExpr");
@@ -209,7 +189,7 @@ public class BooleanSimplifierVisitor extends PostorderJmmVisitor<Object, Boolea
                 else if (lhsKind.equals("EqualExpr")) node.replace(lhs);
                 else return false;
             } else {
-                simplify(node, lhsKind, rhsKind, lhsLhs, lhsRhs, switchedAndFalse, switchedAndReduce);
+                simplify(node, lhsKind, rhsKind, lhsLhs, lhsRhs, switchedAndFalse, switchedAndReduce, true);
             }
         } else {
             return false;
@@ -242,7 +222,7 @@ public class BooleanSimplifierVisitor extends PostorderJmmVisitor<Object, Boolea
 
         if (sameVariableOrder) {
             if (sameOperation) node.replace(lhs);
-            else simplify(node, lhsKind, rhsKind, lhsLhs, lhsRhs, normalOrTrue, normalOrReduce);
+            else simplify(node, lhsKind, rhsKind, lhsLhs, lhsRhs, normalOrTrue, normalOrReduce, false);
         } else if (switchedVariableOrder) {
             if (sameOperation) {
                 boolean equal = lhsKind.equals("LessEqualExpr") || lhsKind.equals("GreaterEqualExpr");
@@ -251,7 +231,7 @@ public class BooleanSimplifierVisitor extends PostorderJmmVisitor<Object, Boolea
                 else if (isTrue) replaceWithTrue(node);
                 else return false;
             } else {
-                simplify(node, lhsKind, rhsKind, lhsLhs, lhsRhs, switchedOrTrue, switchedOrReduce);
+                simplify(node, lhsKind, rhsKind, lhsLhs, lhsRhs, switchedOrTrue, switchedOrReduce, true);
             }
         } else {
             return false;
@@ -259,13 +239,18 @@ public class BooleanSimplifierVisitor extends PostorderJmmVisitor<Object, Boolea
         return true;
     }
 
-    private void simplify(JmmNode node, String lhsKind, String rhsKind, JmmNode lhsLhs, JmmNode lhsRhs, Set<List<String>> falseMap, Map<List<String>, String> reduceMap) {
+    private void simplify(JmmNode node, String lhsKind, String rhsKind, JmmNode lhsLhs, JmmNode lhsRhs, Set<List<String>> falseMap, Map<List<String>, String> reduceMap, boolean switched) {
         List<String> kinds = List.of(lhsKind, rhsKind);
-        if (falseMap.contains(kinds)) {
+        List<String> reversedKinds = List.of(rhsKind, lhsKind);
+        if (falseMap.contains(kinds) || falseMap.contains(reversedKinds)) {
             replaceWithFalse(node);
         } else if (reduceMap.containsKey(kinds)) {
             String newKind = reduceMap.get(kinds);
             replaceWithKindCopy2Children(node, newKind, lhsLhs, lhsRhs);
+        } else if (reduceMap.containsKey(reversedKinds)) {
+            String newKind = reduceMap.get(reversedKinds);
+            if (switched) replaceWithKindCopy2Children(node, newKind, lhsRhs, lhsLhs);
+            else replaceWithKindCopy2Children(node, newKind, lhsLhs, lhsRhs);
         }
     }
 
