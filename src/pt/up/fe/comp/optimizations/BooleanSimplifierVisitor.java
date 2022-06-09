@@ -186,7 +186,7 @@ public class BooleanSimplifierVisitor extends PostorderJmmVisitor<Object, Boolea
                 boolean isFalse = lhsKind.equals("LessExpr") || lhsKind.equals("GreaterExpr");
                 if (equal) replaceWithKindCopy2Children(node, "EqualExpr", lhsLhs, lhsRhs);
                 else if (isFalse) replaceWithFalse(node);
-                else if (lhsKind.equals("EqualExpr")) node.replace(lhs);
+                else if (lhsKind.equals("EqualExpr") || lhsKind.equals("NotEqualExpr")) node.replace(lhs);
                 else return false;
             } else {
                 simplify(node, lhsKind, rhsKind, lhsLhs, lhsRhs, switchedAndFalse, switchedAndReduce, true);
