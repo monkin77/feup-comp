@@ -2,6 +2,8 @@ package pt.up.fe.comp.registerAllocation.dataflow;
 
 import com.javacc.parser.tree.Literal;
 import org.specs.comp.ollir.*;
+import pt.up.fe.comp.jasmin.JasminUtils;
+import pt.up.fe.comp.jasmin.instruction.OperationInstructionBuilder;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
@@ -93,6 +95,29 @@ public class UsedVariables {
     private String[] getUsedNoper(SingleOpInstruction instruction) {
         Element element = instruction.getSingleOperand();
         return getOperandUses(element).toArray(new String[0]);
+    }
+
+    private String[] getUsedBranch(CondBranchInstruction instruction) {
+        List<String> used = new ArrayList<>();
+
+        // CHECK IF THIS getOperands returns the operands correctly
+        List<Element> operands = instruction.getOperands();
+        for (Element elem: operands) {
+            used.addAll(getOperandUses(elem));
+        }
+
+        /*
+        if (instruction instanceof SingleOpCondInstruction) {
+            Element operand = ((SingleOpCondInstruction) instruction).getCondition().getSingleOperand();
+            used.addAll(getOperandUses(operand));
+        }
+        else if (instruction instanceof OpCondInstruction) {
+            List<Element> opInstruction = ((OpCondInstruction) instruction).getCondition().getOperands();   // Check if this is working
+            for (Element elem: opInstruction) {
+                used.addAll(getOperandUses(elem));
+            }
+        } */
+        return used.toArray(new String[0]);
     }
 
     /**
