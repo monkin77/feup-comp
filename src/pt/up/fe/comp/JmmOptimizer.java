@@ -5,6 +5,7 @@ import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp.jmm.ollir.JmmOptimization;
 import pt.up.fe.comp.jmm.ollir.OllirResult;
 import pt.up.fe.comp.ollir.OllirBuilder;
+import pt.up.fe.comp.optimizations.BooleanSimplifierVisitor;
 import pt.up.fe.comp.optimizations.*;
 
 
@@ -17,10 +18,12 @@ public class JmmOptimizer implements JmmOptimization {
         ConstantFolderVisitor constantFolderVisitor = new ConstantFolderVisitor();
         DeadConditionalLoopsVisitor deadConditionalLoopsVisitor = new DeadConditionalLoopsVisitor();
         DeadStoreRemoverVisitor deadStoreRemoverVisitor = new DeadStoreRemoverVisitor(semanticsResult);
+        BooleanSimplifierVisitor booleanSimplifierVisitor = new BooleanSimplifierVisitor();
         boolean change;
         if (semanticsResult.getConfig().getOrDefault("optimize", "false").equals("true")) {
             do {
                 change = false;
+                change |= booleanSimplifierVisitor.visit(semanticsResult.getRootNode());
                 change |= constantPropagatorVisitor.visit(rootNode);
                 change |= constantFolderSimplifierVisitor.visit(rootNode);
                 change |= constantFolderVisitor.visit(rootNode);

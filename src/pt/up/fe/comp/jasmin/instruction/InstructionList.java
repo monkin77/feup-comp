@@ -88,9 +88,34 @@ public class InstructionList {
         return "goto " + label;
     }
 
+    public static String if_icmpeq(String label) {
+        MethodsBuilder.updateStackLimit(-2);
+        return "if_icmpeq " + label;
+    }
+
+    public static String if_icmpge(String label) {
+        MethodsBuilder.updateStackLimit(-2);
+        return "if_icmpge " + label;
+    }
+
+    public static String if_icmpgt(String label) {
+        MethodsBuilder.updateStackLimit(-2);
+        return "if_icmpgt " + label;
+    }
+
+    public static String if_icmple(String label) {
+        MethodsBuilder.updateStackLimit(-2);
+        return "if_icmple " + label;
+    }
+
     public static String if_icmplt(String label) {
         MethodsBuilder.updateStackLimit(-2);
         return "if_icmplt " + label;
+    }
+
+    public static String if_icmpne(String label) {
+        MethodsBuilder.updateStackLimit(-2);
+        return "if_icmpne " + label;
     }
 
     public static String iadd() {

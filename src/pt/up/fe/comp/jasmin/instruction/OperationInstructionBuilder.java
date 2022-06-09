@@ -35,26 +35,31 @@ public class OperationInstructionBuilder extends AbstractBuilder {
         switch (type) {
             case AND, ANDB -> builder.append("iand");
             case LTH -> {
-                // TODO Conversion to >= with neg
-                builder.append(JasminConstants.TAB);
-                builder.append(InstructionList.if_icmplt("IS_LESS_THAN_" + MethodsBuilder.labelCounter)).append("\n");
-                builder.append(JasminConstants.TAB);
-                builder.append(InstructionList.loadIntConstant(0)).append("\n");
-                builder.append(JasminConstants.TAB);
-                builder.append(InstructionList.gotoInstruction("NOT_LESS_THAN_" + MethodsBuilder.labelCounter)).append("\n");
-                builder.append(JasminConstants.TAB);
-                builder.append("IS_LESS_THAN_").append(MethodsBuilder.labelCounter).append(":\n");
-                builder.append(JasminConstants.TAB.repeat(2));
-                builder.append(InstructionList.loadIntConstant(1)).append("\n");
-                builder.append(JasminConstants.TAB);
-                builder.append("NOT_LESS_THAN_").append(MethodsBuilder.labelCounter).append(":\n");
-                ++MethodsBuilder.labelCounter;
+                String operatorStr = "LESS_THAN";
+                String operation = InstructionList.if_icmplt("IS_" + operatorStr + "_" + MethodsBuilder.labelCounter);
+                appendOperation(operatorStr, operation);
             }
             case ADD -> builder.append(InstructionList.iadd());
             case SUB -> builder.append(InstructionList.isub());
             case DIV -> builder.append(InstructionList.idiv());
             case MUL -> builder.append(InstructionList.imul());
         }
+    }
+
+    private void appendOperation(String operatorStr, String operation) {
+        builder.append(JasminConstants.TAB);
+        builder.append(operation).append("\n");
+        builder.append(JasminConstants.TAB);
+        builder.append(InstructionList.loadIntConstant(0)).append("\n");
+        builder.append(JasminConstants.TAB);
+        builder.append(InstructionList.gotoInstruction("NOT_" + operatorStr + "_" + MethodsBuilder.labelCounter)).append("\n");
+        builder.append(JasminConstants.TAB);
+        builder.append("IS_").append(operatorStr).append("_").append(MethodsBuilder.labelCounter).append(":\n");
+        builder.append(JasminConstants.TAB.repeat(2));
+        builder.append(InstructionList.loadIntConstant(1)).append("\n");
+        builder.append(JasminConstants.TAB);
+        builder.append("NOT_").append(operatorStr).append("_").append(MethodsBuilder.labelCounter).append(":\n");
+        ++MethodsBuilder.labelCounter;
     }
 
     private void compileUnaryOperation() {

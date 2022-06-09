@@ -38,8 +38,15 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, VisitResult> {
         addVisit("MultExpr", this::mulExprVisit);
         addVisit("DivExpr", this::divExprVisit);
         addVisit("LessExpr", this::lessExprVisit);
+        addVisit("LessEqualExpr", this::lessEqualExprVisit);
+        addVisit("GreaterExpr", this::greaterExprVisit);
+        addVisit("GreaterEqualExpr", this::greaterEqualExprVisit);
+        addVisit("EqualExpr", this::equalExprVisit);
+        addVisit("NotEqualExpr", this::notEqualExprVisit);
+
 
         addVisit("AndExpr", this::andExprVisit);
+        addVisit("OrExpr", this::orExprVisit);
         addVisit("NotExpr", this::notExprVisit);
         addVisit("ImportRegion", this::ignore);
         addVisit("VarDecl", this::ignore);
@@ -54,10 +61,34 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, VisitResult> {
         setDefaultVisit(this::defaultVisit);
     }
 
+    private VisitResult notEqualExprVisit(JmmNode node, ArgumentPool argumentPool) {
+        return binOpVisit(node, "!=", "bool");
+    }
+
+    private VisitResult equalExprVisit(JmmNode node, ArgumentPool argumentPool) {
+        return binOpVisit(node, "==", "bool");
+    }
+
+    private VisitResult greaterEqualExprVisit(JmmNode node, ArgumentPool argumentPool) {
+        return binOpVisit(node, ">=", "bool");
+    }
+
+    private VisitResult greaterExprVisit(JmmNode node, ArgumentPool argumentPool) {
+        return binOpVisit(node, ">", "bool");
+    }
+
+    private VisitResult lessEqualExprVisit(JmmNode node, ArgumentPool argumentPool) {
+        return binOpVisit(node, "<=", "bool");
+    }
+
+    private VisitResult orExprVisit(JmmNode jmmNode, ArgumentPool argumentPool) {
+        return binOpVisit(jmmNode, "||", "bool");
+    }
+
     private VisitResult booleanConditionVisit(JmmNode node, ArgumentPool argumentPool) {
         String kind = node.getJmmChild(0).getKind();
-        boolean isNotTerminalNode = !(kind.equals("ArrayExpr") || kind.equals("NotExpr") || kind.equals("LessExpr")
-                                      || kind.equals("AndExpr") || kind.equals("_Identifier") || kind.equals("BooleanLiteral"));
+        boolean isNotTerminalNode = !(kind.equals("ArrayExpr") || kind.equals("NotExpr") || kind.equals("LessExpr") || kind.equals("LessEqualExpr") || kind.equals("GreaterExpr") || kind.equals("GreaterEqualExpr") || kind.equals("EqualExpr") || kind.equals("NotEqualExpr")
+                                      || kind.equals("AndExpr") || kind.equals("OrExpr") || kind.equals("_Identifier") || kind.equals("BooleanLiteral"));
 
         // boolean isNotTerminalNode = OllirUtils.isNotTerminalNode(node.getJmmChild(0));
         final VisitResult result = visit(node.getJmmChild(0), new ArgumentPool(null, isNotTerminalNode));
