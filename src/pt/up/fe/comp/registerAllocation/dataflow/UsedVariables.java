@@ -30,6 +30,9 @@ public class UsedVariables {
             case BINARYOPER -> {
                 getUsedBinaryOp((BinaryOpInstruction) instruction);
             }
+            case NOPER -> {
+                return getUsedNoper((SingleOpInstruction) instruction);
+            }
         }
 
         return new String[]{};
@@ -85,6 +88,11 @@ public class UsedVariables {
         }
 
         return used.toArray(new String[0]);
+    }
+
+    private String[] getUsedNoper(SingleOpInstruction instruction) {
+        Element element = instruction.getSingleOperand();
+        return getOperandUses(element).toArray(new String[0]);
     }
 
     /**
