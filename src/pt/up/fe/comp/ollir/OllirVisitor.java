@@ -8,6 +8,7 @@ import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp.visitors.Utils;
 
 import java.util.List;
+import java.util.Optional;
 
 import static pt.up.fe.comp.ollir.OllirUtils.getSymbol;
 
@@ -194,9 +195,9 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, VisitResult> {
         }
         // return will be appended in DotExpression
 
-        codeBuilder.append(")");
-        if (argumentPool.getExpectedReturnType() == null) codeBuilder.append(".%s".formatted(returnType));
-        else codeBuilder.append(".%s".formatted(argumentPool.getExpectedReturnType()));
+        Optional<String> type = node.getJmmParent().getOptional("type");
+        String actualReturnType = type.map(s -> OllirUtils.convertType(s, false)).orElse(returnType);
+        codeBuilder.append(").%s".formatted(actualReturnType));
         final String code = codeBuilder.toString();
         final String preparationCode = preparationBuilder.toString();
         return new VisitResult(preparationCode, code, "", returnType);
