@@ -41,18 +41,19 @@ public class CondInstructionBuilder extends AbstractBuilder {
             builder.append(JasminUtils.buildLoadInstruction(unaryOpInstruction.getOperand(), method));
         } else return;
 
+        // The instructions are inverted for optimization. The if/else bodies have already been inverted
         switch (type) {
             case AND, ANDB -> builder.append(InstructionList.iand()).append("\n")
-                    .append(InstructionList.ifne(instruction.getLabel()));
+                    .append(InstructionList.ifeq(instruction.getLabel()));
             case OR, ORB -> builder.append(InstructionList.ior()).append("\n")
-                    .append(InstructionList.ifne(instruction.getLabel()));
-            case LTH -> builder.append(InstructionList.if_icmplt(instruction.getLabel()));
-            case GTH -> builder.append(InstructionList.if_icmpgt(instruction.getLabel()));
-            case LTE -> builder.append(InstructionList.if_icmple(instruction.getLabel()));
-            case GTE -> builder.append(InstructionList.if_icmpge(instruction.getLabel()));
-            case EQ -> builder.append(InstructionList.if_icmpeq(instruction.getLabel()));
-            case NEQ -> builder.append(InstructionList.if_icmpne(instruction.getLabel()));
-            case NOT, NOTB -> builder.append(InstructionList.ifeq(instruction.getLabel()));
+                    .append(InstructionList.ifeq(instruction.getLabel()));
+            case LTH -> builder.append(InstructionList.if_icmpge(instruction.getLabel()));
+            case GTH -> builder.append(InstructionList.if_icmple(instruction.getLabel()));
+            case LTE -> builder.append(InstructionList.if_icmpgt(instruction.getLabel()));
+            case GTE -> builder.append(InstructionList.if_icmplt(instruction.getLabel()));
+            case EQ -> builder.append(InstructionList.if_icmpne(instruction.getLabel()));
+            case NEQ -> builder.append(InstructionList.if_icmpeq(instruction.getLabel()));
+            case NOT, NOTB -> builder.append(InstructionList.ifne(instruction.getLabel()));
         }
     }
 }
