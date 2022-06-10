@@ -3,6 +3,7 @@ package pt.up.fe.comp.registerAllocation;
 import org.specs.comp.ollir.ClassUnit;
 import org.specs.comp.ollir.Method;
 import pt.up.fe.comp.jmm.ollir.OllirResult;
+import pt.up.fe.comp.registerAllocation.coloring.GraphColoring;
 import pt.up.fe.comp.registerAllocation.coloring.InterferenceGraph;
 import pt.up.fe.comp.registerAllocation.dataflow.DataflowAnalysis;
 
@@ -36,6 +37,9 @@ public class AllocateRegisters {
         HashMap<String, ArrayList<String>> analysisInterference = dataflowAnalysis.getInterference();
         InterferenceGraph interferenceGraph = new InterferenceGraph(analysisInterference);
 
+        GraphColoring graphColoring = new GraphColoring(this.maxRegisters, interferenceGraph);
+        if (!graphColoring.buildStack())
+            throw new RuntimeException("Not possible to execute the program with the number of register provided.");
 
     }
 }
