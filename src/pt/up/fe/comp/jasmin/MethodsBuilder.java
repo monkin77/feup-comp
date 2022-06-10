@@ -4,15 +4,13 @@ import org.specs.comp.ollir.*;
 import pt.up.fe.comp.jasmin.instruction.InstructionBuilder;
 import pt.up.fe.comp.jasmin.instruction.InstructionList;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static pt.up.fe.comp.jasmin.JasminConstants.TAB;
 
 public class MethodsBuilder extends AbstractBuilder {
     public static int labelCounter = 0;
+    public static HashSet<Instruction> instructionsToInvert = new HashSet<>();
     private static int stackLimit = 0;
     private static int currentStack = 0;
 
@@ -50,6 +48,7 @@ public class MethodsBuilder extends AbstractBuilder {
         final StringBuilder sb = new StringBuilder();
         stackLimit = 0;
         currentStack = 0;
+        instructionsToInvert.clear();
 
         method.buildVarTable();
         invertIfInstructions(method);
@@ -91,7 +90,12 @@ public class MethodsBuilder extends AbstractBuilder {
 
             CondBranchInstruction condBranchInstruction = (CondBranchInstruction) instruction;
             String ifLabel = condBranchInstruction.getLabel();
-            String endifLabel = "endif_" + ifLabel.substring(ifLabel.indexOf('_') + 1);
+
+            int underscorePosition = ifLabel.indexOf('_');
+            // Only try to optimize if statements from our ollir
+            if (underscorePosition == -1 || !ifLabel.substring(0, underscorePosition).equals("ifbody"))
+                continue;
+            // String endifLabel = "endif_" + ifLabel.substring(underscorePosition + 1);
 
             ArrayList<Instruction> elseInstructions = new ArrayList<>();
             int j = i + 1;
@@ -99,6 +103,7 @@ public class MethodsBuilder extends AbstractBuilder {
             while (labels.get(ifLabel) != instructions.get(j))
                 elseInstructions.add(instructions.remove(j));
             boolean hasElseBlock = elseInstructions.size() > 1;
+            String endifLabel = ((GotoInstruction) elseInstructions.get(elseInstructions.size() - 1)).getLabel();
 
             if (hasElseBlock) {
                 // Replace the previous ifbody label
@@ -125,6 +130,8 @@ public class MethodsBuilder extends AbstractBuilder {
                 // Jump to the end of the if
                 condBranchInstruction.setLabel(endifLabel);
             }
+
+            instructionsToInvert.add(instruction);
         }
     }
 
