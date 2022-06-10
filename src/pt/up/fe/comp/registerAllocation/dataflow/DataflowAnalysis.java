@@ -37,6 +37,7 @@ public class DataflowAnalysis {
         this.prepareDataFlowAnalysis(method.getBeginNode().getSucc1());
         this.livenessAnalysis();
         this.calculateLiveRange();
+        this.calculateInterference();
     }
 
     /**
@@ -216,5 +217,38 @@ public class DataflowAnalysis {
                 return i;
         }
         return null;
+    }
+
+    /**
+     * Calculates the conflict between variables and
+     * updates the interference HashMap for each variable
+     */
+    private void calculateInterference() {
+        for (String variable : this.variables) {
+            ArrayList<String> temp = new ArrayList<>();
+            if (!this.liveRange.containsKey(variable)) {
+                interference.put(variable, temp);
+                continue;
+            }
+            for (String variableCompare : this.liveRange.keySet()) {
+                if (variableCompare.equals(variable))
+                    continue;
+                if (this.hasConflict(this.liveRange.get(variable), this.liveRange.get(variableCompare))) {
+                    temp.add(variableCompare);
+                }
+            }
+            this.interference.put(variable, temp);
+        }
+    }
+
+    /**
+     * Receives 2 variables live ranges and checks if they conflict
+     * @return true if conflicts. False otherwise
+     */
+    private boolean hasConflict(int[] arr1, int[] arr2) {
+        return Arrays.stream(arr1)
+                .distinct()
+                .filter(x -> Arrays.stream(arr2).anyMatch(y -> y == x))
+                .toArray().length > 0;
     }
 }
