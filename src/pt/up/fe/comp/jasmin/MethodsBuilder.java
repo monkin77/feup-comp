@@ -98,23 +98,33 @@ public class MethodsBuilder extends AbstractBuilder {
             // Move the else instructions
             while (labels.get(ifLabel) != instructions.get(j))
                 elseInstructions.add(instructions.remove(j));
+            boolean hasElseBlock = elseInstructions.size() > 1;
 
-            // Replace the previous ifbody label
-            labels.replace(ifLabel, elseInstructions.get(0));
+            if (hasElseBlock) {
+                // Replace the previous ifbody label
+                labels.replace(ifLabel, elseInstructions.get(0));
+            } else {
+                labels.remove(ifLabel);
+            }
 
             while (labels.get(endifLabel) != instructions.get(j))
                 ++j;
 
-            // Move the labels from the goto to the same as endif
+            // Move the labels from the goto to the same instructions as endif
             // This is needed because the goto always goes to endif but that was changed
             for (String key : labels.keySet()) {
                 if (labels.get(key) == elseInstructions.get(elseInstructions.size() - 1))
                     labels.replace(key, instructions.get(j));
             }
 
-            // Re-add the goto instruction and else instructions
-            instructions.add(j, elseInstructions.remove(elseInstructions.size() - 1));
-            instructions.addAll(j + 1, elseInstructions);
+            if (hasElseBlock) {
+                // Re-add the goto instruction and else instructions
+                instructions.add(j, elseInstructions.remove(elseInstructions.size() - 1));
+                instructions.addAll(j + 1, elseInstructions);
+            } else {
+                // Jump to the end of the if
+                condBranchInstruction.setLabel(endifLabel);
+            }
         }
     }
 
