@@ -8,12 +8,12 @@ public class DataflowAnalysis {
     private final Method method;
     private final String[][] use;
     private final String[][] def;
-    private final int[][] succ;
+    private final Integer[][] succ;
 
     private final String[][] in;
     private final String [][] out;
 
-    private final HashMap<String, int[]> liveRange;
+    private final HashMap<String, Integer[]> liveRange;
     private final HashSet<String> variables;
 
     private final HashMap<String, ArrayList<String>> interference;
@@ -23,7 +23,7 @@ public class DataflowAnalysis {
         this.method.buildCFG();
         this.use = new String[method.getInstructions().size()][];
         this.def = new String[method.getInstructions().size()][];
-        this.succ = new int[method.getInstructions().size()][];
+        this.succ = new Integer[method.getInstructions().size()][];
         this.variables = new HashSet<>();
 
         this.in = new String[method.getInstructions().size()][];
@@ -33,11 +33,12 @@ public class DataflowAnalysis {
     }
 
     public void build() {
+        this.prepareDataFlowAnalysis(method.getBeginNode().getSucc1());
 
     }
 
     /**
-     * Builds the next, in, out, def and use parameters
+     * Builds the successors, in, out, def and use parameters
      * for the Dataflow Analysis
      */
     private void prepareDataFlowAnalysis(Node node) {
@@ -45,6 +46,8 @@ public class DataflowAnalysis {
             return;
 
         this.storeDefined(node);
+        this.storeSucc(node);
+        this.storeUsed(node);
     }
 
     /**
@@ -79,5 +82,17 @@ public class DataflowAnalysis {
         String[] usedVariables = new UsedVariables(instr).getUsed();
         Set<String> set = new HashSet<>(Arrays.asList(usedVariables));
         use[index] = set.toArray(new String[0]);
+    }
+
+    /**
+     * Stores the successor instructions of the given node
+     */
+    private void storeSucc(Node node) {
+        List<Integer> succsNodes = new ArrayList<>();
+
+        for (Node successor : node.getSuccessors())
+            succsNodes.add(successor.getId() - 1);
+
+        this.succ[node.getId() - 1] = succsNodes.toArray(new Integer[0]);
     }
 }
