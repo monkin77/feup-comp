@@ -5,6 +5,9 @@ import pt.up.fe.comp.jasmin.instruction.InstructionBuilder;
 import pt.up.fe.comp.jasmin.instruction.InstructionList;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static pt.up.fe.comp.jasmin.JasminConstants.TAB;
 
@@ -49,6 +52,7 @@ public class MethodsBuilder extends AbstractBuilder {
         currentStack = 0;
 
         method.buildVarTable();
+        invertIfInstructions(method);
 
         sb.append(".limit locals ").append(getLocalsLimits(method)).append("\n");
         final ArrayList<Instruction> instructions = method.getInstructions();
@@ -74,6 +78,38 @@ public class MethodsBuilder extends AbstractBuilder {
         if (method.getVarTable().isEmpty()) return method.isStaticMethod() ? 0 : 1;
         int maxReg = method.getVarTable().values().stream().mapToInt(Descriptor::getVirtualReg).max().orElse(-1);
         return maxReg + 1;
+    }
+
+    private void invertIfInstructions(final Method method) {
+        ArrayList<Instruction> instructions = method.getInstructions();
+        HashMap<String, Instruction> labels = method.getLabels();
+
+        for (int i = 0; i < instructions.size(); ++i) {
+            Instruction instruction = method.getInstructions().get(i);
+            if (instruction.getInstType() != InstructionType.BRANCH)
+                continue;
+
+            CondBranchInstruction condBranchInstruction = (CondBranchInstruction) instruction;
+            String ifLabel = condBranchInstruction.getLabel();
+            String endifLabel = "endif_" + ifLabel.substring(ifLabel.indexOf('_') + 1);
+
+            ArrayList<Instruction> elseInstructions = new ArrayList<>();
+            int j = i + 1;
+            // Move the else instructions
+            while (labels.get(ifLabel) != instructions.get(j))
+                elseInstructions.add(instructions.remove(j));
+
+            // Replace the previous ifbody label
+            labels.replace(ifLabel, elseInstructions.get(0));
+            ++j;
+
+            while (labels.get(endifLabel) != instructions.get(j))
+                ++j;
+
+            // Re-add the goto instruction and else instructions
+            instructions.add(j, elseInstructions.remove(elseInstructions.size() - 1));
+            instructions.addAll(j + 1, elseInstructions);
+        }
     }
 
     public static void updateStackLimit(int sizeChange) {
