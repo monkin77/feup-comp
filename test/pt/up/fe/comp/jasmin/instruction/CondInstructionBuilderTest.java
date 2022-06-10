@@ -60,8 +60,6 @@ public class CondInstructionBuilderTest {
     public void opCond() {
         assertEquals("""
                 iload 7
-                iconst_1
-                ixor
-                ifne OP_LABEL""", opCondInstructionBuilder.compile());
+                ifeq OP_LABEL""", opCondInstructionBuilder.compile());
     }
 }

@@ -75,6 +75,11 @@ public class InstructionList {
         return "ifne " + label;
     }
 
+    public static String ifeq(String label) {
+        MethodsBuilder.updateStackLimit(-1);
+        return "ifeq " + label;
+    }
+
     public static String getfield(String className, String fieldName, String fieldType) {
         return "getfield " + className + "/" + fieldName + " " + fieldType;
     }
@@ -116,6 +121,16 @@ public class InstructionList {
     public static String if_icmpne(String label) {
         MethodsBuilder.updateStackLimit(-2);
         return "if_icmpne " + label;
+    }
+
+    public static String iand() {
+        MethodsBuilder.updateStackLimit(-1);
+        return "iand";
+    }
+
+    public static String ior() {
+        MethodsBuilder.updateStackLimit(-1);
+        return "ior";
     }
 
     public static String iadd() {

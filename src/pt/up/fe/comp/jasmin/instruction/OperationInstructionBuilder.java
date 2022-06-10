@@ -33,10 +33,36 @@ public class OperationInstructionBuilder extends AbstractBuilder {
         builder.append(JasminUtils.buildLoadInstruction(binaryOpInstruction.getRightOperand(), method));
 
         switch (type) {
-            case AND, ANDB -> builder.append("iand");
+            case AND, ANDB -> builder.append(InstructionList.iand());
+            case OR, ORB -> builder.append(InstructionList.ior());
             case LTH -> {
                 String operatorStr = "LESS_THAN";
                 String operation = InstructionList.if_icmplt("IS_" + operatorStr + "_" + MethodsBuilder.labelCounter);
+                appendOperation(operatorStr, operation);
+            }
+            case GTH -> {
+                String operatorStr = "GREATER_THAN";
+                String operation = InstructionList.if_icmpgt("IS_" + operatorStr + "_" + MethodsBuilder.labelCounter);
+                appendOperation(operatorStr, operation);
+            }
+            case LTE -> {
+                String operatorStr = "LESS_THAN_OR_EQUAL";
+                String operation = InstructionList.if_icmple("IS_" + operatorStr + "_" + MethodsBuilder.labelCounter);
+                appendOperation(operatorStr, operation);
+            }
+            case GTE -> {
+                String operatorStr = "GREATER_THAN_OR_EQUAL";
+                String operation = InstructionList.if_icmpge("IS_" + operatorStr + "_" + MethodsBuilder.labelCounter);
+                appendOperation(operatorStr, operation);
+            }
+            case EQ -> {
+                String operatorStr = "EQUAL";
+                String operation = InstructionList.if_icmpeq("IS_" + operatorStr + "_" + MethodsBuilder.labelCounter);
+                appendOperation(operatorStr, operation);
+            }
+            case NEQ -> {
+                String operatorStr = "NOT_EQUAL";
+                String operation = InstructionList.if_icmpne("IS_" + operatorStr + "_" + MethodsBuilder.labelCounter);
                 appendOperation(operatorStr, operation);
             }
             case ADD -> builder.append(InstructionList.iadd());

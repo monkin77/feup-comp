@@ -83,7 +83,6 @@ public class Launcher {
         // We can run the code with something like java -cp /tmp/jasmin_bruno/:libs-jmm/compiled/ FindMaximum
         jasminResult.compile();
 
-        System.out.println("JASMIN:\n" + jasminResult.getJasminCode());
         System.out.println("JASMIN RUN:\n" + jasminResult.run());
     }
 
