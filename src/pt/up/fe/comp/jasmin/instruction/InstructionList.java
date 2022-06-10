@@ -175,4 +175,9 @@ public class InstructionList {
     public static String iinc(int reg, int value) {
         return "iinc " + reg + " " + value;
     }
+
+    public static String pop() {
+        MethodsBuilder.updateStackLimit(-1);
+        return "pop";
+    }
 }

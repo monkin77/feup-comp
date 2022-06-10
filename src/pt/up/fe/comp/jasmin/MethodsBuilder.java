@@ -57,7 +57,7 @@ public class MethodsBuilder extends AbstractBuilder {
             sb.append(TAB);
             sb.append((new InstructionBuilder(classUnit, method, instruction)).compile());
             if (instruction.getInstType() == InstructionType.CALL && ((CallInstruction) (instruction)).getReturnType().getTypeOfElement() != ElementType.VOID) {
-                sb.append("pop").append("\n");
+                sb.append(InstructionList.pop()).append("\n");
             }
         }
 
