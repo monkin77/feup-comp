@@ -7,6 +7,9 @@ import pt.up.fe.comp.jmm.ollir.OllirResult;
 import pt.up.fe.comp.ollir.OllirBuilder;
 import pt.up.fe.comp.optimizations.BooleanSimplifierVisitor;
 import pt.up.fe.comp.optimizations.*;
+import pt.up.fe.comp.optimizations.ConstantFolderVisitor;
+import pt.up.fe.comp.optimizations.ConstantPropagatorVisitor;
+import pt.up.fe.comp.registerAllocation.AllocateRegisters;
 
 
 public class JmmOptimizer implements JmmOptimization {
@@ -44,10 +47,11 @@ public class JmmOptimizer implements JmmOptimization {
 
     @Override
     public OllirResult optimize(OllirResult ollirResult) {
-        if (ollirResult.getConfig().get("registerAllocation").equals("-1"))
+        Integer numRegisters = Integer.parseInt(ollirResult.getConfig().get("registerAllocation"));
+        if (numRegisters == -1)
             return ollirResult;
 
-        // ollirResult.getOllirClass().
+        new AllocateRegisters(ollirResult, numRegisters).updateVarTable();
         return ollirResult;
     }
 }

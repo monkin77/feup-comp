@@ -22,9 +22,9 @@ public class AllocateRegisters {
     }
 
     /**
-     * This method will build the var table for all the methods.
+     * This method will update the var table for all the methods.
      */
-    public void buildVarTable() {
+    public void updateVarTable() {
         for (Method method: this.classUnit.getMethods()) {
             this.allocateMethodRegisters(method);
         }
