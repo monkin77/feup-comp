@@ -17,6 +17,7 @@ public class DataflowAnalysis {
     private final HashMap<String, int[]> liveRange;
     private final HashSet<String> variables;
 
+    // Maps each variable to the list of variables that collide with it
     private final HashMap<String, ArrayList<String>> interference;
 
     public DataflowAnalysis(Method method) {
@@ -250,5 +251,9 @@ public class DataflowAnalysis {
                 .distinct()
                 .filter(x -> Arrays.stream(arr2).anyMatch(y -> y == x))
                 .toArray().length > 0;
+    }
+
+    public HashMap<String, ArrayList<String>> getInterference() {
+        return interference;
     }
 }
