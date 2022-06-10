@@ -3,6 +3,7 @@ package pt.up.fe.comp.registerAllocation.dataflow;
 import org.specs.comp.ollir.*;
 
 import java.util.*;
+import java.util.stream.IntStream;
 
 public class DataflowAnalysis {
     private final Method method;
@@ -13,7 +14,7 @@ public class DataflowAnalysis {
     private final String[][] in;
     private final String [][] out;
 
-    private final HashMap<String, Integer[]> liveRange;
+    private final HashMap<String, int[]> liveRange;
     private final HashSet<String> variables;
 
     private final HashMap<String, ArrayList<String>> interference;
@@ -34,7 +35,8 @@ public class DataflowAnalysis {
 
     public void build() {
         this.prepareDataFlowAnalysis(method.getBeginNode().getSucc1());
-
+        this.livenessAnalysis();
+        this.calculateLiveRange();
     }
 
     /**
@@ -167,5 +169,52 @@ public class DataflowAnalysis {
         temp.removeAll(paramsName);
 
         return temp.toArray(new String[0]);
+    }
+
+    /**
+     * Calculates the live range for each defined variable
+     */
+    private void calculateLiveRange() {
+        for (String varName : this.variables) {
+            int[] varLiveRange = new int[]{};
+            Integer lastIn = this.getLastIn(varName);
+            Integer firstDef = this.getFirstDef(varName);
+            if (lastIn == null && firstDef != null) {
+                // If the last usage of the variable cannot be determined, assume it is alive until the end
+                varLiveRange = IntStream.range(firstDef, this.in.length).toArray();
+            } else if (lastIn != null && firstDef != null) {
+                varLiveRange = IntStream.range(firstDef, lastIn).toArray();
+            }
+
+            this.liveRange.put(varName, varLiveRange);
+        }
+    }
+
+    /**
+     * Get the last instruction that contains the given variable in the In Array.
+     * @param varName variable name
+     * @return Instruction index
+     */
+    private Integer getLastIn(String varName) {
+        for (int i = this.in.length - 1; i >= 0; i--) {
+            ArrayList<String> inTemp = new ArrayList<>(Arrays.asList(this.in[i]));
+            if (inTemp.contains(varName))
+                return i;
+        }
+        return null;
+    }
+
+    /**
+     * Get the first instruction that contains the given variable in the Def Array
+     * @param varName variable name
+     * @return Instruction index
+     */
+    private Integer getFirstDef(String varName) {
+        for (int i = 0; i < this.def.length; i++) {
+            ArrayList<String> defTemp = new ArrayList<>(Arrays.asList(this.def[i]));
+            if (defTemp.contains(varName))
+                return i;
+        }
+        return null;
     }
 }
