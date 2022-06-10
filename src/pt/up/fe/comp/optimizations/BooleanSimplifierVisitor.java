@@ -80,7 +80,7 @@ public class BooleanSimplifierVisitor extends PostorderJmmVisitor<Object, Boolea
                 boolean equal = lhsKind.equals("LessEqualExpr") || lhsKind.equals("GreaterEqualExpr");
                 boolean isFalse = lhsKind.equals("LessExpr") || lhsKind.equals("GreaterExpr");
                 if (equal) replaceWithKindCopy2Children(node, "EqualExpr", lhsLhs, lhsRhs);
-                else if (isFalse) replaceWithFalse(node);
+                else if (isFalse) replaceWithBoolean(node, "false");
                 else if (lhsKind.equals("EqualExpr") || lhsKind.equals("NotEqualExpr")) node.replace(lhs);
                 else return false;
             } else {
@@ -123,7 +123,7 @@ public class BooleanSimplifierVisitor extends PostorderJmmVisitor<Object, Boolea
                 boolean equal = lhsKind.equals("LessEqualExpr") || lhsKind.equals("GreaterEqualExpr");
                 boolean isTrue = lhsKind.equals("LessExpr") || lhsKind.equals("GreaterExpr");
                 if (equal) replaceWithKindCopy2Children(node, "NotEqualExpr", lhsLhs, lhsRhs);
-                else if (isTrue) replaceWithTrue(node);
+                else if (isTrue) replaceWithBoolean(node, "true");
                 else return false;
             } else {
                 simplify(node, lhsKind, rhsKind, lhsLhs, lhsRhs, BooleanRulesMap.switchedOrTrue, BooleanRulesMap.switchedOrReduce, true);
@@ -138,7 +138,7 @@ public class BooleanSimplifierVisitor extends PostorderJmmVisitor<Object, Boolea
         List<String> kinds = List.of(lhsKind, rhsKind);
         List<String> reversedKinds = List.of(rhsKind, lhsKind);
         if (falseMap.contains(kinds) || falseMap.contains(reversedKinds)) {
-            replaceWithFalse(node);
+            replaceWithBoolean(node, "false");
         } else if (reduceMap.containsKey(kinds)) {
             String newKind = reduceMap.get(kinds);
             replaceWithKindCopy2Children(node, newKind, lhsLhs, lhsRhs);
@@ -156,15 +156,9 @@ public class BooleanSimplifierVisitor extends PostorderJmmVisitor<Object, Boolea
         node.replace(newNode);
     }
 
-    private void replaceWithFalse(JmmNode node) {
+    private void replaceWithBoolean(JmmNode node, String value) {
         JmmNode newNode = new JmmNodeImpl("BooleanLiteral");
-        newNode.put("value", "false");
-        node.replace(newNode);
-    }
-
-    private void replaceWithTrue(JmmNode node) {
-        JmmNode newNode = new JmmNodeImpl("BooleanLiteral");
-        newNode.put("value", "true");
+        newNode.put("value", value);
         node.replace(newNode);
     }
 }
