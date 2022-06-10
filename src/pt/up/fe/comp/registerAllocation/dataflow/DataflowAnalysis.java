@@ -48,6 +48,8 @@ public class DataflowAnalysis {
         this.storeDefined(node);
         this.storeSucc(node);
         this.storeUsed(node);
+        this.prepareDataFlowAnalysis(node.getSucc1());
+        this.prepareDataFlowAnalysis(node.getSucc2());
     }
 
     /**
@@ -94,5 +96,76 @@ public class DataflowAnalysis {
             succsNodes.add(successor.getId() - 1);
 
         this.succ[node.getId() - 1] = succsNodes.toArray(new Integer[0]);
+    }
+
+
+    /**
+     * Computation of backward Liveness Analysis
+     */
+    private void livenessAnalysis() {
+        String[][] prevOut = null;
+        String[][] prevIn = null;
+
+        do {
+            prevIn = Utils.deepCopyMatrix(prevIn);
+            prevOut = Utils.deepCopyMatrix(prevOut);
+
+            for (int i = this.use.length - 1; i >= 0; i--) {
+                // Remove nulls
+                if (this.out[i] == null) this.out[i] = new String[]{};
+                if (this.in[i] == null) this.in[i] = new String[]{};
+
+                this.out[i] = this.removeParams(this.getOut(i));
+                this.in[i] = this.removeParams(this.getIn(i));
+            }
+        } while(!Utils.compareMatrix(this.out, prevOut) || !Utils.compareMatrix(this.in, prevIn));
+    }
+
+    /**
+     * Calculates the Out array of a certain instruction in a Backward Liveness Analysis
+     * @param index Instruction index
+     * @return Out array
+     */
+    private String[] getOut(int index) {
+        HashSet<String> out = new HashSet<>();
+
+        for (int i = 0; i < this.succ[index].length; i++) {
+            int instrId = this.succ[index][i];
+
+            if (instrId < 0) continue;
+            if (this.in[instrId] == null)
+                this.in[instrId] = new String[]{};
+
+            out.addAll(Arrays.asList(this.in[instrId]));
+        }
+        return out.toArray(new String[0]);
+    }
+
+    /**
+     * Calculates the In array of a certain instruction in a Backward Liveness Analysis
+     * @param index Instruction index
+     * @return In array
+     */
+    private String[] getIn(int index) {
+        HashSet<String> in = new HashSet<>(Arrays.asList(this.out[index]));
+        in.removeAll(Arrays.asList(this.def[index]));
+        in.addAll(Arrays.asList(this.use[index]));
+        return in.toArray(new String[0]);
+    }
+
+    /**
+     * Remove the parameters from the array
+     */
+    private String[] removeParams(String[] array) {
+        ArrayList<Element> parameters = this.method.getParams();
+        ArrayList<String> paramsName = new ArrayList<>();
+
+        for (int i = 0; i < parameters.size(); i++)
+            paramsName.add(((Operand) parameters.get(i)).getName());
+
+        ArrayList<String> temp = new ArrayList<>(Arrays.asList(array));
+        temp.removeAll(paramsName);
+
+        return temp.toArray(new String[0]);
     }
 }
