@@ -38,8 +38,17 @@ public class AllocateRegisters {
         InterferenceGraph interferenceGraph = new InterferenceGraph(analysisInterference);
 
         GraphColoring graphColoring = new GraphColoring(this.maxRegisters, interferenceGraph);
-        if (!graphColoring.buildStack())
+        if (!graphColoring.buildStack()) // TODO: CHECK IF WE SHOULD ADD A REPORT
             throw new RuntimeException("Not possible to execute the program with the number of register provided.");
+        if (!graphColoring.coloring())
+            throw new RuntimeException("Unable to color the graph.");
 
+        var varTable = method.getVarTable();
+        for (var node : interferenceGraph.getNodeList()) {
+            // Adds the offset for the first registers corresponding to the parameters
+            varTable.get(node.getValue()).setVirtualReg(node.getRegister() + method.getParams().size());
+        }
+
+        return true;
     }
 }

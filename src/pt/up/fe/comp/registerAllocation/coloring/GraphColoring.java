@@ -48,4 +48,41 @@ public class GraphColoring {
             if (!this.stackVisited.contains(child)) edgesNotInStack++;
         return edgesNotInStack;
     }
+
+    /**
+     * Colors the Graph, iterating the stack and assigning a color (register) to each node
+     * @return true upon success. false otherwise.
+     */
+    public boolean coloring() {
+        for (int i = this.stackVisited.size() - 1; i >= 0; i--) {
+            NodeInterference node = this.stackVisited.get(i);
+            int register = this.getAvailableColor(node);
+            if (register == -1) return false;
+            node.setRegister(register);
+            this.stackVisited.remove(node);
+        }
+        return true;
+    }
+
+    /**
+     * Gets the color for a given node
+     * @return Register Number (color)
+     */
+    private int getAvailableColor(NodeInterference node) {
+        ArrayList<Integer> usedColors = new ArrayList<>();
+
+        // Add used colors from its edges
+        for (NodeInterference edge : node.getEdges()) {
+            if (edge.getRegister() != -1)   // -1 represents no colors assigned
+                usedColors.add(edge.getRegister());
+        }
+
+        // Find an available color
+        for (int i = 1; i < k; i++) {
+            if (!usedColors.contains(i))
+                return i;
+        }
+
+        return -1;
+    }
 }

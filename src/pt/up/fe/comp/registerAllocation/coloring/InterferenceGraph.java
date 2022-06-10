@@ -35,4 +35,8 @@ public class InterferenceGraph {
                 return node;
         return null;
     }
+
+    public ArrayList<NodeInterference> getNodeList() {
+        return nodeList;
+    }
 }
