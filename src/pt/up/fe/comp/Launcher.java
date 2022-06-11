@@ -11,9 +11,11 @@ import pt.up.fe.specs.util.SpecsLogs;
 import pt.up.fe.specs.util.SpecsSystem;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.IntStream;
 
 public class Launcher {
 
@@ -23,10 +25,25 @@ public class Launcher {
         SpecsLogs.info("Executing with args: " + Arrays.toString(args));
 
         // read the input code
-        if (args.length != 1) {
-            throw new RuntimeException("Expected a single argument, a path to an existing input file.");
+        if (args.length < 1) {
+            throw new RuntimeException("Expected the following evocations:\n" +
+                    "comp2022-00 [-r=<num>] [-o] [-d] -i=<input_file.jmm>");
         }
-        File inputFile = new File(args[0]);
+        ArrayList<String> argsList = new ArrayList<>(Arrays.asList(args));
+
+        String fileName = null;
+        for (String arg : argsList) {
+            if (arg.startsWith("-i=")) {
+                fileName = arg.substring(3);
+                break;
+            }
+        }
+        if (fileName == null) {
+            throw new RuntimeException("Expected the following evocations:\n" +
+                    "comp2022-00 [-r=<num>] [-o] [-d] -i=<input_file.jmm>");
+        }
+
+        File inputFile = new File(fileName);
         if (!inputFile.isFile()) {
             throw new RuntimeException("Expected a path to an existing input file, got '" + args[0] + "'.");
         }
@@ -35,9 +52,12 @@ public class Launcher {
         // Create config
         Map<String, String> config = new HashMap<>();
         config.put("inputFile", args[0]);
-        config.put("optimize", "false");
-        config.put("registerAllocation", "-1");
-        config.put("debug", "false");
+        config.put("optimize", argsList.contains("-o") ? "true" : "false");
+
+        int register = IntStream.range(0, argsList.size())
+                .filter(i -> argsList.get(i).startsWith("-r=")).findFirst().orElse(-1);
+        config.put("registerAllocation", Integer.toString(register));
+        config.put("debug", argsList.contains("-d") ? "true" : "false");
 
         // Instantiate JmmParser
         SimpleParser parser = new SimpleParser();
@@ -63,13 +83,18 @@ public class Launcher {
         // Instantiate Optimization stage
         JmmOptimization jmmOptimization = new JmmOptimizer();
 
-        JmmSemanticsResult optimizedResult = jmmOptimization.optimize(analysisResult);
+        if (config.get("optimize").equals("true"))
+            analysisResult = jmmOptimization.optimize(analysisResult);
 
         // Optimization stage
-        OllirResult ollirResult = jmmOptimization.toOllir(optimizedResult);
+        OllirResult ollirResult = jmmOptimization.toOllir(analysisResult);
 
         // Check if there are optimization errors
         TestUtils.noErrors(ollirResult.getReports());
+
+        // Optimization stage
+        if (config.get("optimize").equals("true"))
+            ollirResult = jmmOptimization.optimize(ollirResult);
 
         // Instantiate Compilation stage
         JasminBackend jasminBackend = new JasminBackendJmm();
