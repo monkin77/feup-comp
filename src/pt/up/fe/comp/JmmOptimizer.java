@@ -55,7 +55,9 @@ public class JmmOptimizer implements JmmOptimization {
         if (numRegisters == -2) // The flag was not present
             return ollirResult;
 
-        new AllocateRegisters(ollirResult, numRegisters).updateVarTable();
+        AllocateRegisters allocator = new AllocateRegisters(ollirResult, numRegisters);
+        allocator.updateVarTable();
+
         return ollirResult;
     }
 }

@@ -34,7 +34,7 @@ public class AllocateRegisters {
         DataflowAnalysis dataflowAnalysis = new DataflowAnalysis(method);
         dataflowAnalysis.build();
 
-        System.out.println("Showing DataFlow Analysis for method: " + method.getMethodName());
+        System.out.println("Showing DataFlow Analysis for method " + method.getMethodName() + ":");
         dataflowAnalysis.show();
         dataflowAnalysis.showLiveRange();
         dataflowAnalysis.showInterference();
@@ -49,11 +49,15 @@ public class AllocateRegisters {
         if (!graphColoring.coloring())
             throw new RuntimeException("Unable to color the graph.");
 
+        System.out.printf("Local variables used in method %s:\n", method.getMethodName());
         var varTable = method.getVarTable();
         for (var node : interferenceGraph.getNodeList()) {
             // Adds the offset for the first registers corresponding to the parameters
             varTable.get(node.getValue()).setVirtualReg(node.getRegister() + method.getParams().size());
+            System.out.printf("Reg %d <- %s\n", node.getRegister(), node.getValue());
         }
+
+        System.out.println();
 
         return true;
     }
