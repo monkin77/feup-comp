@@ -14,9 +14,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class IfNegationTest {
-    private JasminResult getJasminResult(String filename) {
+    private JasminResult getJasminResult(String filename, boolean optimize) {
         Map<String, String> config = new HashMap<>();
-        config.put("optimize", "true");
+        config.put("optimize", optimize ? "true" : "false");
         final String jmmCode = SpecsIo.getResource("pt/up/fe/comp/fixtures/public/" + filename);
         SimpleParser parser = new SimpleParser();
         JmmParserResult parserResult = parser.parse(jmmCode, config);
@@ -36,7 +36,7 @@ public class IfNegationTest {
         int expectedIf = 1;
         int expectedGoto = 0;
 
-        JasminResult result = getJasminResult(filename);
+        JasminResult result = getJasminResult(filename, true);
 
         var ifOccurOpt = CpUtils.countOccurences(result, "if_icmp");
         var gotoOccurOpt = CpUtils.countOccurences(result, "goto");
@@ -52,7 +52,7 @@ public class IfNegationTest {
         int expectedIfLt = 0;
         int expectedGoto = 3;
 
-        JasminResult jasminResult = getJasminResult(filename);
+        JasminResult jasminResult = getJasminResult(filename, true);
 
         var ifGeOccurOpt = CpUtils.countOccurences(jasminResult, "if_icmpge");
         var ifLtOccurOpt = CpUtils.countOccurences(jasminResult, "if_icmplt");
@@ -69,7 +69,7 @@ public class IfNegationTest {
     @Test
     public void simpleIfStructure() {
         String filename = "SimpleIf.jmm";
-        JasminResult jasminResult = getJasminResult(filename);
+        JasminResult jasminResult = getJasminResult(filename, true);
         String expectedCode = """
                 if_icmpge ifbody_0
                     iconst_1
@@ -82,5 +82,33 @@ public class IfNegationTest {
                 """;
         int occurences = CpUtils.countOccurences(jasminResult, expectedCode);
         CpUtils.assertEquals("Expected the code to include:\n" + expectedCode, 1, occurences, jasminResult);
+    }
+
+    @Test
+    public void comparingWithZeroRight() {
+        String filename = "SimpleIfZeroRight.jmm";
+        JasminResult jasminResult = getJasminResult(filename, false);
+        CpUtils.matches(jasminResult, "iflt");
+    }
+
+    @Test
+    public void comparingWithZeroRightInverted() {
+        String filename = "SimpleIfZeroRight.jmm";
+        JasminResult jasminResult = getJasminResult(filename, true);
+        CpUtils.matches(jasminResult, "ifge");
+    }
+
+    @Test
+    public void comparingWithZeroLeft() {
+        String filename = "SimpleIfZeroLeft.jmm";
+        JasminResult jasminResult = getJasminResult(filename, false);
+        CpUtils.matches(jasminResult, "ifgt");
+    }
+
+    @Test
+    public void comparingWithZeroLeftInverted() {
+        String filename = "SimpleIfZeroLeft.jmm";
+        JasminResult jasminResult = getJasminResult(filename, true);
+        CpUtils.matches(jasminResult, "ifle");
     }
 }
