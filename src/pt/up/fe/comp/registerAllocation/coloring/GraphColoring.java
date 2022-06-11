@@ -25,8 +25,8 @@ public class GraphColoring {
         while (this.stackVisited.size() != nodeList.size()) {
             removedNode = false;
             for (NodeInterference node : nodeList) {
-                if (this.stackVisited.contains(node))continue;
-                if (this.countRemainingEdges(node) <= k) {
+                if (this.stackVisited.contains(node)) continue;
+                if (this.countRemainingEdges(node) <= this.k) {
                     this.stackVisited.add(node);
                     removedNode = true;
                 }
@@ -78,7 +78,7 @@ public class GraphColoring {
         }
 
         // Find an available color
-        for (int i = 1; i < k; i++) {
+        for (int i = 0; i < this.k; i++) {
             if (!usedColors.contains(i))
                 return i;
         }

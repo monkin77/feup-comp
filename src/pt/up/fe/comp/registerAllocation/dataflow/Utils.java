@@ -29,4 +29,31 @@ public class Utils {
         }
         return true;
     }
+
+
+    /**
+     * Helper function to print a matrix.
+     * @param mat Matrix.
+     */
+    public static void printMatrix(Object[][] mat) {
+        System.out.print("[");
+        for (int i = 0; i < mat.length; i++) {
+            System.out.print("[ ");
+            for (int j = 0; j < mat[i].length; j++)
+                System.out.print(mat[i][j] + " ");
+            System.out.print("]");
+        }
+        System.out.print("]");
+    }
+
+    /**
+     * Helper function to print the variables defined in a method.
+     */
+    public static void printArray(Object[] array){
+        System.out.print("[ ");
+        for (int i = 0 ; i < array.length; i++){
+            System.out.print(array[i] + " ");
+        }
+        System.out.println("]");
+    }
 }

@@ -4,6 +4,7 @@ import org.specs.comp.ollir.*;
 
 import java.util.*;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 public class DataflowAnalysis {
     private final Method method;
@@ -185,7 +186,7 @@ public class DataflowAnalysis {
                 // If the last usage of the variable cannot be determined, assume it is alive until the end
                 varLiveRange = IntStream.range(firstDef, this.in.length).toArray();
             } else if (lastIn != null && firstDef != null) {
-                varLiveRange = IntStream.range(firstDef, lastIn).toArray();
+                varLiveRange = IntStream.range(firstDef, lastIn + 1).toArray();
             }
 
             this.liveRange.put(varName, varLiveRange);
@@ -255,5 +256,42 @@ public class DataflowAnalysis {
 
     public HashMap<String, ArrayList<String>> getInterference() {
         return interference;
+    }
+
+    // SHOW ----------------------------------------------------------------------
+    public void show() {
+        System.out.println("DEF");
+        Utils.printMatrix(this.def);
+        System.out.println("\nUSE");
+        Utils.printMatrix(this.use);
+        System.out.println("\nIN");
+        Utils.printMatrix(this.in);
+        System.out.println("\nOUT");
+        Utils.printMatrix(this.out);
+        System.out.println("\nSUCC");
+        Utils.printMatrix(this.succ);
+        System.out.println("\nVARIABLES");
+        Utils.printArray(this.variables.toArray());
+    }
+
+    public void showLiveRange() {
+        System.out.println("LIVE RANGE:");
+        this.liveRange.forEach((key, value) -> {
+            System.out.print("{" + key + " - ");
+            Stream.of(value).forEach(e -> System.out.print(Arrays.toString(e)));
+            System.out.print("}\n");
+
+        });
+
+    }
+
+    public void showInterference() {
+        System.out.println("INTERFERENCE");
+        this.interference.forEach((key, value) -> {
+            System.out.print("{" + key + " - ");
+            System.out.print(value);
+            System.out.print("}\n");
+
+        });
     }
 }
