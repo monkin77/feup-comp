@@ -80,6 +80,26 @@ public class InstructionList {
         return "ifeq " + label;
     }
 
+    public static String iflt(String label) {
+        MethodsBuilder.updateStackLimit(-1);
+        return "iflt " + label;
+    }
+
+    public static String ifgt(String label) {
+        MethodsBuilder.updateStackLimit(-1);
+        return "ifgt " + label;
+    }
+
+    public static String ifle(String label) {
+        MethodsBuilder.updateStackLimit(-1);
+        return "ifle " + label;
+    }
+
+    public static String ifge(String label) {
+        MethodsBuilder.updateStackLimit(-1);
+        return "ifge " + label;
+    }
+
     public static String getfield(String className, String fieldName, String fieldType) {
         return "getfield " + className + "/" + fieldName + " " + fieldType;
     }
