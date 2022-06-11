@@ -300,7 +300,6 @@ public class Cpf5_Optimizations {
 
     @Test
     public void section4_WhileTemplate_DoWhile() {
-
         String filename = "while_template/WhileOpt.jmm";
         int expectedIf = 1;
         int expectedGoto = 0;

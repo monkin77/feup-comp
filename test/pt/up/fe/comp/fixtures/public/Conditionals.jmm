@@ -1,0 +1,19 @@
+import io;
+class HelloWorld {
+	public static void main(String[] args) {
+        if (4 < 3) {
+            io.println(1);
+        } else {
+            if (2 < 3) {
+                io.println(2);
+                if (4 < 3) {
+                    io.println(3);
+                } else {
+                    io.println(4);
+                }
+            } else {
+                io.println(5);
+            }
+        }
+	}
+}
