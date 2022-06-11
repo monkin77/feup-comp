@@ -13,9 +13,15 @@ public class MethodsBuilder extends AbstractBuilder {
     public static HashSet<Instruction> instructionsToInvert = new HashSet<>();
     private static int stackLimit = 0;
     private static int currentStack = 0;
+    private final boolean optimizeIfStatements;
+
+    public MethodsBuilder(final ClassUnit classUnit, final boolean optimizeIfStatements) {
+        super(classUnit);
+        this.optimizeIfStatements = optimizeIfStatements;
+    }
 
     public MethodsBuilder(final ClassUnit classUnit) {
-        super(classUnit);
+        this(classUnit, false);
     }
 
     @Override
@@ -51,7 +57,7 @@ public class MethodsBuilder extends AbstractBuilder {
         instructionsToInvert.clear();
 
         method.buildVarTable();
-        invertIfInstructions(method);
+        if (optimizeIfStatements) invertIfInstructions(method);
 
         sb.append(".limit locals ").append(getLocalsLimits(method)).append("\n");
         final ArrayList<Instruction> instructions = method.getInstructions();

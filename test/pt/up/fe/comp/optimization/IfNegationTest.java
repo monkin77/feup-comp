@@ -1,9 +1,13 @@
 package pt.up.fe.comp.optimization;
 
 import org.junit.Test;
-import pt.up.fe.comp.CpUtils;
-import pt.up.fe.comp.TestUtils;
+import pt.up.fe.comp.*;
+import pt.up.fe.comp.jmm.analysis.JmmSemanticsResult;
+import pt.up.fe.comp.jmm.jasmin.JasminBackend;
 import pt.up.fe.comp.jmm.jasmin.JasminResult;
+import pt.up.fe.comp.jmm.ollir.JmmOptimization;
+import pt.up.fe.comp.jmm.ollir.OllirResult;
+import pt.up.fe.comp.jmm.parser.JmmParserResult;
 import pt.up.fe.specs.util.SpecsIo;
 
 import java.util.HashMap;
@@ -11,9 +15,19 @@ import java.util.Map;
 
 public class IfNegationTest {
     private JasminResult getJasminResult(String filename) {
-        /*Map<String, String> config = new HashMap<>();
-        config.put("optimize", "true");*/
-        return TestUtils.backend(SpecsIo.getResource("pt/up/fe/comp/fixtures/public/" + filename));
+        Map<String, String> config = new HashMap<>();
+        config.put("optimize", "true");
+        final String jmmCode = SpecsIo.getResource("pt/up/fe/comp/fixtures/public/" + filename);
+        SimpleParser parser = new SimpleParser();
+        JmmParserResult parserResult = parser.parse(jmmCode, config);
+        JmmOptimization jmmOptimization = new JmmOptimizer();
+        JmmAnalyser analyser = new JmmAnalyser();
+        // Semantic Analysis stage
+        JmmSemanticsResult analysisResult = analyser.semanticAnalysis(parserResult);
+        OllirResult ollirResult = jmmOptimization.toOllir(analysisResult);
+
+        final JasminBackend backend = new JasminBackendJmm();
+        return backend.toJasmin(ollirResult);
     }
 
     @Test

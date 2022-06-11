@@ -37,7 +37,7 @@ public class JasminBuilderTest {
         Mockito.when(classUnit.getFields()).thenReturn(new ArrayList<>());
         Mockito.when(classUnit.getMethods()).thenReturn(new ArrayList<>());
 
-        jasminBuilder = new JasminBuilder(classUnit);
+        jasminBuilder = new JasminBuilder(classUnit, false);
     }
 
     @Test

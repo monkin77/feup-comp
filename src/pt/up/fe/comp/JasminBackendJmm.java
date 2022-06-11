@@ -13,7 +13,8 @@ public class JasminBackendJmm implements JasminBackend {
     @Override
     public JasminResult toJasmin(OllirResult ollirResult) {
         final ClassUnit classUnit = ollirResult.getOllirClass();
-        final String code = new JasminBuilder(classUnit).compile();
+        final String code = new JasminBuilder(classUnit,
+                Boolean.parseBoolean(ollirResult.getConfig().get("optimize"))).compile();
         System.out.println("Jasmin Code:");
         System.out.println(code);
         return new JasminResult(classUnit.getClassName(), code, Collections.emptyList());
