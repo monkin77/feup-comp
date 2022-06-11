@@ -3,6 +3,8 @@ package pt.up.fe.comp.registerAllocation;
 import org.specs.comp.ollir.ClassUnit;
 import org.specs.comp.ollir.Method;
 import pt.up.fe.comp.jmm.ollir.OllirResult;
+import pt.up.fe.comp.jmm.report.Report;
+import pt.up.fe.comp.jmm.report.Stage;
 import pt.up.fe.comp.registerAllocation.coloring.GraphColoring;
 import pt.up.fe.comp.registerAllocation.coloring.InterferenceGraph;
 import pt.up.fe.comp.registerAllocation.dataflow.DataflowAnalysis;
@@ -26,7 +28,7 @@ public class AllocateRegisters {
      */
     public void updateVarTable() {
         for (Method method: this.classUnit.getMethods()) {
-            this.allocateMethodRegisters(method);
+            if (!this.allocateMethodRegisters(method)) return;
         }
     }
 
@@ -44,10 +46,21 @@ public class AllocateRegisters {
         InterferenceGraph interferenceGraph = new InterferenceGraph(analysisInterference);
 
         GraphColoring graphColoring = new GraphColoring(this.maxRegisters, interferenceGraph);
-        if (!graphColoring.buildStack()) // TODO: CHECK IF WE SHOULD ADD A REPORT
-            throw new RuntimeException("Not possible to execute the program with the number of register provided.");
-        if (!graphColoring.coloring())
-            throw new RuntimeException("Unable to color the graph.");
+        if (!graphColoring.buildStack()) {
+            // Call method to get the minimum number of registers to run. Iterating k from the initial one + 1
+            int minRegisters = 0;
+            this.ollirResult.getReports().add(Report.newError(Stage.OPTIMIZATION, -1, -1,
+                    "Unable to build the graph stack with the number of registers provided. Minimum Registers: " + minRegisters,
+                    null));
+            return false;
+        }
+        if (!graphColoring.coloring()) {
+            int minRegisters = 0;
+            this.ollirResult.getReports().add(Report.newError(Stage.OPTIMIZATION, -1, -1,
+                    "Unable to color the graph with the number of registers provided. Minimum Registers: " + minRegisters,
+                    null));
+            return false;
+        }
 
         System.out.printf("Local variables used in method %s:\n", method.getMethodName());
         var varTable = method.getVarTable();
