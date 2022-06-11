@@ -32,10 +32,6 @@ public class InstructionBuilder extends AbstractBuilder {
             }
             case GOTO -> {
                 GotoInstruction gotoInstruction = (GotoInstruction) instruction;
-                while (method.getLabels().get(gotoInstruction.getLabel()).getInstType().equals(InstructionType.GOTO)) {
-                    gotoInstruction = (GotoInstruction) method.getLabels().get(gotoInstruction.getLabel());
-                }
-                method.getLabels().get(gotoInstruction.getLabel());
                 builder.append(InstructionList.gotoInstruction(gotoInstruction.getLabel()));
             }
             case BRANCH -> {
