@@ -107,12 +107,12 @@ public class DataflowAnalysis {
      * Computation of backward Liveness Analysis
      */
     private void livenessAnalysis() {
-        String[][] prevOut = null;
-        String[][] prevIn = null;
+        String[][] prevOut;
+        String[][] prevIn;
 
         do {
-            prevIn = Utils.deepCopyMatrix(prevIn);
-            prevOut = Utils.deepCopyMatrix(prevOut);
+            prevIn = Utils.deepCopyMatrix(this.in);
+            prevOut = Utils.deepCopyMatrix(this.out);
 
             for (int i = this.use.length - 1; i >= 0; i--) {
                 // Remove nulls
