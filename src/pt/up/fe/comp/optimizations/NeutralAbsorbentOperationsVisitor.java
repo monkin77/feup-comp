@@ -3,9 +3,8 @@ package pt.up.fe.comp.optimizations;
 import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp.jmm.ast.PostorderJmmVisitor;
 
-public class ConstantFolderSimplifierVisitor extends PostorderJmmVisitor<Object, Boolean> {
-    public ConstantFolderSimplifierVisitor() {
-
+public class NeutralAbsorbentOperationsVisitor extends PostorderJmmVisitor<Object, Boolean> {
+    public NeutralAbsorbentOperationsVisitor() {
         addVisit("AndExpr", this::visitAndExpr);
 
         addVisit("AddExpr", this::visitAddExpr);
