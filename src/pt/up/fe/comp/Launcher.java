@@ -33,6 +33,8 @@ public class Launcher {
                     int numRegIdx = i+1;
                     if (numRegIdx < args.length) {
                         numRegisters = args[numRegIdx];
+                        if (numRegisters.equals("-1"))
+                            numRegisters = "65535"; // TODO: CHECK IF IT SHOULD BE DONE THIS WAY
                     } else {
                         throw new RuntimeException("Missing argument for the number of register allocated.");
                     }
