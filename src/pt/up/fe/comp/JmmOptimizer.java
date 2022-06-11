@@ -52,7 +52,7 @@ public class JmmOptimizer implements JmmOptimization {
             return ollirResult;
 
         int numRegisters = Integer.parseInt(numRegisterStr);
-        if (numRegisters == -1)
+        if (numRegisters == -2) // The flag was not present
             return ollirResult;
 
         new AllocateRegisters(ollirResult, numRegisters).updateVarTable();

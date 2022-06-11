@@ -22,7 +22,8 @@ public class Launcher {
 
         SpecsLogs.info("Executing with args: " + Arrays.toString(args));
 
-        String numRegisters = "-1";
+        // CHECK THE REMAINING WORK TO BE DONE IN THE PROJECT SPECIFICATION
+        String numRegisters = "-2";
         // read the input code
         if (args.length < 1) {
             throw new RuntimeException("Expected a single argument, a path to an existing input file.");
