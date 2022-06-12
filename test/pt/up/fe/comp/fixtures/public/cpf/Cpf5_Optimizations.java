@@ -31,24 +31,24 @@ public class Cpf5_Optimizations {
 
 
     static OllirResult getOllirResult(String filename) {
-        return TestUtils.optimize(SpecsIo.getResource("fixtures/public/cpf/5_optimizations/" + filename));
+        return TestUtils.optimize(SpecsIo.getResource("pt/up/fe/comp/fixtures/public/cpf/5_optimizations/" + filename));
     }
 
     static JasminResult getJasminResult(String filename) {
-        String resource = SpecsIo.getResource("fixtures/public/cpf/5_optimizations/" + filename);
+        String resource = SpecsIo.getResource("pt/up/fe/comp/fixtures/public/cpf/5_optimizations/" + filename);
         return TestUtils.backend(resource);
     }
 
     static JasminResult getJasminResultOpt(String filename) {
         Map<String, String> config = new HashMap<>();
         config.put("optimize", "true");
-        return TestUtils.backend(SpecsIo.getResource("fixtures/public/cpf/5_optimizations/" + filename), config);
+        return TestUtils.backend(SpecsIo.getResource("pt/up/fe/comp/fixtures/public/cpf/5_optimizations/" + filename), config);
     }
 
     static JasminResult getJasminResultReg(String filename, int numReg) {
         Map<String, String> config = new HashMap<>();
         config.put("registerAllocation", String.valueOf(numReg));
-        return TestUtils.backend(SpecsIo.getResource("fixtures/public/cpf/5_optimizations/" + filename), config);
+        return TestUtils.backend(SpecsIo.getResource("pt/up/fe/comp/fixtures/public/cpf/5_optimizations/" + filename), config);
     }
 
     /**
