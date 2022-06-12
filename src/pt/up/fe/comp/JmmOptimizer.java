@@ -7,6 +7,9 @@ import pt.up.fe.comp.jmm.ollir.OllirResult;
 import pt.up.fe.comp.ollir.OllirBuilder;
 import pt.up.fe.comp.optimizations.BooleanSimplifierVisitor;
 import pt.up.fe.comp.optimizations.*;
+import pt.up.fe.comp.optimizations.ConstantFolderVisitor;
+import pt.up.fe.comp.optimizations.ConstantPropagatorVisitor;
+import pt.up.fe.comp.registerAllocation.AllocateRegisters;
 
 
 public class JmmOptimizer implements JmmOptimization {
@@ -44,6 +47,17 @@ public class JmmOptimizer implements JmmOptimization {
 
     @Override
     public OllirResult optimize(OllirResult ollirResult) {
+        String numRegisterStr = ollirResult.getConfig().get("registerAllocation");
+        if (numRegisterStr == null)
+            return ollirResult;
+
+        int numRegisters = Integer.parseInt(numRegisterStr);
+        if (numRegisters == -2) // The flag was not present
+            return ollirResult;
+
+        AllocateRegisters allocator = new AllocateRegisters(ollirResult, numRegisters);
+        allocator.updateVarTable();
+
         return ollirResult;
     }
 }

@@ -44,7 +44,7 @@ public class Cpf4_Jasmin {
     static JasminResult getJasminResult(String filename) {
         if (USE_OLLIR_EXPERIMENTAL) {
             filename = SpecsIo.removeExtension(filename) + ".ollir";
-            return TestUtils.backend(new OllirResult(SpecsIo.getResource("fixtures/public/cpf/4_jasmin/" + filename),
+            return TestUtils.backend(new OllirResult(SpecsIo.getResource("pt/up/fe/comp/fixtures/public/cpf/4_jasmin/" + filename),
                     Collections.emptyMap()));
         }
 
