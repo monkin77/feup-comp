@@ -47,6 +47,7 @@ public class AssignInstructionBuilder extends AbstractBuilder {
     }
 
     private void storePrimitiveElement(ElementType elemType, Descriptor descriptor) {
+        if (checkIncrementAndCompile(descriptor)) return;
         builder.append((new InstructionBuilder(classUnit, method, instruction.getRhs())).compile());
 
         final String storeInstruction = switch (elemType) {
@@ -55,5 +56,39 @@ public class AssignInstructionBuilder extends AbstractBuilder {
             case VOID -> null;
         };
         builder.append(storeInstruction);
+    }
+
+    private boolean checkIncrementAndCompile(Descriptor lhsDescriptor) {
+        final Instruction rhsInstruction = instruction.getRhs();
+        if (!(rhsInstruction instanceof BinaryOpInstruction binaryOpInstruction)) return false;
+
+        OperationType operationType = binaryOpInstruction.getOperation().getOpType();
+        if (operationType != OperationType.ADD) return false;
+
+        final Element leftOperand = binaryOpInstruction.getLeftOperand();
+        final Element rightOperand = binaryOpInstruction.getRightOperand();
+        final Descriptor leftDescriptor = method.getVarTable().get(JasminUtils.getElementName(leftOperand));
+        final Descriptor rightDescriptor = method.getVarTable().get(JasminUtils.getElementName(rightOperand));
+
+        Descriptor varDecriptor;
+        Element complement;
+
+        if (leftDescriptor == null || leftDescriptor.getVirtualReg() != lhsDescriptor.getVirtualReg()) {
+            if (rightDescriptor == null || rightDescriptor.getVirtualReg() != lhsDescriptor.getVirtualReg()) return false;
+            varDecriptor = rightDescriptor;
+            complement = leftOperand;
+        } else {
+            varDecriptor = leftDescriptor;
+            complement = rightOperand;
+        }
+
+        if (!complement.isLiteral() || complement.getType().getTypeOfElement() != ElementType.INT32) return false;
+
+        final int increment = Integer.parseInt(JasminUtils.getElementName(complement));
+        if (increment < -128 || increment > 127) return false; // Max 1 byte
+
+        builder.append(InstructionList.iinc(varDecriptor.getVirtualReg(), increment));
+
+        return true;
     }
 }

@@ -5,15 +5,17 @@ import org.specs.comp.ollir.ClassUnit;
 import static pt.up.fe.comp.jasmin.JasminConstants.DEFAULT_SUPERCLASS;
 
 public class JasminBuilder extends AbstractBuilder {
-    public JasminBuilder(final ClassUnit classUnit) {
+    private final boolean optimize;
+    public JasminBuilder(final ClassUnit classUnit, final boolean optimize) {
         super(classUnit);
+        this.optimize = optimize;
     }
 
     public String compile() {
         compileClassDeclaration();
         compileSuperclassDeclaration();
         builder.append(new FieldsBuilder(classUnit).compile());
-        builder.append(new MethodsBuilder(classUnit).compile());
+        builder.append(new MethodsBuilder(classUnit, optimize).compile());
 
         return builder.toString();
     }

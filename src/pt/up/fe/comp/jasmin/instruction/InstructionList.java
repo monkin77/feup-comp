@@ -75,6 +75,31 @@ public class InstructionList {
         return "ifne " + label;
     }
 
+    public static String ifeq(String label) {
+        MethodsBuilder.updateStackLimit(-1);
+        return "ifeq " + label;
+    }
+
+    public static String iflt(String label) {
+        MethodsBuilder.updateStackLimit(-1);
+        return "iflt " + label;
+    }
+
+    public static String ifgt(String label) {
+        MethodsBuilder.updateStackLimit(-1);
+        return "ifgt " + label;
+    }
+
+    public static String ifle(String label) {
+        MethodsBuilder.updateStackLimit(-1);
+        return "ifle " + label;
+    }
+
+    public static String ifge(String label) {
+        MethodsBuilder.updateStackLimit(-1);
+        return "ifge " + label;
+    }
+
     public static String getfield(String className, String fieldName, String fieldType) {
         return "getfield " + className + "/" + fieldName + " " + fieldType;
     }
@@ -118,6 +143,16 @@ public class InstructionList {
         return "if_icmpne " + label;
     }
 
+    public static String iand() {
+        MethodsBuilder.updateStackLimit(-1);
+        return "iand";
+    }
+
+    public static String ior() {
+        MethodsBuilder.updateStackLimit(-1);
+        return "ior";
+    }
+
     public static String iadd() {
         MethodsBuilder.updateStackLimit(-1);
         return "iadd";
@@ -139,6 +174,7 @@ public class InstructionList {
     }
 
     public static String ixor() {
+        MethodsBuilder.updateStackLimit(-1);
         return "ixor";
     }
 
@@ -154,5 +190,14 @@ public class InstructionList {
 
     public static String returnInstruction() {
         return "return";
+    }
+
+    public static String iinc(int reg, int value) {
+        return "iinc " + reg + " " + value;
+    }
+
+    public static String pop() {
+        MethodsBuilder.updateStackLimit(-1);
+        return "pop";
     }
 }

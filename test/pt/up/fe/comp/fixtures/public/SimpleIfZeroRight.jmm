@@ -1,0 +1,10 @@
+import io;
+class SimpleIf {
+	public static void main(String[] args) {
+		if (1 < 0) {
+		    io.println(1);
+		} else {
+		    io.println(2);
+		}
+	}
+}

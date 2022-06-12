@@ -4,17 +4,24 @@ import org.specs.comp.ollir.*;
 import pt.up.fe.comp.jasmin.instruction.InstructionBuilder;
 import pt.up.fe.comp.jasmin.instruction.InstructionList;
 
-import java.util.ArrayList;
+import java.util.*;
 
 import static pt.up.fe.comp.jasmin.JasminConstants.TAB;
 
 public class MethodsBuilder extends AbstractBuilder {
     public static int labelCounter = 0;
+    public static HashSet<Instruction> instructionsToInvert = new HashSet<>();
     private static int stackLimit = 0;
     private static int currentStack = 0;
+    private final boolean optimizeIfStatements;
+
+    public MethodsBuilder(final ClassUnit classUnit, final boolean optimizeIfStatements) {
+        super(classUnit);
+        this.optimizeIfStatements = optimizeIfStatements;
+    }
 
     public MethodsBuilder(final ClassUnit classUnit) {
-        super(classUnit);
+        this(classUnit, false);
     }
 
     @Override
@@ -47,8 +54,10 @@ public class MethodsBuilder extends AbstractBuilder {
         final StringBuilder sb = new StringBuilder();
         stackLimit = 0;
         currentStack = 0;
+        instructionsToInvert.clear();
 
         method.buildVarTable();
+        if (optimizeIfStatements) invertIfInstructions(method);
 
         sb.append(".limit locals ").append(getLocalsLimits(method)).append("\n");
         final ArrayList<Instruction> instructions = method.getInstructions();
@@ -57,7 +66,7 @@ public class MethodsBuilder extends AbstractBuilder {
             sb.append(TAB);
             sb.append((new InstructionBuilder(classUnit, method, instruction)).compile());
             if (instruction.getInstType() == InstructionType.CALL && ((CallInstruction) (instruction)).getReturnType().getTypeOfElement() != ElementType.VOID) {
-                sb.append("pop").append("\n");
+                sb.append(InstructionList.pop()).append("\n");
             }
         }
 
@@ -74,6 +83,62 @@ public class MethodsBuilder extends AbstractBuilder {
         if (method.getVarTable().isEmpty()) return method.isStaticMethod() ? 0 : 1;
         int maxReg = method.getVarTable().values().stream().mapToInt(Descriptor::getVirtualReg).max().orElse(-1);
         return maxReg + 1;
+    }
+
+    private void invertIfInstructions(final Method method) {
+        ArrayList<Instruction> instructions = method.getInstructions();
+        HashMap<String, Instruction> labels = method.getLabels();
+
+        for (int i = 0; i < instructions.size(); ++i) {
+            Instruction instruction = method.getInstructions().get(i);
+            if (instruction.getInstType() != InstructionType.BRANCH)
+                continue;
+
+            CondBranchInstruction condBranchInstruction = (CondBranchInstruction) instruction;
+            String ifLabel = condBranchInstruction.getLabel();
+
+            int underscorePosition = ifLabel.indexOf('_');
+            // Only try to optimize if statements from our ollir
+            if (underscorePosition == -1 || !ifLabel.substring(0, underscorePosition).equals("ifbody"))
+                continue;
+            // String endifLabel = "endif_" + ifLabel.substring(underscorePosition + 1);
+
+            ArrayList<Instruction> elseInstructions = new ArrayList<>();
+            int j = i + 1;
+            // Move the else instructions
+            while (labels.get(ifLabel) != instructions.get(j))
+                elseInstructions.add(instructions.remove(j));
+            boolean hasElseBlock = elseInstructions.size() > 1;
+            String endifLabel = ((GotoInstruction) elseInstructions.get(elseInstructions.size() - 1)).getLabel();
+
+            if (hasElseBlock) {
+                // Replace the previous ifbody label
+                labels.replace(ifLabel, elseInstructions.get(0));
+            } else {
+                labels.remove(ifLabel);
+            }
+
+            while (labels.get(endifLabel) != instructions.get(j))
+                ++j;
+
+            // Move the labels from the goto to the same instructions as endif
+            // This is needed because the goto always goes to endif but that was changed
+            for (String key : labels.keySet()) {
+                if (labels.get(key) == elseInstructions.get(elseInstructions.size() - 1))
+                    labels.replace(key, instructions.get(j));
+            }
+
+            if (hasElseBlock) {
+                // Re-add the goto instruction and else instructions
+                instructions.add(j, elseInstructions.remove(elseInstructions.size() - 1));
+                instructions.addAll(j + 1, elseInstructions);
+            } else {
+                // Jump to the end of the if
+                condBranchInstruction.setLabel(endifLabel);
+            }
+
+            instructionsToInvert.add(instruction);
+        }
     }
 
     public static void updateStackLimit(int sizeChange) {

@@ -90,7 +90,6 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, VisitResult> {
         boolean isNotTerminalNode = !(kind.equals("ArrayExpr") || kind.equals("NotExpr") || kind.equals("LessExpr") || kind.equals("LessEqualExpr") || kind.equals("GreaterExpr") || kind.equals("GreaterEqualExpr") || kind.equals("EqualExpr") || kind.equals("NotEqualExpr")
                                       || kind.equals("AndExpr") || kind.equals("OrExpr") || kind.equals("_Identifier") || kind.equals("BooleanLiteral"));
 
-        // boolean isNotTerminalNode = OllirUtils.isNotTerminalNode(node.getJmmChild(0));
         final VisitResult result = visit(node.getJmmChild(0), new ArgumentPool(null, isNotTerminalNode));
 
         boolean needsBooleanType = isNotTerminalNode || kind.equals("BooleanLiteral") || kind.equals("_Identifier")
@@ -156,7 +155,7 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, VisitResult> {
         final VisitResult conditionResult = visit(node.getJmmChild(0));
         final VisitResult ifBodyResult = visit(node.getJmmChild(1));
         final VisitResult elseBodyResult = visit(node.getJmmChild(2));
-        // COMBACK: Optimization: ondition should probably be negated beforehand
+
         final String elseCode = elseBodyResult.preparationCode + elseBodyResult.code;
         final String ifCode = ifBodyResult.preparationCode + ifBodyResult.code;
         int tempCounter1 = tempCounter++;
