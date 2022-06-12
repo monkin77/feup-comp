@@ -20,7 +20,27 @@ public class AllocateRegisters {
     public AllocateRegisters(OllirResult ollirResult, int maxRegisters) {
         this.ollirResult = ollirResult;
         this.classUnit = ollirResult.getOllirClass();
+
+        if (maxRegisters == -1) {
+            maxRegisters = this.getMaxLocalVar();
+        }
         this.maxRegisters = maxRegisters;
+
+    }
+
+    /**
+     * Gets the maximum of local variables from all methods
+     */
+    public int getMaxLocalVar() {
+        int max = 0;
+        for (Method method : this.classUnit.getMethods()) {
+            // var table has both local variables and params so remove the params
+            int size = method.getVarTable().size() - method.getParams().size();
+            if (size > max)
+                max = size;
+        }
+
+        return max;
     }
 
     /**
