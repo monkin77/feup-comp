@@ -30,6 +30,11 @@ public class ConstantFolderVisitor extends PostorderVisitorProhibited<Object, Bo
     private Boolean visitWhileSt(JmmNode node, Object o) {
         JmmNode condition = node.getJmmChild(0).getJmmChild(0);
         JmmNode body = node.getJmmChild(1).getJmmChild(0);
+        JmmNode mutableCondition = node.getJmmChild(2);
+        visit(mutableCondition, o);
+        if (mutableCondition.getJmmChild(0).getKind().equals("BooleanLiteral")) {
+            node.put("doWhile", mutableCondition.getJmmChild(0).get("value"));
+        }
         return visit(condition, o) || visit(body, o);
     }
 

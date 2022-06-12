@@ -53,6 +53,9 @@ public class ConstantPropagatorVisitor extends PostorderVisitorProhibited<Object
     private Boolean visitWhileSt(JmmNode node, Object o) {
         JmmNode block = node.getJmmChild(1);
         JmmNode condition = node.getJmmChild(0);
+        JmmNode duplicateCondition = JmmNode.fromJson(condition.toJson());
+        node.add(duplicateCondition);
+        visit(duplicateCondition, o);
         OptimizerUtils.getAssignTargets(block).forEach(this.constantMap::remove);
         return visit(condition, o) || visit(block, o);
     }

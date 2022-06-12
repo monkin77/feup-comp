@@ -1,4 +1,3 @@
-import MathUtils;
 import io;
 
 class ConstantPropagator {
@@ -179,5 +178,13 @@ class ConstantPropagator {
     }
 
     public static void main(String[] args) {
+        int x;
+        int y;
+        x = 10;
+        y = 20;
+        while (x < y) {
+            io.println(x);
+            x = x + 1;
+        }
     }
 }

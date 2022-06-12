@@ -132,13 +132,23 @@ public class OllirVisitor extends AJmmVisitor<ArgumentPool, VisitResult> {
         // COMBACK: Optimization: condition should probably be negated beforehand to avoid jumps
         final String bodyCode = loopResult.preparationCode + loopResult.code + conditionResult.preparationCode;
         int tempCounter1 = tempCounter++;
-        final String code = ("""
-                %sif (%s) goto whilebody_%d;
-                goto endwhile_%d;
-                whilebody_%d:
-                %sif (%s) goto whilebody_%d;
-                endwhile_%d:
-                """).formatted(conditionResult.preparationCode, conditionResult.code, tempCounter1, tempCounter1, tempCounter1, bodyCode, conditionResult.code, tempCounter1, tempCounter1);
+        boolean isDoWhile = node.getOptional("doWhile").orElse("false").equals("true");
+        final String code;
+        if (isDoWhile) {
+            code = ("""
+                    whilebody_%d:
+                    %s%sif (%s) goto whilebody_%d;
+                    endwhile_%d:
+                    """).formatted(tempCounter1, bodyCode, conditionResult.preparationCode, conditionResult.code, tempCounter1, tempCounter1);
+        } else {
+            code = ("""
+                    %sif (%s) goto whilebody_%d;
+                    goto endwhile_%d;
+                    whilebody_%d:
+                    %s%sif (%s) goto whilebody_%d;
+                    endwhile_%d:
+                    """).formatted(conditionResult.preparationCode, conditionResult.code, tempCounter1, tempCounter1, tempCounter1, bodyCode, conditionResult.preparationCode, conditionResult.code, tempCounter1, tempCounter1);
+        }
         return new VisitResult("", code, "");
     }
 
