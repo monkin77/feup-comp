@@ -6,13 +6,13 @@ public class GraphColoring {
     ArrayList<NodeInterference> stackVisited;
     InterferenceGraph interferenceGraph;
     int k;
-    int allocated = 0;
 
     public GraphColoring(int k, InterferenceGraph interferenceGraph) {
         this.stackVisited = new ArrayList<>();
         this.interferenceGraph = interferenceGraph;
         this.k = k;
     }
+
 
     /**
      * Builds the stack with the nodes
@@ -84,5 +84,18 @@ public class GraphColoring {
         }
 
         return -1;
+    }
+
+    /**
+     * Get the minimum number of JVM local variables required,
+     * starting by counting from k
+     */
+    public int getMinLocalVar() {
+
+        while (true) {
+            k++;
+            if (this.coloring())
+                return k;
+        }
     }
 }

@@ -48,14 +48,14 @@ public class AllocateRegisters {
         GraphColoring graphColoring = new GraphColoring(this.maxRegisters, interferenceGraph);
         if (!graphColoring.buildStack()) {
             // Call method to get the minimum number of registers to run. Iterating k from the initial one + 1
-            int minRegisters = 0;
+            int minRegisters = graphColoring.getMinLocalVar();
             this.ollirResult.getReports().add(Report.newError(Stage.OPTIMIZATION, -1, -1,
                     "Unable to build the graph stack with the number of registers provided. Minimum Registers: " + minRegisters,
                     null));
             return false;
         }
         if (!graphColoring.coloring()) {
-            int minRegisters = 0;
+            int minRegisters = graphColoring.getMinLocalVar();
             this.ollirResult.getReports().add(Report.newError(Stage.OPTIMIZATION, -1, -1,
                     "Unable to color the graph with the number of registers provided. Minimum Registers: " + minRegisters,
                     null));
