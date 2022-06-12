@@ -13,6 +13,11 @@
 
 package pt.up.fe.comp.cpf;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import org.junit.Test;
 import pt.up.fe.comp.CpUtils;
 import pt.up.fe.comp.TestUtils;
@@ -21,14 +26,7 @@ import pt.up.fe.comp.jmm.ollir.OllirResult;
 import pt.up.fe.specs.util.SpecsIo;
 import pt.up.fe.specs.util.SpecsStrings;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-
 public class Cpf5_Optimizations {
-
 
     static OllirResult getOllirResult(String filename) {
         return TestUtils.optimize(SpecsIo.getResource("pt/up/fe/comp/fixtures/public/cpf/5_optimizations/" + filename));
@@ -227,7 +225,7 @@ public class Cpf5_Optimizations {
         String filename = "reg_alloc/regalloc.jmm";
 
         JasminResult original = getJasminResult(filename);
-        JasminResult optimized = getJasminResultReg(filename, -1);
+        JasminResult optimized = getJasminResultReg(filename, 0);
 
         CpUtils.assertNotEquals("Expected code to change with -r flag\n\nOriginal code:\n" + original.getJasminCode(),
                 original.getJasminCode(), optimized.getJasminCode(),
