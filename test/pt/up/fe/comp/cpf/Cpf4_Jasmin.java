@@ -48,7 +48,7 @@ public class Cpf4_Jasmin {
                     Collections.emptyMap()));
         }
 
-        return TestUtils.backend(SpecsIo.getResource("fixtures/public/cpf/4_jasmin/" + filename));
+        return TestUtils.backend(SpecsIo.getResource("pt/up/fe/comp/fixtures/public/cpf/4_jasmin/" + filename));
     }
 
     /**
