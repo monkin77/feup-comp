@@ -88,14 +88,15 @@ public class GraphColoring {
 
     /**
      * Get the minimum number of JVM local variables required,
-     * starting by counting from k
+     * start by counting from k + 1
      */
     public int getMinLocalVar() {
 
         while (true) {
-            k++;
-            if (this.coloring())
-                return k;
+            this.k++;
+            this.stackVisited.clear();
+            if (this.buildStack() && this.coloring())
+                return this.k;
         }
     }
 }

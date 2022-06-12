@@ -224,7 +224,6 @@ public class Cpf5_Optimizations {
 
     @Test
     public void section2_RegAlloc_UsesMinimumPossible() {
-
         String filename = "reg_alloc/regalloc.jmm";
 
         JasminResult original = getJasminResult(filename);

@@ -21,11 +21,10 @@ public class AllocateRegisters {
         this.ollirResult = ollirResult;
         this.classUnit = ollirResult.getOllirClass();
 
-        if (maxRegisters == -1) {
+        if (maxRegisters == -1)
             maxRegisters = this.getMaxLocalVar();
-        }
-        this.maxRegisters = maxRegisters;
 
+        this.maxRegisters = maxRegisters;
     }
 
     /**
@@ -56,11 +55,13 @@ public class AllocateRegisters {
         DataflowAnalysis dataflowAnalysis = new DataflowAnalysis(method);
         dataflowAnalysis.build();
 
+        /*
         System.out.println("Showing DataFlow Analysis for method " + method.getMethodName() + ":");
         dataflowAnalysis.show();
         dataflowAnalysis.showLiveRange();
         dataflowAnalysis.showInterference();
         System.out.println("========================================\n");
+         */
 
         HashMap<String, ArrayList<String>> analysisInterference = dataflowAnalysis.getInterference();
         InterferenceGraph interferenceGraph = new InterferenceGraph(analysisInterference);
