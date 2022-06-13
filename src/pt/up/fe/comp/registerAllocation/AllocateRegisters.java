@@ -20,7 +20,6 @@ public class AllocateRegisters {
     public AllocateRegisters(OllirResult ollirResult, int maxRegisters) {
         this.ollirResult = ollirResult;
         this.classUnit = ollirResult.getOllirClass();
-
         if (maxRegisters == -1) {
             this.maxRegisters = this.getMaxLocalVar();
         } else if(maxRegisters == 0) {

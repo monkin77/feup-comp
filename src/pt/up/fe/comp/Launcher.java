@@ -11,9 +11,11 @@ import pt.up.fe.specs.util.SpecsLogs;
 import pt.up.fe.specs.util.SpecsSystem;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.IntStream;
 
 public class Launcher {
 
@@ -22,36 +24,49 @@ public class Launcher {
 
         SpecsLogs.info("Executing with args: " + Arrays.toString(args));
 
-        // CHECK THE REMAINING WORK TO BE DONE IN THE PROJECT SPECIFICATION
-        String numRegisters = "-2";
         // read the input code
         if (args.length < 1) {
-            throw new RuntimeException("Expected a single argument, a path to an existing input file.");
-        } else {
-            for (int i = 0; i < args.length; i++) {
-                if (args[i].equals("-r")) {
-                    int numRegIdx = i+1;
-                    if (numRegIdx < args.length) {
-                        numRegisters = args[numRegIdx];
-                    } else {
-                        throw new RuntimeException("Missing argument for the number of register allocated.");
-                    }
-                }
+            throw new RuntimeException("Expected the following evocations:\n" +
+                    "comp2022-00 [-r=<num>] [-o] [-d] -i=<input_file.jmm>");
+        }
+        ArrayList<String> argsList = new ArrayList<>(Arrays.asList(args));
+
+        String fileName = null;
+        for (String arg : argsList) {
+            if (arg.startsWith("-i=")) {
+                fileName = arg.substring(3);
+                break;
             }
         }
+        if (fileName == null) {
+            throw new RuntimeException("Expected the following evocations:\n" +
+                    "comp2022-00 [-r=<num>] [-o] [-d] -i=<input_file.jmm>");
+        }
 
-        // Create config
-        Map<String, String> config = new HashMap<>();
-        config.put("inputFile", args[0]);
-        config.put("optimize", "false");
-        config.put("registerAllocation", numRegisters);
-        config.put("debug", "false");
-
-        File inputFile = new File(args[0]);
+        File inputFile = new File(fileName);
         if (!inputFile.isFile()) {
             throw new RuntimeException("Expected a path to an existing input file, got '" + args[0] + "'.");
         }
         String input = SpecsIo.read(inputFile);
+
+        // Create config
+        Map<String, String> config = new HashMap<>();
+        config.put("inputFile", args[0]);
+        config.put("optimize", argsList.contains("-o") ? "true" : "false");
+
+        int maxRegisters = -1;
+        int registerIdx = IntStream.range(0, argsList.size())
+                .filter(i -> argsList.get(i).startsWith("-r=")).findFirst().orElse(-1);
+        if (registerIdx != -1){
+            maxRegisters = Integer.parseInt(args[registerIdx].split("=")[1]);
+        }
+        if (maxRegisters < -1) {
+            throw new RuntimeException("The -r=<num> option can't be lower than -1");
+        } else {
+            config.put("registerAllocation", Integer.toString(maxRegisters));
+        }
+
+        config.put("debug", argsList.contains("-d") ? "true" : "false");
 
         // Instantiate JmmParser
         SimpleParser parser = new SimpleParser();
@@ -77,32 +92,30 @@ public class Launcher {
         // Instantiate Optimization stage
         JmmOptimization jmmOptimization = new JmmOptimizer();
 
-        // Create Ollir code
+        if (config.get("optimize").equals("true"))
+            analysisResult = jmmOptimization.optimize(analysisResult);
+
+        // Optimization stage
         OllirResult ollirResult = jmmOptimization.toOllir(analysisResult);
 
         // Check if there are optimization errors
         TestUtils.noErrors(ollirResult.getReports());
 
-        // Optimization stage
-        OllirResult optimizedOllirResult = jmmOptimization.optimize(ollirResult);
-
-        // Check if there are optimization errors
-        TestUtils.noErrors(optimizedOllirResult.getReports());
+        // Register Allocation stage
+        ollirResult = jmmOptimization.optimize(ollirResult);
 
         // Instantiate Compilation stage
         JasminBackend jasminBackend = new JasminBackendJmm();
 
         // Compilation stage
-        JasminResult jasminResult = jasminBackend.toJasmin(optimizedOllirResult);
+        JasminResult jasminResult = jasminBackend.toJasmin(ollirResult);
 
         // Check if there are compilation errors
         TestUtils.noErrors(jasminResult.getReports());
 
         // We can run the code with something like java -cp /tmp/jasmin_bruno/:libs-jmm/compiled/ FindMaximum
         jasminResult.compile();
-
-        System.out.println("JASMIN:\n" + jasminResult.getJasminCode());
-        System.out.println("JASMIN RUN:\n" + jasminResult.run());
+        jasminResult.run();
     }
 
 }

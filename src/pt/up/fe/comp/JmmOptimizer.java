@@ -25,8 +25,7 @@ public class JmmOptimizer implements JmmOptimization {
         boolean change;
         if (semanticsResult.getConfig().getOrDefault("optimize", "false").equals("true")) {
             do {
-                change = false;
-                change |= booleanSimplifierVisitor.visit(semanticsResult.getRootNode());
+                change = booleanSimplifierVisitor.visit(semanticsResult.getRootNode());
                 change |= constantPropagatorVisitor.visit(rootNode);
                 change |= neutralAbsorbentOperationsVisitor.visit(rootNode);
                 change |= constantFolderVisitor.visit(rootNode);
@@ -52,8 +51,6 @@ public class JmmOptimizer implements JmmOptimization {
             return ollirResult;
 
         int numRegisters = Integer.parseInt(numRegisterStr);
-        if (numRegisters == -2) // The flag was not present
-            return ollirResult;
 
         AllocateRegisters allocator = new AllocateRegisters(ollirResult, numRegisters);
         allocator.updateVarTable();

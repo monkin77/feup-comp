@@ -57,7 +57,6 @@ public class MethodsBuilder extends AbstractBuilder {
         currentStack = 0;
         instructionsToInvert.clear();
 
-        method.buildVarTable();
         if (optimizeIfStatements) invertIfInstructions(method);
 
         sb.append(".limit locals ").append(getLocalsLimits(method)).append("\n");
