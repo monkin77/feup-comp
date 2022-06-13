@@ -25,7 +25,7 @@ public class GraphColoring {
             removedNode = false;
             for (NodeInterference node : nodeList) {
                 if (this.stackVisited.contains(node)) continue;
-                if (this.countRemainingEdges(node) <= this.k) {
+                if (this.countRemainingEdges(node) < this.k) {
                     this.stackVisited.add(node);
                     removedNode = true;
                 }
