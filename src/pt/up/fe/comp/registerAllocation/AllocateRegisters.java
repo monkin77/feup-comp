@@ -13,24 +13,27 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 public class AllocateRegisters {
-    private OllirResult ollirResult;
-    private ClassUnit classUnit;
-    final private int maxRegisters;
+    private final OllirResult ollirResult;
+    private final ClassUnit classUnit;
+    private final int maxRegisters;
 
     public AllocateRegisters(OllirResult ollirResult, int maxRegisters) {
         this.ollirResult = ollirResult;
         this.classUnit = ollirResult.getOllirClass();
 
-        if (maxRegisters == -1)
-            maxRegisters = this.getMaxLocalVar();
-
-        this.maxRegisters = maxRegisters;
+        if (maxRegisters == -1) {
+            this.maxRegisters = this.getMaxLocalVar();
+        } else if(maxRegisters == 0) {
+            this.maxRegisters = this.getMinRegisters();
+        } else {
+            this.maxRegisters = maxRegisters;
+        }
     }
 
     /**
      * Gets the maximum of local variables from all methods
      */
-    public int getMaxLocalVar() {
+    private int getMaxLocalVar() {
         int max = 0;
         for (Method method : this.classUnit.getMethods()) {
             // var table has both local variables and params so remove the params
@@ -40,6 +43,28 @@ public class AllocateRegisters {
         }
 
         return max;
+    }
+
+    /**
+     * Iterates all the methods and returns the minimum number of registers needed
+     * @return number of registers
+     */
+    private int getMinRegisters() {
+        int minRegisters = 0;
+        for (Method method: this.classUnit.getMethods()) {
+            DataflowAnalysis dataflowAnalysis = new DataflowAnalysis(method);
+            dataflowAnalysis.build();
+
+            HashMap<String, ArrayList<String>> analysisInterference = dataflowAnalysis.getInterference();
+            InterferenceGraph interferenceGraph = new InterferenceGraph(analysisInterference);
+
+            GraphColoring graphColoring = new GraphColoring(this.maxRegisters, interferenceGraph);
+            int currRegisters = graphColoring.getMinLocalVar();
+            minRegisters = Math.max(minRegisters, currRegisters);
+        }
+
+        System.out.println("Minimum amount of registers required: " + minRegisters);
+        return minRegisters;
     }
 
     /**
@@ -67,8 +92,8 @@ public class AllocateRegisters {
         InterferenceGraph interferenceGraph = new InterferenceGraph(analysisInterference);
 
         GraphColoring graphColoring = new GraphColoring(this.maxRegisters, interferenceGraph);
+
         if (!graphColoring.buildStack()) {
-            // Call method to get the minimum number of registers to run. Iterating k from the initial one + 1
             int minRegisters = graphColoring.getMinLocalVar();
             this.ollirResult.getReports().add(Report.newError(Stage.OPTIMIZATION, -1, -1,
                     "Unable to build the graph stack with the number of registers provided. Minimum Registers: " + minRegisters,
@@ -92,7 +117,6 @@ public class AllocateRegisters {
         }
 
         System.out.println();
-
         return true;
     }
 }
