@@ -57,8 +57,11 @@ public class AllocateRegisters {
             HashMap<String, ArrayList<String>> analysisInterference = dataflowAnalysis.getInterference();
             InterferenceGraph interferenceGraph = new InterferenceGraph(analysisInterference);
 
-            GraphColoring graphColoring = new GraphColoring(this.maxRegisters, interferenceGraph);
-            int currRegisters = graphColoring.getMinLocalVar();
+            int staticOffset = method.isStaticMethod() ? 0 : 1;
+            int numParams = method.getParams().size();
+            GraphColoring graphColoring = new GraphColoring(this.maxRegisters -  staticOffset - numParams, interferenceGraph);
+
+            int currRegisters = graphColoring.getMinLocalVar() + staticOffset + numParams;
             minRegisters = Math.max(minRegisters, currRegisters);
         }
 
