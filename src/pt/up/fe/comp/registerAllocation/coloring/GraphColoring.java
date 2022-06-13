@@ -77,7 +77,7 @@ public class GraphColoring {
         }
 
         // Find an available color
-        for (int i = 1; i <= this.k; i++) {
+        for (int i = 0; i < this.k; i++) {
             if (!usedColors.contains(i))
                 return i;
         }

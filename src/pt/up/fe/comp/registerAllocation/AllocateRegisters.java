@@ -111,8 +111,14 @@ public class AllocateRegisters {
         var varTable = method.getVarTable();
         for (var node : interferenceGraph.getNodeList()) {
             // Adds the offset for the first registers corresponding to the parameters
-            varTable.get(node.getValue()).setVirtualReg(node.getRegister() + method.getParams().size());
+            int staticOffset = method.isStaticMethod() ? 0 : 1;
+            varTable.get(node.getValue()).setVirtualReg(node.getRegister() + method.getParams().size() + staticOffset);
             System.out.printf("Reg %d <- %s\n", node.getRegister(), node.getValue());
+        }
+
+        System.out.println("\nSHOWING REGISTERS");
+        for (String node : varTable.keySet()) {
+            System.out.println("NODE : " + node + " Reg: " + varTable.get(node).getVirtualReg());
         }
 
         System.out.println();
