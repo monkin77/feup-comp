@@ -12,7 +12,6 @@ public class GraphColoring {
         this.k = k;
     }
 
-
     /**
      * Builds the stack with the nodes
      * @return true if possible to build to color the graph with k colors. False otherwise.
