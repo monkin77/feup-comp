@@ -90,17 +90,20 @@ public class AllocateRegisters {
         HashMap<String, ArrayList<String>> analysisInterference = dataflowAnalysis.getInterference();
         InterferenceGraph interferenceGraph = new InterferenceGraph(analysisInterference);
 
-        GraphColoring graphColoring = new GraphColoring(this.maxRegisters, interferenceGraph);
+        int staticOffset = method.isStaticMethod() ? 0 : 1;
+        int numParams = method.getParams().size();
+        GraphColoring graphColoring = new GraphColoring(this.maxRegisters - numParams - staticOffset, interferenceGraph);
 
         if (!graphColoring.buildStack()) {
-            int minRegisters = graphColoring.getMinLocalVar();
+            int minRegisters = graphColoring.getMinLocalVar() + numParams + staticOffset;
             this.ollirResult.getReports().add(Report.newError(Stage.OPTIMIZATION, -1, -1,
                     "Unable to build the graph stack with the number of registers provided. Minimum Registers: " + minRegisters,
                     null));
             return false;
         }
+
         if (!graphColoring.coloring()) {
-            int minRegisters = graphColoring.getMinLocalVar();
+            int minRegisters = graphColoring.getMinLocalVar() + numParams + staticOffset;
             this.ollirResult.getReports().add(Report.newError(Stage.OPTIMIZATION, -1, -1,
                     "Unable to color the graph with the number of registers provided. Minimum Registers: " + minRegisters,
                     null));
@@ -111,9 +114,16 @@ public class AllocateRegisters {
         var varTable = method.getVarTable();
         for (var node : interferenceGraph.getNodeList()) {
             // Adds the offset for the first registers corresponding to the parameters
-            varTable.get(node.getValue()).setVirtualReg(node.getRegister() + method.getParams().size());
+            varTable.get(node.getValue()).setVirtualReg(node.getRegister() + method.getParams().size() + staticOffset);
             System.out.printf("Reg %d <- %s\n", node.getRegister(), node.getValue());
         }
+
+        /*
+        System.out.println("\nSHOWING REGISTERS");
+        for (String node : varTable.keySet()) {
+            System.out.println("NODE : " + node + " Reg: " + varTable.get(node).getVirtualReg());
+        }
+        */
 
         System.out.println();
         return true;
