@@ -117,7 +117,6 @@ public class AllocateRegisters {
         }
 
         System.out.println();
-
         return true;
     }
 }
