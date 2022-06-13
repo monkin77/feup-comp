@@ -101,11 +101,13 @@ public class Launcher {
         // Check if there are optimization errors
         TestUtils.noErrors(ollirResult.getReports());
 
-        // Register Allocation stage
-        ollirResult = jmmOptimization.optimize(ollirResult);
+        if (maxRegisters != -1) {
+            // Register Allocation stage
+            ollirResult = jmmOptimization.optimize(ollirResult);
 
-        // Check if there are optimization errors
-        TestUtils.noErrors(ollirResult.getReports());
+            // Check if there are optimization errors
+            TestUtils.noErrors(ollirResult.getReports());
+        }
 
         // Instantiate Compilation stage
         JasminBackend jasminBackend = new JasminBackendJmm();

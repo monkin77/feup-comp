@@ -118,10 +118,12 @@ public class AllocateRegisters {
             System.out.printf("Reg %d <- %s\n", node.getRegister(), node.getValue());
         }
 
+        /*
         System.out.println("\nSHOWING REGISTERS");
         for (String node : varTable.keySet()) {
             System.out.println("NODE : " + node + " Reg: " + varTable.get(node).getVirtualReg());
         }
+        */
 
         System.out.println();
         return true;
