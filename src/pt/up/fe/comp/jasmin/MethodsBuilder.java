@@ -5,6 +5,7 @@ import pt.up.fe.comp.jasmin.instruction.InstructionBuilder;
 import pt.up.fe.comp.jasmin.instruction.InstructionList;
 
 import java.util.*;
+import java.util.stream.IntStream;
 
 import static pt.up.fe.comp.jasmin.JasminConstants.TAB;
 
@@ -81,8 +82,10 @@ public class MethodsBuilder extends AbstractBuilder {
 
     private int getLocalsLimits(final Method method) {
         if (method.getVarTable().isEmpty()) return method.isStaticMethod() ? 0 : 1;
-        int maxReg = method.getVarTable().values().stream().mapToInt(Descriptor::getVirtualReg).max().orElse(-1);
-        return maxReg + 1;
+
+        ArrayList<Descriptor> locals = new ArrayList<>(method.getVarTable().values());
+        if (!method.isStaticMethod()) locals.add(new Descriptor(0));
+        return (int) locals.stream().mapToInt(Descriptor::getVirtualReg).distinct().count();
     }
 
     private void invertIfInstructions(final Method method) {
