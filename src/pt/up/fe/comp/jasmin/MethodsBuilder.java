@@ -89,7 +89,7 @@ public class MethodsBuilder extends AbstractBuilder {
         if (!(instruction.getCondition() instanceof BinaryOpInstruction condition)) return 0;
         if (!condition.getOperation().getOpType().equals(OperationType.EQ)) return 0;
 
-        Map<String, String> switchCases = new LinkedHashMap<>();
+        SortedMap<String, String> switchCases = new TreeMap<>();
         final Operand variableOperand;
         final LiteralElement literalElement;
 
@@ -106,16 +106,27 @@ public class MethodsBuilder extends AbstractBuilder {
         }
 
         switchCases.put(literalElement.getLiteral(), instruction.getLabel());
-        Map<String, String> nextCases = collectCases(instructions, variableOperand);
+        SortedMap<String, String> nextCases = collectCases(instructions, variableOperand);
         if (nextCases == null) return 0;
         switchCases.putAll(nextCases);
-        sb.append(buildSwitch(method, switchCases, variableOperand));
+        if (nextCases.size() < 3) return 0;
+        Set<String> labels = new TreeSet<>(switchCases.keySet());
+        labels.remove("default");
+        Integer[] cases = labels.stream().map(Integer::valueOf).toArray(Integer[]::new);
+        int averageDistance = 0;
+        for (int i = 0; i < cases.length - 1; i++) averageDistance += cases[i + 1] - cases[i];
+        averageDistance /= cases.length - 1;
+        if (averageDistance < 3) {
+            sb.append(buildTableSwitch(method, switchCases, variableOperand));
+        } else {
+            sb.append(buildLookupSwitch(method, switchCases, variableOperand));
+        }
         sb.append("default_switch_").append(labelCounter++).append(":\n");
         return switchCases.size();
     }
 
-    private Map<String, String> collectCases(List<Instruction> instructions, Operand switchVariable) {
-        Map<String, String> switchCases = new LinkedHashMap<>();
+    private SortedMap<String, String> collectCases(List<Instruction> instructions, Operand switchVariable) {
+        SortedMap<String, String> switchCases = new TreeMap<>();
         for (Instruction next : instructions) {
             if (!(next instanceof OpCondInstruction condInstruction)) {
                 switchCases.put("default", "default_switch_" + labelCounter);
@@ -146,7 +157,7 @@ public class MethodsBuilder extends AbstractBuilder {
         return null;
     }
 
-    private String buildSwitch(Method method, Map<String, String> cases, Element element) {
+    private String buildLookupSwitch(Method method, Map<String, String> cases, Element element) {
         StringBuilder sb = new StringBuilder();
         sb.append(JasminUtils.buildLoadInstruction(element, method));
         sb.append("lookupswitch").append("\n");
@@ -154,6 +165,30 @@ public class MethodsBuilder extends AbstractBuilder {
             String caseValue = entry.getKey();
             String caseTarget = entry.getValue();
             sb.append(caseValue).append(": ").append(caseTarget).append("\n");
+        }
+        sb.append("\n");
+        return sb.toString();
+    }
+
+    private String buildTableSwitch(Method method, SortedMap<String, String> cases, Element element) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(JasminUtils.buildLoadInstruction(element, method));
+        Set<String> labels = new TreeSet<>(cases.keySet());
+        labels.remove("default");
+        SortedSet<Integer> values = new TreeSet<>(labels.stream().map(Integer::valueOf).toList());
+        int lower = values.first();
+        int upper = values.last();
+        for (int i = lower; i <= upper; i++) {
+            if (!cases.containsKey(String.valueOf(i))) {
+                cases.put(String.valueOf(i), "default_switch_" + labelCounter);
+            }
+        }
+        sb.append("tableswitch").append(" ").append(lower).append(" ").append(upper).append("\n");
+        for (Map.Entry<String, String> entry : cases.entrySet()) {
+            String caseValue = entry.getKey();
+            if (caseValue.equals("default")) sb.append("default: ");
+            String caseTarget = entry.getValue();
+            sb.append(caseTarget).append("\n");
         }
         sb.append("\n");
         return sb.toString();
