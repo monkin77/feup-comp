@@ -198,49 +198,284 @@ While generating Jasmin code, there are often many ways of getting the same resu
 - Choosing the right type of *if* to minimize instructions. (e.g. use *ifeq* when comparing to zero but use *if_icmpne* when comparing two values in the stack).
 - Other instructions with minor impact.
 
-#### Switch-case Instructions
+#### Optimizing conditional statements
+In addition to simplifying boolean expressions and statically evaluating branch conditions, it is relevant to optimize
+those that can only be evaluated at runtime. For that, four techniques are employed:
+[lookupswitch](https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-6.html#jvms-6.5.lookupswitch) statements,
+[tableswitch](https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-6.html#jvms-6.5.tableswitch) statements,
+replacing intermediate jumps, and negating conditionals.
 
-In the cases where we have multiple if statements comparing to integer literals, it becomes more efficient to use [JVM's switch-cases](https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-6.html#jvms-6.5.lookupswitch). This is done in the *attemptSwitchReplacement* function, in the *MethodsBuilder* class.
+##### Replacing intermediate jumps
 
-Below, you can find an example of this type of instructions:
-
+Considering the following Java code:
+```java
+public int ifElseifElse(int x, int y) {
+  int r;
+  if (x > y) {r = y - x;}
+  else if (x < y) {r = x - y;}
+  else {r = 0;}
+  return r;
+}
 ```
-lookupswitch
-1: body_0
-2: body_1
-3: body_2
-4: body_3
-5: body_4
-default: default_switch_0
+In order to write this code in JMM, we would need to replace the `else if` block with an `if` statement inside
+the `else` block:
+```java
+public int ifElseifElse(int x, int y) {
+  int r;
+  if (x < y) {r = 10;}
+  else {
+    if (y < x) {r = 20;}
+    else {r = 0;}
+  }
+  return r;
+}
+```
+This would correspond to the OLLIR code:
+```ollir
+.method public ifElseifElse(x.i32, y.i32).i32 {
+  if (x.i32 <.bool y.i32) goto ifbody_1;
+  if (y.i32 <.bool x.i32) goto ifbody_0;
+  r.i32 :=.i32 0.i32;
+  goto endif_0;
+  ifbody_0: r.i32 :=.i32 y.i32 -.i32 x.i32;
+  endif_0: goto endif_1;
+  ifbody_1: r.i32 :=.i32 x.i32 -.i32 y.i32;
+  endif_1:
+  ret.i32 r.i32;
+}
+```
+Looking at the intermediate representation, we can see that when both conditions are false, two jumps are
+performed (`goto endif_0` -> `goto endif_1`). The jasmin code would then be:
+```j
+.method public ifElseifElse(II)I
+  # ... if condition
+  if_icmplt ifbody_1
+  # ... else if condition
+  if_icmplt ifbody_0
+  # ... else body
+  goto endif_0
+  ifbody_0: # ... else if body
+  endif_0: goto endif_1
+  ifbody_1:
+  # ... if body
+  endif_1:
+  
+  iload_3
+  ireturn
+.end method
+```
+To avoid this inefficiency, when generating the final Jasmin code, goto statements that jump to another goto statement
+are replaced with a goto statement that jumps to the final destination:
 
-default_switch_0:
-    iconst_m1
-    invokestatic io/println(I)V
-    goto end_switch
-body_0:
-    bipush 25
-    invokestatic io/println(I)V
-    goto end_switch
-body_1:
-    bipush 16   
-    invokestatic io/println(I)V
-    goto end_switch
-body_2:
-    bipush 9
-    invokestatic io/println(I)V
-    goto end_switch
-body_3:
-    iconst_4
-    invokestatic io/println(I)V
-    goto end_switch
-body_4:
-    iconst_1
-    invokestatic io/println(I)V
-end_switch:
-    return
+```j
+.method public ifElseifElse(II)I
+  # ... if condition
+  if_icmplt ifbody_1
+  # ... else if condition
+  if_icmplt ifbody_0
+  # ... else body
+  goto endif_1
+  ifbody_0: # ... else if body
+  endif_0: goto endif_1
+  ifbody_1:
+  # ... if body
+  endif_1:
+  
+  iload_3
+  ireturn
+.end method
 ```
 
-#### Inverting If conditions
+Taking advantage of the new boolean operators introduced (section TODO), the following Java code:
+```java
+public int Switch(int x, int y) {
+  int r;
+  r = switch (x) {
+    case 1 -> 10;
+    case 2 -> 20;
+    default -> 0;
+  };
+  return r;
+}
+```
+written in JMM as:
+```java
+public int nestedEqualsSwitch(int x) {
+  int r;
+  if (!(x < 1) && !(1 < x)) {r = 10;}
+  else {
+    if (!(x < 2) && !(2 < x)) {r = 20;}
+    else {r = 0;}
+  }
+  return r;
+}
+```
+can be rewritten in OLLIR as:
+```ollir
+.method public nestedEquals(x.i32, y.i32).i32 {
+  if (x.i32 ==.bool 1.i32) goto ifbody_1;
+  if (x.i32 ==.bool 2.i32) goto ifbody_0;
+  r.i32 :=.i32 0.i32;
+  goto endif_0;
+  ifbody_0:
+    r.i32 :=.i32 20.i32;
+  endif_0:
+  goto endif_1;
+  ifbody_1:
+    r.i32 :=.i32 10.i32;
+  endif_1:
+  ret.i32 r.i32;
+}
+```
+
+Now, we can recognize that nested `if/else` statements comparing the same variable to an integer value actually
+correspond to the original `switch` statement.
+The JVM offers two ways to implement a `switch` statement: `lookupswitch` and `tableswitch`. These differ in the fact
+that a `lookupswitch` will look up the value of the switch variable in a table of values, while a `tableswitch` will
+binary search the value of the switch variable in a table of ranges, providing an efficient lookup.
+
+##### Tableswitch statements
+
+When the nested `if/else` statements correspond to a `switch` statement with a contiguous set of values, the generated
+code will use a `tableswitch` statement.
+Beginning with:
+```java
+public int continuousSwitchCase(int x) {
+  int r;
+  if (!(x < 1) && !(1 < x)) {r = 1;}
+  else {
+   if (!(x < 2) && !(2 < x)) {r = 4;}
+   else {
+    if (!(x < 3) && !(3 < x)) {r = 9;}
+    else {
+     if (!(x < 4) && !(4 < x)) {r = 16;}
+     else {
+      if (!(x < 5) && !(5 < x)) {r = 25;}
+      else {
+       if (!(x < 6) && !(6 < x)) {r = 36;}
+       else {
+        if (!(x < 7) && !(7 < x)) {r = 49;}
+        else {
+         if (!(x < 8) && !(8 < x)) {r = 64;}
+         else {r = 0 - 1;}}}}}}}}
+  return r;
+}
+```
+And get the Jasmin code:
+```j
+.method public continuousSwitchCase(I)I
+  .limit stack 2
+  .limit locals 3
+
+  iload_1
+  tableswitch 1 8
+    ifbody_7
+    ifbody_6
+    ifbody_5
+    ifbody_4
+    ifbody_3
+    ifbody_2
+    ifbody_1
+    ifbody_0
+  default: default_switch_0
+  
+  # Labels for the switch cases...
+  
+  iload_2
+  ireturn
+.end method
+```
+
+If the `switch` statement is not contiguous but the gaps are not too large, the `tableswitch` statement can still be
+used, replacing the missing values with the default branch target:
+```java
+public int continuousSwitchCaseWithSmallHoles(int x) {
+  int r;
+  if (!(x < 1) && !(1 < x)) {r = 1;}
+  else {
+    if (!(x < 3) && !(3 < x)) {r = 9;}
+    else {
+     if (!(x < 4) && !(4 < x)) {r = 16;}
+     else {
+      if (!(x < 6) && !(6 < x)) {r = 36;}
+      else {
+       if (!(x < 7) && !(7 < x)) {r = 49;}
+       else {r = 0 - 1;}}}}}
+  return r;
+}
+```
+```j
+.method public continuousSwitchCaseWithSmallHoles(I)I
+.limit stack 2
+.limit locals 3
+  iload_1
+  tableswitch 1 7
+    ifbody_4
+    default_switch_0
+    ifbody_3
+    ifbody_2
+    default_switch_0
+    ifbody_1
+    ifbody_0
+  default: default_switch_0
+
+  # Labels for the switch cases...
+
+  iload_2
+  ireturn
+.end method
+```
+
+##### Lookupswitch statements
+
+When the set of switch values is too sparse, the `lookupswitch` statement can be used.
+```java
+ public int sparseSwitchCase(int x) {
+  int r;
+  if (!(x < 10) && !(10 < x)) {r = 1;}
+  else {
+   if (!(x < 20) && !(20 < x)) {r = 4;}
+   else {
+    if (!(x < 30) && !(30 < x)) {r = 9;}
+    else {
+     if (!(x < 40) && !(40 < x)) {r = 16;}
+     else {
+      if (!(x < 50) && !(50 < x)) {r = 25;}
+      else {
+       if (!(x < 60) && !(60 < x)) {r = 36;}
+       else {
+        if (!(x < 70) && !(70 < x)) {r = 49;}
+        else {
+         if (!(x < 80) && !(80 < x)) {r = 64;}
+         else {r = 0 - 1;}}}}}}}}
+  return r;
+}
+```
+```j
+.method public sparseSwitchCase(I)I
+    .limit stack 2
+    .limit locals 3
+
+    iload_1
+    lookupswitch
+    10: ifbody_7
+    20: ifbody_6
+    30: ifbody_5
+    40: ifbody_4
+    50: ifbody_3
+    60: ifbody_2
+    70: ifbody_1
+    80: ifbody_0
+    default: default_switch_0
+
+    # Labels for the switch cases...
+
+    iload_2
+    ireturn
+.end method
+```
+
+##### Inverting If conditions
 
 Inverting *if/else* conditions can have an impact on the performance of the program, by reducing the number of jumps when executing it, especially when the *else* statement is empty.
 
