@@ -63,7 +63,7 @@ public class MethodsBuilder extends AbstractBuilder {
 
         for (int i = 0; i < instructions.size(); i++) {
             Instruction instruction = instructions.get(i);
-            if (instruction instanceof OpCondInstruction condBranchInstruction) {
+            if (instruction instanceof OpCondInstruction condBranchInstruction && optimizeIfStatements) {
                 List<Instruction> nextInstructions = instructions.subList(i, instructions.size());
                 int n = attemptSwitchReplacement(condBranchInstruction, nextInstructions, method, sb);
                 if (n > 0) {
