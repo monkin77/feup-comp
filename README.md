@@ -163,6 +163,10 @@ whilebody_0:
 
 ### Jasmin Generation
 
+The final step of this compiler is to generate Jasmin code, which we then use to execute the program, with the Jasmin library.
+
+The optimization done in the Jasmin stage were the following:
+
 #### Register Allocation
 
 To define the number of allocated registers, we start by checking if the received number of registers is valid:
