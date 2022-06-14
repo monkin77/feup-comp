@@ -186,7 +186,7 @@ public class DataflowAnalysis {
                 // If the last usage of the variable cannot be determined, assume it is alive until the end
                 varLiveRange = IntStream.range(firstDef, this.in.length).toArray();
             } else if (lastIn != null && firstDef != null) {
-                varLiveRange = IntStream.range(firstDef, lastIn + 1).toArray();
+                varLiveRange = IntStream.range(firstDef, lastIn).toArray();
             }
 
             this.liveRange.put(varName, varLiveRange);
