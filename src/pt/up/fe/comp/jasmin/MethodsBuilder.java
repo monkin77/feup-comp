@@ -63,7 +63,7 @@ public class MethodsBuilder extends AbstractBuilder {
 
         for (int i = 0; i < instructions.size(); i++) {
             Instruction instruction = instructions.get(i);
-            if (instruction instanceof OpCondInstruction condBranchInstruction) {
+            if (instruction instanceof OpCondInstruction condBranchInstruction && optimizeIfStatements) {
                 List<Instruction> nextInstructions = instructions.subList(i, instructions.size());
                 int n = attemptSwitchReplacement(condBranchInstruction, nextInstructions, method, sb);
                 if (n > 0) {
@@ -89,7 +89,6 @@ public class MethodsBuilder extends AbstractBuilder {
         if (!(instruction.getCondition() instanceof BinaryOpInstruction condition)) return 0;
         if (!condition.getOperation().getOpType().equals(OperationType.EQ)) return 0;
 
-        SortedMap<String, String> switchCases = new TreeMap<>();
         final Operand variableOperand;
         final LiteralElement literalElement;
 
@@ -105,11 +104,10 @@ public class MethodsBuilder extends AbstractBuilder {
             return 0;
         }
 
+        SortedMap<String, String> switchCases = collectCases(instructions, variableOperand);
+        if (switchCases == null) return 0;
         switchCases.put(literalElement.getLiteral(), instruction.getLabel());
-        SortedMap<String, String> nextCases = collectCases(instructions, variableOperand);
-        if (nextCases == null) return 0;
-        switchCases.putAll(nextCases);
-        if (nextCases.size() < 3) return 0;
+        if (switchCases.size() < 3) return 0;
         Set<String> labels = new TreeSet<>(switchCases.keySet());
         labels.remove("default");
         Integer[] cases = labels.stream().map(Integer::valueOf).toArray(Integer[]::new);
@@ -212,6 +210,12 @@ public class MethodsBuilder extends AbstractBuilder {
                 continue;
 
             CondBranchInstruction condBranchInstruction = (CondBranchInstruction) instruction;
+            int n = attemptSwitchReplacement(condBranchInstruction, instructions.subList(i, instructions.size()), method, new StringBuilder());
+            if (n > 0) {
+                i += n - 2;
+                continue;
+            }
+
             String ifLabel = condBranchInstruction.getLabel();
 
             int underscorePosition = ifLabel.indexOf('_');
