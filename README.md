@@ -47,8 +47,8 @@ elimination (simple and advanced).
 
 #### Constant Propagation and Folding
 
-Before generating OLLIR code, the *ConstantPropagatorVisitor* replaces constant variables with their respective values.
-Similarly, the *ConstantFolderVisitor* computes operations with constant values, to eliminate unnecessary instructions.
+Before generating OLLIR code, the [*ConstantPropagatorVisitor*](src/pt/up/fe/comp/optimizations/ConstantPropagatorVisitor.java) replaces constant variables with their respective values.
+Similarly, the [*ConstantFolderVisitor*](src/pt/up/fe/comp/optimizations/ConstantFolderVisitor.java) computes operations with constant values, to eliminate unnecessary instructions.
 
 ```java
 public int f(int x, int y) {
@@ -84,12 +84,12 @@ eliminating needless tedious calculations and avoiding costly memory accesses. F
 conditional checks on *if/while* statements, as well as assignments whose results are not used (preserving possible side
 effects).
 
-This is done in the *DeadConditionalLoopsVisitor* and *DeadStoreRemoverVisitor* classes.
+This is done in the [*DeadConditionalLoopsVisitor*](src/pt/up/fe/comp/optimizations/DeadConditionalLoopsVisitor.java) and [*DeadStoreRemoverVisitor*](src/pt/up/fe/comp/optimizations/DeadStoreRemoverVisitor.java) classes.
 
 #### Simplifying Boolean Expressions and Operations
 
 Whenever boolean or arithmetic expressions can be simplified at compile-time, we can reduce the number of instructions
-and execution time by replacing them with constants, which is done in the *BooleanSimplifierVisitor* class.
+and execution time by replacing them with constants, which is done in the [*BooleanSimplifierVisitor*](src/pt/up/fe/comp/optimizations/BooleanSimplifierVisitor.java) class.
 
 For example, the following snippets of code can be simplified (ignoring other optimizations):
 
@@ -138,8 +138,8 @@ if (x.i32 !=.bool y.i32) goto ifbody_2;
 ### Ollir Generation
 
 In this stage, the AST is converted to the OLLIR (Optimized Low-Level Intermediate Representation) format, which is done
-in the *OllirBuilder* class. The strategy for this stage was to recursively iterate the AST (visitor pattern) for the
-code generation and for the optimizations. The *OllirVisitor*, which is responsible for generating OLLIR code, generates
+in the [*OllirBuilder*](src/pt/up/fe/comp/ollir/OllirBuilder.java) class. The strategy for this stage was to recursively iterate the AST (visitor pattern) for the
+code generation and for the optimizations. The [*OllirVisitor*](src/pt/up/fe/comp/ollir/OllirVisitor.java), which is responsible for generating OLLIR code, generates
 temporary variables whenever they are **necessary**.
 
 At this stage, another optimization is performed to remove unnecessary jumps: replacing some while loops with do-while
