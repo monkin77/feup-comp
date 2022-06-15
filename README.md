@@ -7,8 +7,11 @@ the [compatibility matrix](https://docs.gradle.org/current/userguide/compatibili
 ## Group 8A
 
 NAME: Bruno Rosendo, NR: 201906334, GRADE: 20, CONTRIBUTION: 25%
+
 NAME: Rui Filipe Teixeira Alves, NR: 201905853, GRADE: 20, CONTRIBUTION: 25%
+
 NAME: João Mesquita, NR: 201906682, GRADE: 20, CONTRIBUTION: 25%
+
 NAME: Tomás Vicente, NR: 201904609, GRADE: 20, CONTRIBUTION: 25%
 
 Global Grade: 20
