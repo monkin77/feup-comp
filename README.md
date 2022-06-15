@@ -26,8 +26,8 @@ The generated code can then be executed using [Jasmin](http://jasmin.sourceforge
 
 This stage is responsible for validating the contents of the Abstract Syntax Tree. The following validations were implemented:
 
-- Type checking operations, assignments, method's arguments and return values, array indexing, conditional expressions and nested dot expressions. ([*TypeCheckingVisitor*](https://git.fe.up.pt/compilers2022/comp2022-8a/-/blob/master/src/pt/up/fe/comp/visitors/TypeCheckingVisitor.java) class).
-- Verifying the existence of invoked functions, referenced variables, custom types. ([*ExistenceVisitor*](https://git.fe.up.pt/compilers2022/comp2022-8a/-/blob/master/src/pt/up/fe/comp/visitors/ExistenceVisitor.java) class).
+- Type checking operations, assignments, method's arguments and return values, array indexing, conditional expressions and nested dot expressions. ([*TypeCheckingVisitor*](src/pt/up/fe/comp/visitors/TypeCheckingVisitor.java) class).
+- Verifying the existence of invoked functions, referenced variables, custom types. ([*ExistenceVisitor*](src/pt/up/fe/comp/visitors/ExistenceVisitor.java) class).
 - Whenever the compiler detects a semantic error, it reports it, informing the line and column where it occurred, thanks to the AST annotation.
 
 Note that the semantic verification of imported classes is assumed to be correct.
@@ -171,22 +171,22 @@ The optimization done in the Jasmin stage were the following:
 
 To define the number of allocated registers, we start by checking if the received number of registers is valid:
 
-- if the number is -1, then we use the maximum number of local variables of all methods ([*AllocateRegisters*](https://git.fe.up.pt/compilers2022/comp2022-8a/-/blob/master/src/pt/up/fe/comp/registerAllocation/AllocateRegisters.java#L36)).
-- if the number is 0, then our code determines the minimum number of registers required, by iterating from 0 to a valid number ([*AllocateRegisters*](https://git.fe.up.pt/compilers2022/comp2022-8a/-/blob/master/src/pt/up/fe/comp/registerAllocation/AllocateRegisters.java#L52)).
+- if the number is -1, then we use the maximum number of local variables of all methods ([*AllocateRegisters*](src/pt/up/fe/comp/registerAllocation/AllocateRegisters.java#L36)).
+- if the number is 0, then our code determines the minimum number of registers required, by iterating from 0 to a valid number ([*AllocateRegisters*](src/pt/up/fe/comp/registerAllocation/AllocateRegisters.java#L52)).
 
 If the number is a positive number, then we proceed to calculate the registers. We start by making a dataflow analysis, by:
 
-- Building the successors, in, out, def and use parameters for each method ([*DataflowAnalysis*](https://git.fe.up.pt/compilers2022/comp2022-8a/-/blob/master/src/pt/up/fe/comp/registerAllocation/dataflow/DataflowAnalysis.java#L49)).
-- Computating the backward Liveness Analysis, which sets up the in and out of each method ([*DataflowAnalysis*](https://git.fe.up.pt/compilers2022/comp2022-8a/-/blob/master/src/pt/up/fe/comp/registerAllocation/dataflow/DataflowAnalysis.java#L110)).
-- Calculating the live range for each defined variable ([*DataflowAnalysis*](https://git.fe.up.pt/compilers2022/comp2022-8a/-/blob/master/src/pt/up/fe/comp/registerAllocation/dataflow/DataflowAnalysis.java#L180)).
-- Calculating the conflicts/interference between variables, storing it in a HashMap for each variable. ([*DataflowAnalysis*](https://git.fe.up.pt/compilers2022/comp2022-8a/-/blob/master/src/pt/up/fe/comp/registerAllocation/dataflow/DataflowAnalysis.java#L228)).
+- Building the successors, in, out, def and use parameters for each method ([*DataflowAnalysis*](src/pt/up/fe/comp/registerAllocation/dataflow/DataflowAnalysis.java#L49)).
+- Computating the backward Liveness Analysis, which sets up the in and out of each method ([*DataflowAnalysis*](src/pt/up/fe/comp/registerAllocation/dataflow/DataflowAnalysis.java#L110)).
+- Calculating the live range for each defined variable ([*DataflowAnalysis*](src/pt/up/fe/comp/registerAllocation/dataflow/DataflowAnalysis.java#L180)).
+- Calculating the conflicts/interference between variables, storing it in a HashMap for each variable. ([*DataflowAnalysis*](src/pt/up/fe/comp/registerAllocation/dataflow/DataflowAnalysis.java#L228)).
 
-After that, we construct the [*Interference Graph*](https://git.fe.up.pt/compilers2022/comp2022-8a/-/blob/master/src/pt/up/fe/comp/registerAllocation/coloring/InterferenceGraph.java#L10) and proceed to color it by:
+After that, we construct the [*Interference Graph*](src/pt/up/fe/comp/registerAllocation/coloring/InterferenceGraph.java#L10) and proceed to color it by:
 
-- Iteratively pushing to the stack the nodes with degree (number of edges) lower than the number of registers ([*GraphColoring*](https://git.fe.up.pt/compilers2022/comp2022-8a/-/blob/master/src/pt/up/fe/comp/registerAllocation/coloring/GraphColoring.java#L20)).
-- Iterating the stack and assigning an available color (register) to each node ([*GraphColoring*](https://git.fe.up.pt/compilers2022/comp2022-8a/-/blob/master/src/pt/up/fe/comp/registerAllocation/coloring/GraphColoring.java#L55)).
+- Iteratively pushing to the stack the nodes with degree (number of edges) lower than the number of registers ([*GraphColoring*](src/pt/up/fe/comp/registerAllocation/coloring/GraphColoring.java#L20)).
+- Iterating the stack and assigning an available color (register) to each node ([*GraphColoring*](src/pt/up/fe/comp/registerAllocation/coloring/GraphColoring.java#L55)).
 
-If there is no register available, then we report an error with the minimum number of JVM local variables required ([*AllocateRegisters*](https://git.fe.up.pt/compilers2022/comp2022-8a/-/blob/master/src/pt/up/fe/comp/registerAllocation/AllocateRegisters.java#L105)).
+If there is no register available, then we report an error with the minimum number of JVM local variables required ([*AllocateRegisters*](src/pt/up/fe/comp/registerAllocation/AllocateRegisters.java#L105)).
 
 #### Optimized JVM Instructions
 
