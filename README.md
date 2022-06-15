@@ -15,9 +15,9 @@ Global Grade: 20
 
 ## Summary
 
-This project consists of a compiler for a subset of the Java programming language, referred to as “jmm”, which stands
-for “Java-minus-minus”, going through all the stages of compilation: Lexical analysis, Syntatic analysis, Semantic
-analysis, High and Low level optimization and Code generation.
+This project consists of a compiler for a subset of the Java programming language (referred to as JMM, which stands
+for “Java-minus-minus”), going through all the stages of compilation: Lexical Analysis, Syntactic Analysis, Semantic
+Analysis, High & Low level Optimization, and Code Generation.
 
 The generated code can then be executed using [Jasmin](http://jasmin.sourceforge.net/).
 
@@ -26,7 +26,7 @@ The generated code can then be executed using [Jasmin](http://jasmin.sourceforge
 This stage is responsible for validating the contents of the Abstract Syntax Tree. The following validations were
 implemented:
 
-- Type checking operations, assignments, method's arguments and return values, array indexing, conditional expressions
+- Type checking operations, assignments, methods' arguments and return values, array indexing, conditional expressions
   and nested dot expressions. ([*TypeCheckingVisitor*](src/pt/up/fe/comp/visitors/TypeCheckingVisitor.java) class).
 - Verifying the existence of invoked functions, referenced variables, custom types. ([*
   ExistenceVisitor*](src/pt/up/fe/comp/visitors/ExistenceVisitor.java) class).
@@ -571,7 +571,7 @@ to change the order of instructions executed.
 - Assuming, in the type checking, that if the type is from an imported class or method then it works without any errors.
 - The OLLIR generated code sometimes has repeated types (e.g. temp2.i32.i32). This isn't an issue in execution, thus the
   bug was ignored so the group could focus in more important things.
-- Missing identation in the generated code.
+- Missing indentation in the generated code.
 
 ## Project setup
 
