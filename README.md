@@ -38,16 +38,12 @@ Note that the semantic verification of imported classes is assumed to be correct
 ## Code Generation
 
 In order to ease the development of the compiler and to assure its modularity and robustness, the code generation is
-divided into the following stages:
+divided into multiple stages: AST optimizations, OLLIR generation, register allocation, and Jasmin code generation.
 
-### Ollir Generation
+### AST Optimizations
 
-In this stage, the AST is converted to the OLLIR (Optimized Low-Level Intermediate Representation) format, which is done
-in the *OllirBuilder* class. The strategy for this stage was to recursively iterate the AST (visitor pattern) for the
-code generation and for the optimizations. The *OllirVisitor*, which is responsible for generating OLLIR code, generated
-temporary variables whenever they're **needed**.
-
-The optimization done in the OLLIR stage were the following:
+Regarding the AST, the following optimizations were implemented: constant propagation, constant folding, and dead code
+elimination (simple and advanced).
 
 #### Constant Propagation and Folding
 
@@ -138,6 +134,15 @@ if (x.i32 >=.bool y.i32) goto ifbody_0;
 if (x.i32 ==.bool y.i32) goto ifbody_1;
 if (x.i32 !=.bool y.i32) goto ifbody_2;
 ```
+
+### Ollir Generation
+
+In this stage, the AST is converted to the OLLIR (Optimized Low-Level Intermediate Representation) format, which is done
+in the *OllirBuilder* class. The strategy for this stage was to recursively iterate the AST (visitor pattern) for the
+code generation and for the optimizations. The *OllirVisitor*, which is responsible for generating OLLIR code, generated
+temporary variables whenever they're **needed**.
+
+The optimization done in the OLLIR stage were the following:
 
 #### Do-While statements
 
