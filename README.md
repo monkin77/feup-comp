@@ -48,7 +48,6 @@ elimination (simple and advanced).
 #### Constant Propagation and Folding
 
 Before generating OLLIR code, the *ConstantPropagatorVisitor* replaces constant variables with their respective values.
-
 Similarly, the *ConstantFolderVisitor* computes operations with constant values, to eliminate unnecessary instructions.
 
 ```java
@@ -81,15 +80,16 @@ public int f(int x, int y) {
 #### Dead Code Elimination (Advanced)
 
 Eliminating dead code can significantly reduce the generated code size and, in some cases, improve execution time by
-eliminating dead instructions. For this reason, we removed *ifs/whiles* with a constant condition and instructions that
-are executed but aren't used afterwards.
+eliminating needless tedious calculations and avoiding costly memory accesses. For this reason, we removed redundant
+conditional checks on *if/while* statements, as well as assignments whose results are not used (preserving possible side
+effects).
 
 This is done in the *DeadConditionalLoopsVisitor* and *DeadStoreRemoverVisitor* classes.
 
 #### Simplifying Boolean Expressions and Operations
 
-It's advantageous to simplify boolean expressions that can be statically evaluated, which is done in the *
-BooleanSimplifierVisitor* class.
+Whenever boolean or arithmetic expressions can be simplified at compile-time, we can reduce the number of instructions
+and execution time by replacing them with constants, which is done in the *BooleanSimplifierVisitor* class.
 
 For example, the following snippets of code can be simplified (ignoring other optimizations):
 
@@ -139,18 +139,18 @@ if (x.i32 !=.bool y.i32) goto ifbody_2;
 
 In this stage, the AST is converted to the OLLIR (Optimized Low-Level Intermediate Representation) format, which is done
 in the *OllirBuilder* class. The strategy for this stage was to recursively iterate the AST (visitor pattern) for the
-code generation and for the optimizations. The *OllirVisitor*, which is responsible for generating OLLIR code, generated
-temporary variables whenever they're **needed**.
+code generation and for the optimizations. The *OllirVisitor*, which is responsible for generating OLLIR code, generates
+temporary variables whenever they are **necessary**.
 
-The optimization done in the OLLIR stage were the following:
+At this stage, another optimization is performed to remove unnecessary jumps: replacing some while loops with do-while
+loops.
 
 #### Do-While statements
 
-There are cases where the compiler can statically detect that the condition of a *while loop* is always true at its
-first iteration. In this case, it can be replaced by a do-while and reduce the number of instructions and jumps
-executed.
+Whenever the condition for a while loop can be statically determined to be true on the first iteration, it can be
+replaced with a do-while loop, reducing the number of jumps.
 
-Example of a regular while:
+Example of a regular while statement:
 
 ```
 if_icmplt whilebody_0
@@ -166,7 +166,7 @@ endwhile_0:
     return
 ```
 
-Example of a do-while:
+Example of a do-while statement:
 
 ```
 whilebody_0:
@@ -213,42 +213,11 @@ AllocateRegisters*](src/pt/up/fe/comp/registerAllocation/AllocateRegisters.java#
 
 ### Jasmin Generation
 
-The final step of this compiler is to generate Jasmin code, which we then use to execute the program, with the Jasmin
+The final step of this compiler is to generate Jasmin code, which we then use to execute the program with the Jasmin
 library.
 
-The optimization done in the Jasmin stage were the following:
-
-#### Register Allocation
-
-To define the number of allocated registers, we start by checking if the received number of registers is valid:
-
-- if the number is -1, then we use the maximum number of local variables of all methods ([*
-  AllocateRegisters*](src/pt/up/fe/comp/registerAllocation/AllocateRegisters.java#L36)).
-- if the number is 0, then our code determines the minimum number of registers required, by iterating from 0 to a valid
-  number ([*AllocateRegisters*](src/pt/up/fe/comp/registerAllocation/AllocateRegisters.java#L52)).
-
-If the number is a positive number, then we proceed to calculate the registers. We start by making a dataflow analysis,
-by:
-
-- Building the successors, in, out, def and use parameters for each method ([*
-  DataflowAnalysis*](src/pt/up/fe/comp/registerAllocation/dataflow/DataflowAnalysis.java#L49)).
-- Computating the backward Liveness Analysis, which sets up the in and out of each method ([*
-  DataflowAnalysis*](src/pt/up/fe/comp/registerAllocation/dataflow/DataflowAnalysis.java#L110)).
-- Calculating the live range for each defined variable ([*
-  DataflowAnalysis*](src/pt/up/fe/comp/registerAllocation/dataflow/DataflowAnalysis.java#L180)).
-- Calculating the conflicts/interference between variables, storing it in a HashMap for each variable. ([*
-  DataflowAnalysis*](src/pt/up/fe/comp/registerAllocation/dataflow/DataflowAnalysis.java#L228)).
-
-After that, we construct the [*Interference
-Graph*](src/pt/up/fe/comp/registerAllocation/coloring/InterferenceGraph.java#L10) and proceed to color it by:
-
-- Iteratively pushing to the stack the nodes with degree (number of edges) lower than the number of registers ([*
-  GraphColoring*](src/pt/up/fe/comp/registerAllocation/coloring/GraphColoring.java#L20)).
-- Iterating the stack and assigning an available color (register) to each node ([*
-  GraphColoring*](src/pt/up/fe/comp/registerAllocation/coloring/GraphColoring.java#L55)).
-
-If there is no register available, then we report an error with the minimum number of JVM local variables required ([*
-AllocateRegisters*](src/pt/up/fe/comp/registerAllocation/AllocateRegisters.java#L105)).
+The optimization done in the Jasmin stage were related to the use of optimized instructions for loading/storing
+constants and local variables, incrementing variables, comparisons, and conditional statements.
 
 #### Optimized JVM Instructions
 
@@ -441,7 +410,7 @@ public int continuousSwitchCase(int x) {
 }
 ```
 
-And get the Jasmin code:
+We end up with the Jasmin code:
 
 ```j
 .method public continuousSwitchCase(I)I
@@ -560,7 +529,7 @@ When the set of switch values is too sparse, the `lookupswitch` statement can be
 .end method
 ```
 
-##### Inverting If conditions
+##### Inverting conditions
 
 Inverting *if/else* conditions can have an impact on the performance of the program, by reducing the number of jumps
 when executing it, especially when the *else* statement is empty.
