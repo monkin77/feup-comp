@@ -326,7 +326,7 @@ are replaced with a goto statement that jumps to the final destination:
 .end method
 ```
 
-Taking advantage of the new boolean operators introduced (section TODO), the following Java code:
+Taking advantage of the new boolean operators introduced, the following Java code:
 
 ```java
 public int Switch(int x, int y) {
